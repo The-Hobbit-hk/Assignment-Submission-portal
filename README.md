@@ -7,6 +7,8 @@ This is a Vite + React + Tailwind frontend project for the Joineazy Frontend Int
 - Students can submit and confirm their submissions (double-verification)
 - Admins can create assignments, attach Drive links per student, and view per-student progress bars
 - All data is persisted in localStorage (no backend)
+- Student password: "s1" & "s2"
+- Admin Password: "profpass"
 
 ## Run locally
 1. Install dependencies:
