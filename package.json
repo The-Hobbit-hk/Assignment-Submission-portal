@@ -14,6 +14,8 @@
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
     "db:seed": "npx tsx prisma/seed.ts",
+    "db:ensure-admin": "npx tsx scripts/ensure-admin.ts",
+    "db:import-clubs": "npx tsx scripts/import-clubs.ts",
     "db:dev": "npx prisma dev --detach --name rac3131",
     "db:setup": "npm run db:dev && npm run db:push && npm run db:seed",
     "postinstall": "prisma generate"

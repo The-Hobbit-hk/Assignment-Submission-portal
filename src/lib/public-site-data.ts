@@ -56,6 +56,7 @@ export type PublicClub = {
   zone: string | null;
   status: string;
   description: string | null;
+  charterNumber: string | null;
   memberCount: number;
 };
 
@@ -77,6 +78,7 @@ export async function getPublicClubsByZone(): Promise<Record<string, PublicClub[
       zone: club.zone,
       status: club.status,
       description: club.description,
+      charterNumber: club.charterNumber,
       memberCount: club._count.members,
     };
     if (!grouped[zone]) grouped[zone] = [];

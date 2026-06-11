@@ -5,20 +5,14 @@ import bcrypt from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { COUNCIL_PASSWORD, COUNCIL_USERS } from "./data/council-users";
+import {
+  DISTRICT_CLUBS,
+  clubDescription,
+  parseCharterDate,
+} from "../src/lib/district-clubs-data";
+import { CLUB_LOGIN, SEED_ADMIN } from "./data/seed-constants";
 
-/** Technical system admin — created on every seed run */
-export const SEED_ADMIN = {
-  email: "admin@rotaract3131.org",
-  password: "Admin@3131",
-  name: "System Admin",
-};
-
-export const CLUB_LOGIN = {
-  email: "club.mumbai@rotaract3131.org",
-  password: COUNCIL_PASSWORD,
-  name: "Mumbai Club Login",
-  role: "CLUB_PRESIDENT" as const,
-};
+export { CLUB_LOGIN, SEED_ADMIN };
 
 config({ path: ".env.local" });
 config();
@@ -58,55 +52,22 @@ async function main() {
     },
   });
 
-  const clubs = await Promise.all([
-    prisma.club.create({
-      data: {
-        name: "Rotaract Club of Mumbai Central",
-        charterNumber: "RAC-3131-001",
-        city: "Mumbai",
-        zone: "Zone A",
-        status: "ACTIVE",
-        description: "Serving communities in central Mumbai since 2010.",
-        serviceHours: 320,
-        foundedAt: new Date("2010-03-15"),
-      },
-    }),
-    prisma.club.create({
-      data: {
-        name: "Rotaract Club of Pune IT",
-        charterNumber: "RAC-3131-002",
-        city: "Pune",
-        zone: "Zone B",
-        status: "ACTIVE",
-        description: "Tech professionals driving social impact in Pune.",
-        serviceHours: 280,
-        foundedAt: new Date("2015-07-20"),
-      },
-    }),
-    prisma.club.create({
-      data: {
-        name: "Rotaract Club of Nashik Hills",
-        charterNumber: "RAC-3131-003",
-        city: "Nashik",
-        zone: "Zone C",
-        status: "ACTIVE",
-        description: "Community service in the Nashik region.",
-        serviceHours: 195,
-        foundedAt: new Date("2018-01-10"),
-      },
-    }),
-    prisma.club.create({
-      data: {
-        name: "Rotaract Club of Thane East",
-        charterNumber: "RAC-3131-004",
-        city: "Thane",
-        zone: "Zone A",
-        status: "PROVISIONAL",
-        description: "Newly chartered club in Thane East.",
-        serviceHours: 45,
-      },
-    }),
-  ]);
+  const clubs = await Promise.all(
+    DISTRICT_CLUBS.map((club) =>
+      prisma.club.create({
+        data: {
+          name: club.name,
+          charterNumber: club.riClubId,
+          zone: club.zone,
+          city: club.city ?? null,
+          status: club.status ?? "ACTIVE",
+          foundedAt: parseCharterDate(club.charterDate) ?? null,
+          description: clubDescription(club) ?? null,
+          serviceHours: 0,
+        },
+      })
+    )
+  );
 
   const memberData = [
     { firstName: "Aarav", lastName: "Sharma", email: "aarav@example.com", role: "PRESIDENT" as const, points: 450, clubIdx: 0 },
@@ -174,15 +135,15 @@ async function main() {
     { title: "Leadership Workshop", clubIdx: 0, type: "TRAINING" as const, days: -25, hours: 5, attendees: 28, status: "COMPLETED" as const },
     { title: "Club Social Night", clubIdx: 1, type: "SOCIAL" as const, days: 8, hours: 3, attendees: 60 },
     {
-      title: "Installation — Rotaract Club of Mumbai Central",
-      clubIdx: 0,
+      title: `Installation — ${clubs[2]?.name ?? "Rotaract Club of Panvel Elite"}`,
+      clubIdx: 2,
       type: "INSTALLATION" as const,
       days: 30,
       hours: 3,
       attendees: 80,
     },
     {
-      title: "Installation — Rotaract Club of Pune IT",
+      title: `Installation — ${clubs[1]?.name ?? "Rotaract Club of Khopoli"}`,
       clubIdx: 1,
       type: "INSTALLATION" as const,
       days: 35,
@@ -190,8 +151,8 @@ async function main() {
       attendees: 70,
     },
     {
-      title: "Installation — Rotaract Club of Thane East",
-      clubIdx: 3,
+      title: `Installation — ${clubs[5]?.name ?? "Rotaract Club of MGM's Institute"}`,
+      clubIdx: 5,
       type: "INSTALLATION" as const,
       days: 40,
       hours: 3,
@@ -301,13 +262,16 @@ async function main() {
     });
   }
 
+  const demoClub =
+    clubs.find((c) => c.charterNumber === CLUB_LOGIN.riClubId) ?? clubs[2];
+
   const clubLogin = await prisma.user.create({
     data: {
       name: CLUB_LOGIN.name,
       email: CLUB_LOGIN.email,
       password: councilHash,
       role: CLUB_LOGIN.role,
-      clubId: clubs[0].id,
+      clubId: demoClub.id,
     },
   });
 
@@ -341,7 +305,7 @@ async function main() {
       type: "ADMIN",
       month,
       year,
-      clubId: clubs[0].id,
+      clubId: demoClub.id,
       submittedById: clubLogin.id,
       newMembers: 5,
       resolutionPassed: "yes",
@@ -356,7 +320,7 @@ async function main() {
       type: "EVENTS",
       month,
       year,
-      clubId: clubs[0].id,
+      clubId: demoClub.id,
       submittedById: clubLogin.id,
       hostClub: "no",
       districtEventAttendance: "Attended District Assembly and Career Fair.",

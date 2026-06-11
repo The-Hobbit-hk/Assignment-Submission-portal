@@ -123,7 +123,7 @@ In **Vercel → Project → Settings → Environment Variables**, add for **Prod
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key | Yes |
 | `SUPABASE_UPLOAD_BUCKET` | `uploads` | No |
 | `AUTH_SECRET` | `openssl rand -base64 32` | Yes |
-| `AUTH_URL` | `https://rotaract-3131-erp.vercel.app` | No |
+| `AUTH_URL` | `https://rotaractweb.vercel.app` | No |
 | `AUTH_TRUST_HOST` | `true` | No |
 | `NEXT_PUBLIC_APP_URL` | Same as `AUTH_URL` | No |
 
@@ -154,8 +154,9 @@ Redeploy after changing env vars.
 
 | Check | How |
 |-------|-----|
-| App loads | Visit `/` |
-| Login | `club.mumbai@rotaract3131.org` / `Rotaract@3131` (after seed) |
+| App loads | Visit `https://rotaractweb.vercel.app` |
+| Admin login | `admin@rotaract3131.org` / `Admin@3131` (after seed or `db:ensure-admin`) |
+| Club login | `club.panvel@rotaract3131.org` / `Rotaract@3131` (after full seed) |
 | Reporting | `/dashboard/reporting` |
 | File upload | Admin reporting → upload resolution proof |
 | Storage URL | Uploaded file URL should be `*.supabase.co/storage/...` |
@@ -179,6 +180,29 @@ npm run db:seed
 ```
 
 Never re-seed production without understanding it resets demo data.
+
+### Import district clubs (safe — does not wipe data)
+
+```bash
+npm run db:import-clubs
+```
+
+Upserts all **101** official District 3131 clubs (Zones 1–7) by RI club ID.
+
+### Admin login only (safe — does not wipe data)
+
+If login shows **Invalid email or password** but the app loads, the database usually has no users yet:
+
+```bash
+# .env.local must point DATABASE_URL at your Supabase pooler (6543)
+npm run db:ensure-admin
+```
+
+This creates or resets only `admin@rotaract3131.org` with password `Admin@3131`.
+
+### Preview deployment logins
+
+URLs like `rotaractweb-xxxxx-….vercel.app` are **Preview** builds. In Vercel → **Environment Variables**, enable the same `DATABASE_URL`, `AUTH_SECRET`, and Supabase keys for **Preview** (not only Production), then redeploy.
 
 ### Logs
 
@@ -229,7 +253,7 @@ Vercel Hobby plan has a **4.5 MB request body limit**. For 5 MB uploads, use **V
 
 ### NextAuth redirect loops / logout 404
 
-- `AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match the **actual** Vercel deployment URL (see Vercel → Domains). If the project URL is still `assignment-submission-portal.vercel.app`, do not set `AUTH_URL` to `rotaract-3131-erp.vercel.app` until that domain is assigned in Vercel Settings → General (project rename).
+- `AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match the **actual** Vercel deployment URL (Vercel → Project → **Domains**). Production is currently **`https://rotaractweb.vercel.app`**. If you delete a Vercel project, its `*.vercel.app` URL stops working (`DEPLOYMENT_NOT_FOUND`) — use the surviving project’s domain only.
 - Set `AUTH_TRUST_HOST=true`
 - No trailing slash on `AUTH_URL`
 
