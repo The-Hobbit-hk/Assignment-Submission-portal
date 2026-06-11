@@ -2,7 +2,13 @@ export type ContentPage = {
   title: string;
   badge?: string;
   paragraphs: string[];
-  image?: { src: string; alt: string };
+  signatory?: string;
+  image?: {
+    src: string;
+    alt: string;
+    className?: string;
+    containerClassName?: string;
+  };
 };
 
 export const SPONSORSHIP = {
@@ -37,7 +43,7 @@ export const JOIN_ROTARACT = {
 export const CONTACT = {
   phone: "+91-9657870768",
   email: "rotaractdistrict3131@gmail.com",
-  drrEmail: "nashikkar4295@gmail.com",
+  drrEmail: "rtr.dr.karishmaawari@gmail.com",
   address:
     "3rd Floor, Pratham Elite, Office No 303, opp. Civil Court Metro Station, near Pune District & Sessions Court, Tophakhana, Shivajinagar, Pune, Maharashtra 411005",
 } as const;
@@ -61,14 +67,25 @@ export const ABOUT_PAGES: Record<string, ContentPage> = {
       "Rotaractors belong to an age group of above 18 years (no age limit) and primarily work in the standing committees of Professional Development, Community Service, Club Service, International Service, and other avenues that develop leadership and fellowship.",
     ],
   },
-  "message-riy-2025-26": {
-    title: "Message for RIY 2025-26",
-    badge: "RIY 2025-26",
+  "message-riy-2026-27": {
+    title: "Message for RIY 2026-27",
+    badge: "REIGN",
+    image: {
+      src: "/reign-theme-riy-2026-27.png",
+      alt: "REIGN — Rotaract Empowering Individuals for Growth and Networking, RIY 2026-27, RID 3131",
+      containerClassName:
+        "relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-xl bg-black sm:max-w-sm",
+      className: "object-contain p-4 sm:p-6",
+    },
     paragraphs: [
-      "As we embark on Rotary International Year 2025-26, Rotaract District 3131 stands united under the theme of service, fellowship, and sustainable impact.",
-      "This year calls on every Rotaractor to lead with empathy, collaborate across clubs, and translate ideas into measurable community outcomes. Together we will strengthen professional development, expand humanitarian projects, and celebrate the spirit of Rotaract across Pune and Raigad.",
-      "Let us adapt, unite, build resilience, and aspire to create lasting change — for our districts, our communities, and ourselves.",
+      "Dear Rotaractors of District 3131,",
+      "It gives me immense pleasure to welcome you to Rotary International Year 2026-27 under our district theme REIGN — Rotaract Empowering Individuals for Growth and Networking.",
+      "This year is about unlocking the potential within every Rotaractor: nurturing leadership, strengthening professional skills, deepening our commitment to community service, and building networks that endure beyond the Rotary year.",
+      "REIGN calls us to empower one another — in our clubs, across our zones, and throughout Pune and Raigad. When individuals grow, clubs grow. When clubs grow, our district creates impact that is measurable, inclusive, and lasting.",
+      "I invite every club president, secretary, and member to carry REIGN into your meetings, projects, fellowships, and reporting. Let us lead with purpose, serve with compassion, and network with integrity.",
+      "Together, let us make RIY 2026-27 a year of empowered leaders, stronger communities, and proud Rotaract across RID 3131.",
     ],
+    signatory: "DRR Dr. Karishma Awari · RIY 2026-27 · RID 3131",
   },
   "from-leaders-desk": {
     title: "From Leaders Desk",
@@ -88,7 +105,7 @@ export const RESOURCE_PAGES: Record<
   "rotaract-handbook": {
     title: "Rotaract Handbook",
     description:
-      "Official handbook covering Rotaract structure, club operations, reporting standards, and district guidelines for RIY 2025-26.",
+      "Official handbook covering Rotaract structure, club operations, reporting standards, and district guidelines for RIY 2026-27.",
   },
   "rotary-code-of-policies": {
     title: "Rotary Code of Policies",
@@ -131,25 +148,33 @@ export const RESOURCE_PAGES: Record<
       "Official Rotaract and Rotary logos, brand guidelines, and approved assets for district use.",
     externalUrl: "/logo-rotaract-3131.png",
   },
-  "awards-structure-riy-2025-26": {
-    title: "Awards Structure RIY 2025-26",
+  "awards-structure-riy-2026-27": {
+    title: "Awards Structure RIY 2026-27",
     description:
-      "District awards categories, eligibility criteria, and submission timelines for RIY 2025-26.",
+      "District awards categories, eligibility criteria, and submission timelines for RIY 2026-27 under the REIGN theme.",
   },
 };
 
 export const COUNCIL_PAGES: Record<string, ContentPage> = {
   drr: {
     title: "District Rotaract Representative (DRR)",
-    badge: "Council 25-26",
+    badge: "Council 26-27",
+    image: {
+      src: "/reign-theme-riy-2026-27.png",
+      alt: "REIGN theme logo for RIY 2026-27, Rotaract District 3131",
+      containerClassName:
+        "relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-xl bg-black sm:max-w-sm",
+      className: "object-contain p-4 sm:p-6",
+    },
     paragraphs: [
-      "The District Rotaract Representative leads Rotaract District 3131, representing all clubs at the district and international level.",
-      "The DRR oversees council operations, aligns district strategy with Rotary International goals, and mentors club leadership across Pune and Raigad.",
+      "PHF. DRR. Dr. Karishma Awari leads Rotaract District 3131 for RIY 2026-27 under the theme REIGN — Rotaract Empowering Individuals for Growth and Networking.",
+      "The District Rotaract Representative represents all clubs at the district and international level, oversees council operations, and aligns district strategy with Rotary International goals.",
+      "Read the full message for the Rotary year on the Message for RIY 2026-27 page.",
     ],
   },
   "core-council": {
     title: "Core Council",
-    badge: "Council 25-26",
+    badge: "Council 26-27",
     paragraphs: [
       "The Core Council comprises key district officers responsible for administration, events, protocols, and reporting.",
       "Members collaborate on district-wide initiatives, support clubs, and drive the annual district plan.",
@@ -157,7 +182,7 @@ export const COUNCIL_PAGES: Record<string, ContentPage> = {
   },
   "sub-core": {
     title: "Sub Core",
-    badge: "Council 25-26",
+    badge: "Council 26-27",
     paragraphs: [
       "Sub Core teams extend the Core Council's reach through specialized portfolios and zonal coordination.",
       "They assist with event execution, club visits, and follow-up on district directives.",
@@ -165,14 +190,14 @@ export const COUNCIL_PAGES: Record<string, ContentPage> = {
   },
   "district-executive-council": {
     title: "District Executive Council",
-    badge: "Council 25-26",
+    badge: "Council 26-27",
     paragraphs: [
       "The District Executive Council is the governing body that reviews district performance, approves major initiatives, and ensures accountability across committees.",
     ],
   },
   "event-chairperson": {
     title: "Event Chairperson",
-    badge: "Council 25-26",
+    badge: "Council 26-27",
     paragraphs: [
       "Event Chairpersons lead flagship district events — from planning and budgets to execution and post-event reporting.",
       "They coordinate with clubs, sponsors, and council members to deliver memorable, impact-driven experiences.",
@@ -180,7 +205,7 @@ export const COUNCIL_PAGES: Record<string, ContentPage> = {
   },
   convenors: {
     title: "Convenors",
-    badge: "Council 25-26",
+    badge: "Council 26-27",
     paragraphs: [
       "Convenors manage standing committees such as professional development, community service, and international service.",
       "They mobilize Rotaractors, track outcomes, and report progress through the district bluebook system.",

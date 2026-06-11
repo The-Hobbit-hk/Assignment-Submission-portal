@@ -12,7 +12,7 @@ export const SITE_NAV: SiteNavItem[] = [
       { label: "About Us", href: "/about" },
       { label: "Rotary International", href: "/about/rotary-international" },
       { label: "Rotaract District 3131", href: "/about/rotaract-district-3131" },
-      { label: "Message for RIY 2025-26", href: "/about/message-riy-2025-26" },
+      { label: "Message for RIY 2026-27", href: "/about/message-riy-2026-27" },
       { label: "From Leaders Desk", href: "/about/from-leaders-desk" },
     ],
   },
@@ -29,7 +29,7 @@ export const SITE_NAV: SiteNavItem[] = [
       { label: "Rotary Standard Constitution", href: "/resources/rotary-standard-constitution" },
       { label: "MOP - Manual of procedure", href: "/resources/manual-of-procedure" },
       { label: "Logo Resources", href: "/resources/logo-resources" },
-      { label: "Awards Structure RIY 2025-26", href: "/resources/awards-structure-riy-2025-26" },
+      { label: "Awards Structure RIY 2026-27", href: "/resources/awards-structure-riy-2026-27" },
     ],
   },
   { label: "Clubs", href: "/clubs" },
@@ -37,7 +37,7 @@ export const SITE_NAV: SiteNavItem[] = [
   { label: "Calendar", href: "/calendar" },
   { label: "Sponsorship", href: "/sponsorship" },
   {
-    label: "Council 25-26",
+    label: "Council 26-27",
     children: [
       { label: "Council Overview", href: "/council" },
       { label: "DRR", href: "/council/drr" },

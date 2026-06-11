@@ -12,12 +12,17 @@ export function ContentPageView({ content, heroTitle }: { content: ContentPage; 
           <div className="grid gap-8 sm:gap-12 lg:grid-cols-2 lg:items-start">
             <div className="flex justify-center lg:sticky lg:sticky-below-header">
               {content.image ? (
-                <div className="relative aspect-[4/3] w-full max-w-md overflow-hidden rounded-xl border border-zinc-200">
+                <div
+                  className={
+                    content.image.containerClassName ??
+                    "relative aspect-[4/3] w-full max-w-md overflow-hidden rounded-xl border border-zinc-200"
+                  }
+                >
                   <Image
                     src={content.image.src}
                     alt={content.image.alt}
                     fill
-                    className="object-cover"
+                    className={content.image.className ?? "object-cover"}
                   />
                 </div>
               ) : (
@@ -38,6 +43,9 @@ export function ContentPageView({ content, heroTitle }: { content: ContentPage; 
                   {paragraph}
                 </p>
               ))}
+              {content.signatory && (
+                <p className="pt-2 font-medium text-accent">{content.signatory}</p>
+              )}
             </div>
           </div>
         </div>

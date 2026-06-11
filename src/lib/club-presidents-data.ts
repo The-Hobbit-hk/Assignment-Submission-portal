@@ -1,5 +1,5 @@
 /**
- * Club presidents — RIY 2025-26 (matched to district club RI IDs).
+ * Club presidents — RIY 2026-27 (matched to district club RI IDs).
  */
 
 export type ClubPresidentRecord = {

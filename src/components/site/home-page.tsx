@@ -9,7 +9,12 @@ import { siteConfig } from "@/config/site";
 export function HomePage() {
   return (
     <>
-      <PageHero title="Rotaract District 3131" large />
+      <PageHero
+        title="Rotaract District 3131"
+        subtitle="REIGN — Rotaract Empowering Individuals for Growth and Networking · RIY 2026-27"
+        backgroundImage={siteConfig.homeHeroBackground}
+        large
+      />
 
       <section className="py-12 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 text-center lg:px-8">

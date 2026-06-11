@@ -12,7 +12,7 @@ export default async function CalendarPage() {
     <>
       <PageHero
         title="Calendar"
-        subtitle="District events and club installations for RIY 2025-26"
+        subtitle="District events and club installations for RIY 2026-27"
       />
       <section className="py-16">
         <div className="mx-auto max-w-4xl px-4 lg:px-8">

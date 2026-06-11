@@ -3,6 +3,12 @@ export const siteConfig = {
   shortName: "Rotaract District 3131",
   logo: "/logo-rotaract-3131.png",
   logoMark: "/logo-rotaract-mark.png",
+  reignLogo: "/reign-theme-riy-2026-27.png",
+  homeHeroBackground: "/home-hero-background.png",
+  rotaryYear: "2026-27",
+  theme: "REIGN",
+  themeTagline: "Rotaract Empowering Individuals for Growth and Networking",
+  drr: "Dr. Karishma Awari",
   description:
     "Enterprise resource planning platform for Rotaract District 3131 operations, clubs, and district leadership.",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
