@@ -7,7 +7,7 @@ export default function AuthGroupLayout({
 }) {
   return (
     <SiteShell>
-      <div className="flex min-h-[calc(100vh-4.25rem)] items-center justify-center bg-white px-4 py-12">
+      <div className="flex min-h-below-header items-center justify-center bg-white px-4 py-8 sm:py-12">
         {children}
       </div>
     </SiteShell>

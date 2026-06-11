@@ -19,8 +19,8 @@ export function DashboardContent() {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-5">
-      <div className="lg:col-span-3">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      <div className="md:col-span-2 lg:col-span-3">
         <CalendarWidget events={data.calendarEvents} />
       </div>
       <div className="lg:col-span-2">

@@ -7,10 +7,10 @@ export function ContentPageView({ content, heroTitle }: { content: ContentPage; 
   return (
     <>
       <PageHero title={heroTitle ?? content.title} />
-      <section className="py-16">
+      <section className="py-10 sm:py-14 lg:py-16">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
-          <div className="grid gap-12 lg:grid-cols-2 lg:items-start">
-            <div className="flex justify-center lg:sticky lg:top-28">
+          <div className="grid gap-8 sm:gap-12 lg:grid-cols-2 lg:items-start">
+            <div className="flex justify-center lg:sticky lg:sticky-below-header">
               {content.image ? (
                 <div className="relative aspect-[4/3] w-full max-w-md overflow-hidden rounded-xl border border-zinc-200">
                   <Image
@@ -30,7 +30,7 @@ export function ContentPageView({ content, heroTitle }: { content: ContentPage; 
                   {content.badge}
                 </span>
               )}
-              <h2 className="font-display text-3xl font-bold text-zinc-900 md:text-4xl">
+              <h2 className="font-display text-2xl font-bold text-zinc-900 sm:text-3xl md:text-4xl">
                 {content.title}
               </h2>
               {content.paragraphs.map((paragraph) => (

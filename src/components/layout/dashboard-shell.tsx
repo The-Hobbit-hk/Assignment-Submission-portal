@@ -16,7 +16,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
       <div className="flex min-h-screen flex-1 flex-col lg:pl-[var(--sidebar-width)]">
         <AppNavbar />
-        <main className="flex-1 bg-background p-3 lg:p-4">{children}</main>
+        <main className="flex-1 bg-background p-3 sm:p-4 lg:p-5">{children}</main>
       </div>
     </div>
   );

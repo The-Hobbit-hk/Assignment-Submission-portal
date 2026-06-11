@@ -37,7 +37,7 @@ export function MembersContent() {
             View and manage district and club members.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <ImportExportDialog clubs={clubs} />
           <Button asChild>
             <Link href="/dashboard/members/new">

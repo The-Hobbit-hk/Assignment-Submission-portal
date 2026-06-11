@@ -5,8 +5,8 @@ import { CONTACT } from "@/lib/site-content";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-zinc-200 bg-zinc-50 py-16">
-      <div className="mx-auto grid max-w-7xl gap-12 px-4 lg:grid-cols-2 lg:px-8">
+    <footer className="border-t border-zinc-200 bg-zinc-50 py-10 sm:py-14 lg:py-16">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:gap-12 lg:grid-cols-2 lg:px-8">
         <div className="space-y-8">
           <h2 className="font-display text-2xl font-bold text-zinc-900">Contact Us</h2>
 

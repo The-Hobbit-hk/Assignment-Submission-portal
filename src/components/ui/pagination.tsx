@@ -20,10 +20,11 @@ export function Pagination({
   const pages = getPageNumbers(page, totalPages);
 
   return (
-    <div className={cn("flex items-center justify-center gap-1", className)}>
+    <div className={cn("flex flex-wrap items-center justify-center gap-1", className)}>
       <Button
         variant="outline"
         size="icon"
+        className="h-9 w-9 shrink-0"
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
         aria-label="Previous page"
@@ -31,9 +32,16 @@ export function Pagination({
         <ChevronLeft className="h-4 w-4" />
       </Button>
 
+      <span className="px-2 text-sm text-muted-foreground sm:hidden">
+        {page} / {totalPages}
+      </span>
+
       {pages.map((p, i) =>
         p === "..." ? (
-          <span key={`ellipsis-${i}`} className="px-2 text-muted-foreground">
+          <span
+            key={`ellipsis-${i}`}
+            className="hidden px-2 text-muted-foreground sm:inline"
+          >
             ...
           </span>
         ) : (
@@ -42,7 +50,7 @@ export function Pagination({
             variant={p === page ? "default" : "outline"}
             size="icon"
             onClick={() => onPageChange(p as number)}
-            className="h-9 w-9"
+            className="hidden h-9 w-9 sm:inline-flex"
           >
             {p}
           </Button>
@@ -52,6 +60,7 @@ export function Pagination({
       <Button
         variant="outline"
         size="icon"
+        className="h-9 w-9 shrink-0"
         onClick={() => onPageChange(page + 1)}
         disabled={page >= totalPages}
         aria-label="Next page"

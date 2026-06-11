@@ -25,7 +25,34 @@
   --glass: rgba(255, 255, 255, 0.92);
   --glass-border: rgba(0, 0, 0, 0.08);
   --sidebar-width: 14rem;
+  --navbar-width-collapsed: 3.5rem;
   --navbar-height: 3rem;
+  --site-header-height: 4.25rem;
+}
+
+.pt-site-header {
+  padding-top: var(--site-header-height);
+}
+
+.min-h-below-header {
+  min-height: calc(100dvh - var(--site-header-height));
+}
+
+.sticky-below-header {
+  top: var(--site-header-height);
+}
+
+.table-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
+}
+
+.safe-bottom {
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+.safe-right {
+  right: max(1.5rem, env(safe-area-inset-right));
 }
 
 @theme inline {

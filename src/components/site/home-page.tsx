@@ -11,7 +11,7 @@ export function HomePage() {
     <>
       <PageHero title="Rotaract District 3131" large />
 
-      <section className="py-20">
+      <section className="py-12 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 text-center lg:px-8">
           <h2 className="bg-gradient-to-r from-amber-600 via-amber-500 to-rose-600 bg-clip-text font-display text-3xl font-bold text-transparent md:text-4xl">
             About us
@@ -36,13 +36,13 @@ export function HomePage() {
 
       <SponsorshipPreview />
 
-      <section className="border-t border-zinc-200 bg-zinc-50 py-20">
+      <section className="border-t border-zinc-200 bg-zinc-50 py-12 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <div className="mb-10 text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
               Member Access
             </p>
-            <h2 className="mt-2 font-display text-3xl font-bold text-zinc-900">
+            <h2 className="mt-2 font-display text-2xl font-bold text-zinc-900 sm:text-3xl">
               Access Your Portal
             </h2>
           </div>

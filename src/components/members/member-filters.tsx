@@ -24,7 +24,7 @@ export function MemberFiltersBar({
 }: MemberFiltersBarProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-      <div className="relative min-w-[200px] flex-1">
+      <div className="relative min-w-0 flex-1 sm:min-w-[200px]">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search by name, email, RI ID..."

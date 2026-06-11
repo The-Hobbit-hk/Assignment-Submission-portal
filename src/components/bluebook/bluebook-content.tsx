@@ -56,7 +56,7 @@ export function BluebookContent() {
 
       <div className="flex flex-wrap items-center gap-3">
         <Select value={String(month)} onValueChange={(v) => setMonth(parseInt(v))}>
-          <SelectTrigger className="w-40 border-border/60 bg-card">
+          <SelectTrigger className="w-full border-border/60 bg-card sm:w-40">
             <SelectValue>{MONTHS[month - 1]} {year}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -84,18 +84,18 @@ export function BluebookContent() {
         {isLoading ? (
           <Skeleton className="h-48 w-full" />
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-border/40 bg-card/50">
-            <Table className="ref-table">
+          <div className="table-scroll rounded-lg border border-border/40 bg-card/50">
+            <Table className="ref-table min-w-[640px]">
               <TableHeader>
                 <TableRow className="border-border/40 hover:bg-transparent">
-                  <TableHead>Task ID</TableHead>
+                  <TableHead className="hidden sm:table-cell">Task ID</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead className="hidden lg:table-cell">Description</TableHead>
+                  <TableHead className="hidden md:table-cell">Type</TableHead>
                   <TableHead>Score</TableHead>
-                  <TableHead>Scored</TableHead>
-                  <TableHead>Due date</TableHead>
-                  <TableHead>Requirement</TableHead>
+                  <TableHead className="hidden sm:table-cell">Scored</TableHead>
+                  <TableHead className="hidden md:table-cell">Due date</TableHead>
+                  <TableHead className="hidden xl:table-cell">Requirement</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -103,7 +103,7 @@ export function BluebookContent() {
                 {tasks?.length ? (
                   tasks.map((t) => (
                     <TableRow key={t.id} className="border-border/30">
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">
                         <Link href={`/dashboard/bluebook/${t.id}`} className="hover:text-accent">
                           {t.id.slice(-3)}
                         </Link>
@@ -113,20 +113,20 @@ export function BluebookContent() {
                           {t.title}
                         </Link>
                       </TableCell>
-                      <TableCell className="max-w-[220px] truncate">
+                      <TableCell className="hidden max-w-[220px] truncate lg:table-cell">
                         {t.description ?? "—"}
                       </TableCell>
-                      <TableCell className="lowercase">{t.category}</TableCell>
+                      <TableCell className="hidden lowercase md:table-cell">{t.category}</TableCell>
                       <TableCell>{t.maxScore}</TableCell>
-                      <TableCell>{t.scored}</TableCell>
-                      <TableCell>
+                      <TableCell className="hidden sm:table-cell">{t.scored}</TableCell>
+                      <TableCell className="hidden md:table-cell">
                         {new Date(t.dueDate).toLocaleDateString("en-GB", {
                           day: "2-digit",
                           month: "short",
                           year: "numeric",
                         })}
                       </TableCell>
-                      <TableCell>Both</TableCell>
+                      <TableCell className="hidden xl:table-cell">Both</TableCell>
                       <TableCell>
                         <span className={t.isExpired ? "font-medium text-destructive" : "text-green-500"}>
                           {t.isExpired ? "Expired" : "Active"}

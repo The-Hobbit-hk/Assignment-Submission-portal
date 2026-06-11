@@ -103,7 +103,7 @@ export function CouncilContent() {
                   <TableHead>Rank</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Score</TableHead>
-                  <TableHead>Email</TableHead>
+                  <TableHead className="hidden md:table-cell">Email</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -114,7 +114,9 @@ export function CouncilContent() {
                       {entry.name}
                     </TableCell>
                     <TableCell className="text-foreground">{entry.score}</TableCell>
-                    <TableCell>{entry.email ?? "—"}</TableCell>
+                    <TableCell className="hidden max-w-[200px] truncate md:table-cell">
+                      {entry.email ?? "—"}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

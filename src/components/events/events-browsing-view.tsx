@@ -11,6 +11,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AddReportingEventDialog } from "@/components/reporting/add-reporting-event-dialog";
 import { useEvents } from "@/hooks/use-events";
+import { WEEKDAY_LABELS_FULL, WEEKDAY_LABELS_SHORT } from "@/lib/calendar-utils";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "grid" | "list" | "calendar";
@@ -112,9 +113,11 @@ export function EventsBrowsingView({
                   variant={view === mode ? "default" : "ghost"}
                   size="sm"
                   onClick={() => setView(mode)}
+                  aria-label={`${mode} view`}
+                  className="capitalize"
                 >
                   <Icon className="h-4 w-4" />
-                  {mode}
+                  <span className="hidden sm:inline">{mode}</span>
                 </Button>
               )
             )}
@@ -217,7 +220,7 @@ function EventsSection({
 }) {
   return (
     <section className="overflow-hidden rounded-xl border border-border/50 bg-card/30">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 bg-muted/50 px-5 py-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 bg-muted/50 px-4 py-3 sm:px-5 sm:py-3.5">
         <h2 className="text-sm font-semibold uppercase tracking-wider">{title}</h2>
         <div className="flex items-center gap-2">
           {action}
@@ -226,7 +229,7 @@ function EventsSection({
           </Badge>
         </div>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-4 sm:p-5">{children}</div>
     </section>
   );
 }
@@ -316,21 +319,23 @@ function EventListRow({
   return (
     <Link
       href={`${eventLinkBase}/${event.id}`}
-      className="flex items-center gap-4 rounded-lg border border-border/40 p-4 transition-colors hover:bg-muted"
+      className="flex flex-col gap-3 rounded-lg border border-border/40 p-4 transition-colors hover:bg-muted sm:flex-row sm:items-center"
     >
-      <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-accent/15 text-xs font-bold text-accent">
-        <span>{new Date(event.startDate).getDate()}</span>
-        <span className="text-[10px] uppercase">
-          {new Date(event.startDate).toLocaleDateString("en-US", { month: "short" })}
-        </span>
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-accent/15 text-xs font-bold text-accent">
+          <span>{new Date(event.startDate).getDate()}</span>
+          <span className="text-[10px] uppercase">
+            {new Date(event.startDate).toLocaleDateString("en-US", { month: "short" })}
+          </span>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-medium">{event.title}</p>
+          <p className="text-xs text-muted-foreground">
+            {event.club?.name ?? "District"} · {event.location ?? "TBD"}
+          </p>
+        </div>
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="font-medium">{event.title}</p>
-        <p className="text-xs text-muted-foreground">
-          {event.club?.name ?? "District"} · {event.location ?? "TBD"}
-        </p>
-      </div>
-      <Badge>{event.status}</Badge>
+      <Badge className="w-fit shrink-0 self-start sm:self-center">{event.status}</Badge>
     </Link>
   );
 }
@@ -362,10 +367,11 @@ function CalendarView({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-7 gap-1 text-center text-xs">
-          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-            <div key={d} className="py-2 font-medium text-muted-foreground">
-              {d}
+        <div className="table-scroll grid grid-cols-7 gap-0.5 text-center text-xs sm:gap-1">
+          {WEEKDAY_LABELS_FULL.map((d, index) => (
+            <div key={d} className="py-1.5 font-medium text-muted-foreground sm:py-2">
+              <span className="sm:hidden">{WEEKDAY_LABELS_SHORT[index]}</span>
+              <span className="hidden sm:inline">{d}</span>
             </div>
           ))}
           {Array.from({ length: firstDay }).map((_, i) => (
@@ -378,16 +384,22 @@ function CalendarView({
               <div
                 key={day}
                 className={cn(
-                  "min-h-16 rounded-md border border-border/30 p-1",
+                  "min-h-12 rounded-md border border-border/30 p-0.5 sm:min-h-16 sm:p-1",
                   dayEvents.length && "border-accent/30 bg-accent/5"
                 )}
               >
-                <span className="text-xs font-medium">{day}</span>
+                <span className="text-[10px] font-medium sm:text-xs">{day}</span>
+                {dayEvents.length > 0 && (
+                  <span
+                    className="mt-0.5 inline-block h-1.5 w-1.5 rounded-full bg-accent sm:hidden"
+                    title={`${dayEvents.length} event(s)`}
+                  />
+                )}
                 {dayEvents.slice(0, 2).map((e) => (
                   <Link
                     key={e.id}
                     href={`${eventLinkBase}/${e.id}`}
-                    className="mt-0.5 block truncate text-[10px] text-accent hover:underline"
+                    className="mt-0.5 hidden truncate text-[10px] text-accent hover:underline sm:block"
                   >
                     {e.title}
                   </Link>

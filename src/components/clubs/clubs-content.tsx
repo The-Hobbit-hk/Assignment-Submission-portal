@@ -69,7 +69,8 @@ export function ClubsContent() {
             )}
           >
             <Map className="h-4 w-4" />
-            By Zone
+            <span className="hidden sm:inline">By Zone</span>
+            <span className="sm:hidden">Zones</span>
           </button>
           <button
             type="button"
@@ -80,7 +81,7 @@ export function ClubsContent() {
             )}
           >
             <LayoutGrid className="h-4 w-4" />
-            Grid
+            <span>Grid</span>
           </button>
         </div>
 

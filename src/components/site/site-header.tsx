@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
@@ -16,14 +16,10 @@ function NavDropdown({ item }: { item: SiteNavItem }) {
   }
 
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
-    >
+    <div className="relative">
       <button
         type="button"
-        className="flex items-center gap-1 text-sm text-zinc-700 transition hover:text-accent"
+        className="flex items-center gap-1 rounded-md px-1 py-1.5 text-xs text-zinc-700 transition hover:text-accent lg:text-sm"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
       >
@@ -31,19 +27,28 @@ function NavDropdown({ item }: { item: SiteNavItem }) {
         <ChevronDown className={cn("h-3.5 w-3.5 transition", open && "rotate-180")} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full z-50 min-w-[15rem] pt-2">
-          <div className="rounded-md border border-zinc-200 bg-white py-2 shadow-lg">
-            {item.children.map((child) => (
-              <Link
-                key={child.href}
-                href={child.href!}
-                className="block px-4 py-2.5 text-sm text-zinc-600 transition hover:bg-zinc-50 hover:text-accent"
-              >
-                {child.label}
-              </Link>
-            ))}
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-40"
+            aria-label="Close menu"
+            onClick={() => setOpen(false)}
+          />
+          <div className="absolute left-0 top-full z-50 min-w-[15rem] pt-2">
+            <div className="rounded-md border border-zinc-200 bg-white py-2 shadow-lg">
+              {item.children.map((child) => (
+                <Link
+                  key={child.href}
+                  href={child.href!}
+                  className="block px-4 py-2.5 text-sm text-zinc-600 transition hover:bg-zinc-50 hover:text-accent"
+                  onClick={() => setOpen(false)}
+                >
+                  {child.label}
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
@@ -64,7 +69,7 @@ function MobileNavItem({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex w-full items-center justify-between rounded-md px-3 py-2.5 text-sm text-zinc-700"
+          className="flex w-full items-center justify-between rounded-md px-3 py-3 text-sm text-zinc-700"
         >
           {item.label}
           <ChevronDown className={cn("h-4 w-4", open && "rotate-180")} />
@@ -76,7 +81,7 @@ function MobileNavItem({
                 key={child.href}
                 href={child.href!}
                 onClick={onClose}
-                className="block rounded-md px-3 py-2 text-sm text-zinc-600 hover:text-accent"
+                className="block rounded-md px-3 py-2.5 text-sm text-zinc-600 hover:text-accent"
               >
                 {child.label}
               </Link>
@@ -91,7 +96,7 @@ function MobileNavItem({
     <Link
       href={item.href!}
       onClick={onClose}
-      className="block rounded-md px-3 py-2.5 text-sm text-zinc-700 hover:bg-zinc-50 hover:text-accent"
+      className="block rounded-md px-3 py-3 text-sm text-zinc-700 hover:bg-zinc-50 hover:text-accent"
     >
       {item.label}
     </Link>
@@ -102,6 +107,17 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
   return (
     <header
       className={cn(
@@ -109,10 +125,10 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
         transparent ? "bg-white/90 backdrop-blur-md" : "bg-white shadow-sm"
       )}
     >
-      <div className="mx-auto flex h-[4.25rem] max-w-7xl items-center justify-between gap-4 px-4 lg:px-8">
+      <div className="mx-auto flex h-[var(--site-header-height)] max-w-7xl items-center justify-between gap-3 px-4 sm:gap-4 lg:px-8">
         <BrandLogo variant="full" size="nav" priority />
 
-        <nav className="hidden items-center gap-5 xl:flex">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-2 lg:flex xl:gap-4">
           {SITE_NAV.map((item) =>
             item.children?.length ? (
               <NavDropdown key={item.label} item={item} />
@@ -121,7 +137,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
                 key={item.href}
                 href={item.href!}
                 className={cn(
-                  "text-sm transition hover:text-accent",
+                  "whitespace-nowrap rounded-md px-1 py-1.5 text-xs transition hover:text-accent xl:text-sm",
                   pathname === item.href ? "font-medium text-accent" : "text-zinc-700"
                 )}
               >
@@ -131,18 +147,19 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
           )}
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/login"
-            className="hidden rounded-full bg-accent px-5 py-2 text-sm font-medium text-white transition hover:bg-accent/90 sm:inline-flex"
+            className="hidden rounded-full bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent/90 sm:inline-flex lg:px-5"
           >
             Login
           </Link>
           <button
             type="button"
-            className="rounded-lg p-2 text-zinc-700 hover:bg-zinc-100 xl:hidden"
+            className="rounded-lg p-2.5 text-zinc-700 hover:bg-zinc-100 lg:hidden"
             onClick={() => setMobileOpen((o) => !o)}
             aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
@@ -151,11 +168,11 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
 
       <div
         className={cn(
-          "border-t border-zinc-200 bg-white xl:hidden",
+          "border-t border-zinc-200 bg-white lg:hidden",
           mobileOpen ? "block" : "hidden"
         )}
       >
-        <nav className="mx-auto flex max-w-7xl flex-col gap-1 px-4 py-3">
+        <nav className="mx-auto flex max-h-[calc(100dvh-var(--site-header-height))] max-w-7xl flex-col gap-1 overflow-y-auto overscroll-contain px-4 py-3 pb-6">
           {SITE_NAV.map((item) => (
             <MobileNavItem
               key={item.label}
@@ -166,7 +183,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
           <Link
             href="/login"
             onClick={() => setMobileOpen(false)}
-            className="mt-2 rounded-full bg-accent px-5 py-2.5 text-center text-sm font-medium text-white"
+            className="mt-2 rounded-full bg-accent px-5 py-3 text-center text-sm font-medium text-white sm:hidden"
           >
             Login
           </Link>

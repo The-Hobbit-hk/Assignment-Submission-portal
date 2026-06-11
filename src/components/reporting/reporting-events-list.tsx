@@ -41,14 +41,14 @@ export function ReportingEventsList({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border/50 bg-card">
-      <Table className="ref-table">
+    <div className="table-scroll rounded-xl border border-border/50 bg-card">
+      <Table className="ref-table min-w-[520px]">
         <TableHeader>
           <TableRow>
             <TableHead>Event</TableHead>
             <TableHead>Date</TableHead>
-            <TableHead>Location</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead className="hidden md:table-cell">Location</TableHead>
+            <TableHead className="hidden sm:table-cell">Type</TableHead>
             <TableHead>Status</TableHead>
           </TableRow>
         </TableHeader>
@@ -71,7 +71,7 @@ export function ReportingEventsList({
                   year: "numeric",
                 })}
               </TableCell>
-              <TableCell>
+              <TableCell className="hidden md:table-cell">
                 {event.location ? (
                   <span className="flex items-center gap-1 text-muted-foreground">
                     <MapPin className="h-3 w-3 shrink-0" />
@@ -81,7 +81,7 @@ export function ReportingEventsList({
                   "—"
                 )}
               </TableCell>
-              <TableCell>
+              <TableCell className="hidden sm:table-cell">
                 <Badge variant="outline" className="text-[10px]">
                   {event.type}
                 </Badge>
