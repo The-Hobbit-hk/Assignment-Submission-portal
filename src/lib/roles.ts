@@ -43,6 +43,10 @@ export function canAssignBluebook(role: UserRole) {
   return isDistrictSecretary(role);
 }
 
+export function canViewCouncilBluebookOverview(role: UserRole) {
+  return canAssignBluebook(role);
+}
+
 export function canSubmitCouncilBluebook(role: UserRole) {
   return isCouncilMember(role) || DISTRICT_ROLES.includes(role);
 }
@@ -119,6 +123,11 @@ export function getNavigationForRole(role: UserRole, email?: string | null): Nav
       title: "Task Assignment",
       href: "/dashboard/bluebook/assignments",
       icon: UserCheck,
+    });
+    nav.push({
+      title: "Council Submissions",
+      href: "/dashboard/bluebook/council-overview",
+      icon: ClipboardList,
     });
   }
 

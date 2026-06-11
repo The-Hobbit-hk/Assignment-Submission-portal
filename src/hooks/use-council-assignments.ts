@@ -2,6 +2,11 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import type {
+  CouncilBluebookSummary,
+  CouncilMemberBluebookRow,
+  SerializedCouncilAssignment,
+} from "@/lib/council-bluebook-status";
 
 export type AssignmentPortalData = {
   assignments: {
@@ -13,6 +18,30 @@ export type AssignmentPortalData = {
   members: { id: string; name: string | null; email: string }[];
   tasks: { id: string; title: string }[];
 };
+
+export type CouncilBluebookOverviewData = {
+  month: number;
+  year: number;
+  summary: CouncilBluebookSummary;
+  members: CouncilMemberBluebookRow[];
+  submissions: SerializedCouncilAssignment[];
+};
+
+export function useCouncilBluebookOverview(month: number, year: number) {
+  const { status } = useSession();
+
+  return useQuery({
+    queryKey: ["bluebook", "council-overview", month, year],
+    queryFn: async () => {
+      const res = await fetch(`/api/bluebook/council-overview?month=${month}&year=${year}`);
+      if (!res.ok) throw new Error("Failed to load council bluebook overview");
+      return res.json() as Promise<CouncilBluebookOverviewData>;
+    },
+    enabled: status === "authenticated",
+    staleTime: 60_000,
+    placeholderData: (prev) => prev,
+  });
+}
 
 export function useAssignmentPortal(month: number, year: number) {
   const { status } = useSession();
@@ -94,6 +123,7 @@ export function useCreateAndAssignTask() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bluebook", "assignment-portal"] });
+      qc.invalidateQueries({ queryKey: ["bluebook", "council-overview"] });
       qc.invalidateQueries({ queryKey: ["bluebook", "assignments"] });
       qc.invalidateQueries({ queryKey: ["bluebook", "tasks"] });
       qc.invalidateQueries({ queryKey: ["bluebook", "my-tasks"] });
@@ -116,6 +146,7 @@ export function useAssignTasks() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bluebook", "assignments"] });
       qc.invalidateQueries({ queryKey: ["bluebook", "assignment-portal"] });
+      qc.invalidateQueries({ queryKey: ["bluebook", "council-overview"] });
       qc.invalidateQueries({ queryKey: ["bluebook", "my-tasks"] });
     },
   });
@@ -133,7 +164,10 @@ export function useSubmitCouncilAssignment(id: string) {
       if (!res.ok) throw new Error("Failed");
       return res.json();
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["bluebook", "my-tasks"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bluebook", "my-tasks"] });
+      qc.invalidateQueries({ queryKey: ["bluebook", "council-overview"] });
+    },
   });
 }
 
