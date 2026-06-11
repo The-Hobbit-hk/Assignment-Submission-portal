@@ -46,7 +46,7 @@ export function CalendarEventsList({ events }: { events: CalendarEvent[] }) {
             {monthEvents.map((event) => (
               <li
                 key={event.id}
-                className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                className="depth-card depth-card-interactive flex flex-col gap-3 rounded-xl p-5 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">

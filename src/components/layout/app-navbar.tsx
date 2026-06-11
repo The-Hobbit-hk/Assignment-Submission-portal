@@ -19,7 +19,7 @@ export function AppNavbar() {
   const { setMobileSidebarOpen } = useUIStore();
 
   return (
-    <header className="sticky top-0 z-40 flex h-[var(--navbar-height)] items-center gap-2 border-b border-border bg-white/95 px-3 backdrop-blur-sm sm:gap-3 lg:px-4">
+    <header className="depth-nav sticky top-0 z-40 flex h-[var(--navbar-height)] items-center gap-2 border-b border-border/60 bg-white/95 px-3 backdrop-blur-md sm:gap-3 lg:px-4">
       <Sheet onOpenChange={setMobileSidebarOpen}>
         <SheetTrigger asChild>
           <Button

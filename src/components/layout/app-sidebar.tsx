@@ -48,8 +48,8 @@ function NavLink({
         "flex items-center gap-2.5 rounded-md py-1.5 text-[13px] transition-colors",
         nested ? "px-2.5 pl-8" : "px-2.5",
         active
-          ? "bg-secondary text-foreground"
-          : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
+          ? "depth-nav-item-active text-foreground"
+          : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground hover:shadow-sm",
         item.disabled && "pointer-events-none opacity-40"
       )}
     >
@@ -67,7 +67,7 @@ export function AppSidebar({ className, onNavigate }: AppSidebarProps) {
   return (
     <aside
       className={cn(
-        "flex h-full w-[var(--sidebar-width)] flex-col border-r border-border bg-white",
+        "depth-sidebar flex h-full w-[var(--sidebar-width)] flex-col border-r border-border/60",
         className
       )}
     >

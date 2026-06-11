@@ -21,7 +21,7 @@ export function HomePage() {
           <h2 className="bg-gradient-to-r from-amber-600 via-amber-500 to-rose-600 bg-clip-text font-display text-3xl font-bold text-transparent md:text-4xl">
             About us
           </h2>
-          <div className="relative mx-auto mt-10 max-w-4xl overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 p-8 shadow-sm">
+          <div className="depth-card relative mx-auto mt-10 max-w-4xl overflow-hidden rounded-2xl p-8">
             <BrandLogo variant="full" size="lg" linked={false} className="mx-auto" />
             <p className="mx-auto mt-8 max-w-2xl text-zinc-600">
               Empowering young leaders through fellowship, service, and professional
@@ -56,7 +56,7 @@ export function HomePage() {
               <Link
                 key={portal.id}
                 href={`/login?portal=${portal.id}`}
-                className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-accent/40 hover:shadow-md"
+                className="depth-card depth-card-interactive rounded-xl p-5 hover:border-accent/30"
               >
                 <h3 className="font-semibold text-accent">{portal.title}</h3>
                 <p className="mt-2 text-sm text-zinc-600">{portal.description}</p>

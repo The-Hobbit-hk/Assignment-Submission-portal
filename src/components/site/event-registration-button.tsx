@@ -32,7 +32,7 @@ export function EventRegistrationButton({
           href={event.registrationUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className={cn(base, "bg-accent text-white hover:bg-accent/90")}
+          className={cn(base, "depth-btn-accent text-white")}
         >
           {label}
         </a>
@@ -42,7 +42,7 @@ export function EventRegistrationButton({
     return (
       <Link
         href={`/login?callbackUrl=/dashboard/events/${event.id}`}
-        className={cn(base, "bg-accent text-white hover:bg-accent/90")}
+        className={cn(base, "depth-btn-accent text-white")}
       >
         {label}
       </Link>

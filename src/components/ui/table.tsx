@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 const Table = ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
-  <div className="relative w-full overflow-auto">
+  <div className="depth-table-surface relative w-full overflow-auto rounded-xl">
     <table
       className={cn("w-full caption-bottom text-sm", className)}
       {...props}

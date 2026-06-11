@@ -58,7 +58,7 @@ export function CalendarWidget({ events }: CalendarWidgetProps) {
     <div className="space-y-4">
       <SectionLabel>Calendar</SectionLabel>
 
-      <div className="rounded-xl border border-border/40 bg-card/50 p-3 sm:p-4">
+      <div className="depth-card rounded-xl p-3 sm:p-4">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Button

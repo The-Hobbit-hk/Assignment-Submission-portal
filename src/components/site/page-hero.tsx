@@ -50,7 +50,10 @@ export function PageHero({
       )}
       <div
         className={cn(
-          "relative z-10 mx-auto max-w-4xl px-4 text-center lg:px-8",
+          "relative z-10 mx-auto max-w-4xl rounded-2xl px-4 text-center lg:px-8",
+          backgroundImage &&
+            large &&
+            "depth-panel mx-4 max-w-3xl bg-white/55 px-6 py-8 backdrop-blur-sm sm:mx-auto sm:px-10",
           backgroundImage && large
             ? "py-12 pb-20 sm:py-16 sm:pb-24 lg:py-20 lg:pb-28"
             : "py-10 sm:py-14 lg:py-16"

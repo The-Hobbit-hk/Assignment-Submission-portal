@@ -35,7 +35,7 @@ function NavDropdown({ item }: { item: SiteNavItem }) {
             onClick={() => setOpen(false)}
           />
           <div className="absolute left-0 top-full z-50 min-w-[15rem] pt-2">
-            <div className="rounded-md border border-zinc-200 bg-white py-2 shadow-lg">
+            <div className="depth-popover rounded-xl py-2">
               {item.children.map((child) => (
                 <Link
                   key={child.href}
@@ -121,8 +121,8 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
   return (
     <header
       className={cn(
-        "fixed inset-x-0 top-0 z-50 border-b border-zinc-200",
-        transparent ? "bg-white/90 backdrop-blur-md" : "bg-white shadow-sm"
+        "depth-nav fixed inset-x-0 top-0 z-50 border-b border-zinc-200/80",
+        transparent ? "bg-white/92 backdrop-blur-md" : "bg-white/98 backdrop-blur-sm"
       )}
     >
       <div className="mx-auto flex h-[var(--site-header-height)] max-w-7xl items-center justify-between gap-3 px-4 sm:gap-4 lg:px-8">
@@ -150,7 +150,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
         <div className="flex shrink-0 items-center gap-2">
           <Link
             href="/login"
-            className="hidden rounded-full bg-accent px-4 py-2 text-sm font-medium text-white transition hover:bg-accent/90 sm:inline-flex lg:px-5"
+            className="depth-btn-accent hidden rounded-full px-4 py-2 text-sm font-medium text-white sm:inline-flex lg:px-5"
           >
             Login
           </Link>
@@ -183,7 +183,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
           <Link
             href="/login"
             onClick={() => setMobileOpen(false)}
-            className="mt-2 rounded-full bg-accent px-5 py-3 text-center text-sm font-medium text-white sm:hidden"
+            className="depth-btn-accent mt-2 rounded-full px-5 py-3 text-center text-sm font-medium text-white sm:hidden"
           >
             Login
           </Link>

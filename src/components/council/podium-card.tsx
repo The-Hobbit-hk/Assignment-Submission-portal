@@ -26,7 +26,7 @@ export function PodiumCard({ rank, name, score, avatar, className }: PodiumCardP
   return (
     <div
       className={cn(
-        "flex flex-col rounded-xl border border-border/50 bg-card/80 p-4",
+        "depth-card depth-card-interactive flex flex-col rounded-xl p-4",
         className
       )}
     >

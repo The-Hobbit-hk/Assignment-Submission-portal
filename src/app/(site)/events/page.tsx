@@ -19,7 +19,7 @@ export default async function EventsPage() {
             events.map((event) => (
               <article
                 key={event.id}
-                className="flex flex-col gap-4 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                className="depth-card depth-card-interactive flex flex-col gap-4 rounded-xl p-6 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <Link
