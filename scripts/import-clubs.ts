@@ -1,16 +1,12 @@
 /**
- * Upsert all District 3131 clubs without wiping members, events, or users.
+ * Sync official District 3131 clubs and remove legacy/demo clubs.
  *
  *   npm run db:import-clubs
  */
 import { config } from "dotenv";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
-import {
-  DISTRICT_CLUBS,
-  clubDescription,
-  parseCharterDate,
-} from "../src/lib/district-clubs-data";
+import { syncDistrictClubs } from "../src/lib/sync-district-clubs";
 
 config({ path: ".env.local" });
 config();
@@ -27,34 +23,10 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  let created = 0;
-  let updated = 0;
-
-  for (const club of DISTRICT_CLUBS) {
-    const data = {
-      name: club.name,
-      charterNumber: club.riClubId,
-      zone: club.zone,
-      city: club.city ?? null,
-      status: club.status ?? "ACTIVE",
-      foundedAt: parseCharterDate(club.charterDate) ?? null,
-      description: clubDescription(club) ?? null,
-    };
-
-    const existing = await prisma.club.findUnique({
-      where: { charterNumber: club.riClubId },
-    });
-
-    if (existing) {
-      await prisma.club.update({ where: { id: existing.id }, data });
-      updated++;
-    } else {
-      await prisma.club.create({ data });
-      created++;
-    }
-  }
-
-  console.log(`District clubs import complete: ${DISTRICT_CLUBS.length} total (${created} created, ${updated} updated).`);
+  const result = await syncDistrictClubs(prisma);
+  console.log(
+    `District clubs sync complete: ${result.total} official (${result.created} created, ${result.updated} updated, ${result.removed} removed).`
+  );
 }
 
 main()

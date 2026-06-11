@@ -1,5 +1,6 @@
 import type { CouncilEntityType, Prisma } from "@/generated/prisma/client";
 import { runWithTtl } from "@/lib/cache";
+import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
 
 export function getBadge(score: number): string | null {
   if (score >= 400) return "Gold";
@@ -39,7 +40,7 @@ export async function syncCouncilScores(
   const [clubs, bluebookByClub, memberPointsByClub, members, prevScores] =
     await Promise.all([
       prisma.club.findMany({
-        where: { status: "ACTIVE" },
+        where: { ...OFFICIAL_DISTRICT_CLUB_FILTER, status: "ACTIVE" },
         select: { id: true },
       }),
       prisma.bluebookSubmission.groupBy({

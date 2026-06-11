@@ -12,6 +12,6 @@ export const CLUB_LOGIN = {
   password: COUNCIL_PASSWORD,
   name: "Panvel Elite Club Login",
   role: "CLUB_PRESIDENT" as const,
-  /** RI club ID for demo club portal login */
+  /** Panvel Elite — official district club portal login */
   riClubId: "217226",
 };

@@ -1,3 +1,4 @@
+import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { prisma } from "@/lib/prisma";
 
 export async function getPublicCalendarEvents() {
@@ -67,8 +68,8 @@ export type PublicClub = {
 export async function getPublicClubsByZone(): Promise<Record<string, PublicClub[]>> {
   const clubs = await prisma.club.findMany({
     where: {
+      ...OFFICIAL_DISTRICT_CLUB_FILTER,
       status: { in: ["ACTIVE", "PROVISIONAL"] },
-      charterNumber: { not: "3131-COUNCIL" },
     },
     orderBy: [{ zone: "asc" }, { name: "asc" }],
     include: {

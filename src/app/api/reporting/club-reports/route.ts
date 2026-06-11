@@ -6,6 +6,7 @@ import {
   summarizeClubReporting,
 } from "@/lib/reporting-club-status";
 import { canViewAllClubReports, canViewZoneClubReports } from "@/lib/roles";
+import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { getZonesForZonalRep } from "@/lib/zonal-reps";
 
 export async function GET(request: Request) {
@@ -32,7 +33,8 @@ export async function GET(request: Request) {
     const clubWhere: {
       status: "ACTIVE";
       zone?: string | { in: string[] };
-    } = { status: "ACTIVE" };
+      charterNumber: { in: string[] };
+    } = { ...OFFICIAL_DISTRICT_CLUB_FILTER, status: "ACTIVE" };
 
     if (districtView) {
       if (zoneFilter) {

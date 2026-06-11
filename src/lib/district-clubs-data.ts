@@ -165,6 +165,18 @@ export const DISTRICT_CLUBS: DistrictClubRecord[] = [
   ...withZone("Zone 7", Z7),
 ];
 
+/** Official RI / district charter IDs — sole source of truth for club roster. */
+export const OFFICIAL_CLUB_CHARTER_IDS = DISTRICT_CLUBS.map((club) => club.riClubId);
+
+export function isOfficialDistrictClub(charterNumber: string | null | undefined) {
+  return !!charterNumber && OFFICIAL_CLUB_CHARTER_IDS.includes(charterNumber);
+}
+
+/** Use in Prisma queries to exclude legacy/demo clubs from listings. */
+export const OFFICIAL_DISTRICT_CLUB_FILTER = {
+  charterNumber: { in: OFFICIAL_CLUB_CHARTER_IDS },
+};
+
 export function clubDescription(club: DistrictClubRecord): string | undefined {
   const parts: string[] = [];
   if (club.sponsoringClub) parts.push(`Sponsoring club: ${club.sponsoringClub}`);

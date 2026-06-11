@@ -1,4 +1,5 @@
 import type { Club, User, Prisma, ClubStatus } from "@/generated/prisma/client";
+import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
 import type {
   ClubAnalytics,
   ClubDetail,
@@ -107,7 +108,7 @@ export function buildClubWhere(params: {
   status?: string;
   zone?: string;
 }) {
-  const where: Prisma.ClubWhereInput = {};
+  const where: Prisma.ClubWhereInput = { ...OFFICIAL_DISTRICT_CLUB_FILTER };
   if (params.status) where.status = params.status as ClubStatus;
   if (params.zone) where.zone = params.zone;
   if (params.search) {
@@ -206,7 +207,7 @@ export async function computeClubPerformance(
   const analytics = await computeClubAnalytics(clubId, prisma);
 
   const allClubs = await prisma.club.findMany({
-    where: { status: "ACTIVE" },
+    where: { ...OFFICIAL_DISTRICT_CLUB_FILTER, status: "ACTIVE" },
     include: { _count: { select: { members: true, events: true } } },
     orderBy: { serviceHours: "desc" },
   });

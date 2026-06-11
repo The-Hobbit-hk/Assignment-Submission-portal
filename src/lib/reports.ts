@@ -1,3 +1,4 @@
+import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { prisma } from "@/lib/prisma";
 
 export async function getMemberReportData() {
@@ -20,6 +21,7 @@ export async function getMemberReportData() {
 
 export async function getClubReportData() {
   const clubs = await prisma.club.findMany({
+    where: OFFICIAL_DISTRICT_CLUB_FILTER,
     orderBy: { name: "asc" },
     include: { _count: { select: { members: true, events: true } } },
   });
