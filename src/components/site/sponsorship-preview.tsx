@@ -3,9 +3,9 @@ import { SPONSORSHIP } from "@/lib/site-content";
 
 export function SponsorshipPreview() {
   return (
-    <section id="sponsorship" className="py-20">
+    <section id="sponsorship" className="bg-zinc-50 py-10 sm:py-12 lg:py-14">
       <div className="mx-auto max-w-6xl px-4 lg:px-8">
-        <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-white to-zinc-50 p-8 shadow-sm md:p-12">
+        <div className="depth-card rounded-2xl border border-zinc-200 bg-gradient-to-br from-white to-zinc-50/80 p-8 md:p-10">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             Sponsorship
           </p>

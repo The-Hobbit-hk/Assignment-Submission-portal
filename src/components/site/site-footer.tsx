@@ -64,7 +64,11 @@ export function SiteFooter() {
           <p className="mt-8 text-sm font-semibold tracking-wider text-zinc-800">
             ROTARACT DISTRICT 3131
           </p>
-          <p className="mt-2 text-xs text-zinc-500">
+          <p className="mt-2 max-w-xs text-xs leading-relaxed text-zinc-500">
+            Official website of Rotaract District 3131 — a program of Rotary International.
+            Serving Rotaract clubs across Pune and Raigad, India.
+          </p>
+          <p className="mt-3 text-xs text-zinc-400">
             © {new Date().getFullYear()} Rotaract District 3131. All rights reserved.
           </p>
         </div>
