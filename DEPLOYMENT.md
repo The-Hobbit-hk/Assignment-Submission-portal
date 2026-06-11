@@ -47,10 +47,10 @@ Supabase may show the **direct** host as IPv6-only (`db.xxxxx.supabase.co:5432`)
 
 ```env
 # Vercel — Transaction pooler (replace [REGION] from Supabase Connect UI, e.g. ap-south-1)
-DATABASE_URL="postgresql://postgres.xtojaphqdxdrrodskqar:YOUR_PASSWORD@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+DATABASE_URL="postgresql://postgres.xtojaphqdxdrrodskqar:YOUR_PASSWORD@aws-1-ap-northeast-2.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
 
 # Local schema push — Session pooler if direct host is "Not IPv4 compatible"
-DIRECT_URL="postgresql://postgres.xtojaphqdxdrrodskqar:YOUR_PASSWORD@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
+DIRECT_URL="postgresql://postgres.xtojaphqdxdrrodskqar:YOUR_PASSWORD@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres"
 
 # Or direct (IPv6 only):
 # DIRECT_URL="postgresql://postgres:YOUR_PASSWORD@db.xtojaphqdxdrrodskqar.supabase.co:5432/postgres"
@@ -123,7 +123,7 @@ In **Vercel → Project → Settings → Environment Variables**, add for **Prod
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key | Yes |
 | `SUPABASE_UPLOAD_BUCKET` | `uploads` | No |
 | `AUTH_SECRET` | `openssl rand -base64 32` | Yes |
-| `AUTH_URL` | `https://your-domain.vercel.app` | No |
+| `AUTH_URL` | `https://rotaract-3131-erp.vercel.app` | No |
 | `AUTH_TRUST_HOST` | `true` | No |
 | `NEXT_PUBLIC_APP_URL` | Same as `AUTH_URL` | No |
 
