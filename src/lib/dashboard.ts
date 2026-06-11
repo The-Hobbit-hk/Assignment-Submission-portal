@@ -1,4 +1,5 @@
 import { unstable_cache } from "next/cache";
+import { OFFICIAL_ROTARACT_MEMBER_FILTER } from "@/lib/district-clubs-data";
 import { prisma } from "@/lib/prisma";
 import type { DashboardData } from "@/types/dashboard";
 
@@ -19,7 +20,7 @@ async function fetchDashboardOverview(): Promise<
       orderBy: { startDate: "asc" },
     }),
     prisma.member.findMany({
-      where: { status: "ACTIVE" },
+      where: { status: "ACTIVE", ...OFFICIAL_ROTARACT_MEMBER_FILTER },
       orderBy: { points: "desc" },
       take: 3,
       select: {
@@ -53,7 +54,7 @@ async function fetchDashboardOverview(): Promise<
 
 const getCachedDashboardOverview = unstable_cache(
   fetchDashboardOverview,
-  ["dashboard-overview"],
+  ["dashboard-overview", "official-clubs-only"],
   { revalidate: 60 }
 );
 

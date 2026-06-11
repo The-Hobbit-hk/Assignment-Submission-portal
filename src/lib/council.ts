@@ -1,6 +1,9 @@
 import type { CouncilEntityType, Prisma } from "@/generated/prisma/client";
 import { runWithTtl } from "@/lib/cache";
-import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
+import {
+  OFFICIAL_DISTRICT_CLUB_FILTER,
+  OFFICIAL_ROTARACT_MEMBER_FILTER,
+} from "@/lib/district-clubs-data";
 
 export function getBadge(score: number): string | null {
   if (score >= 400) return "Gold";
@@ -50,11 +53,11 @@ export async function syncCouncilScores(
       }),
       prisma.member.groupBy({
         by: ["clubId"],
-        where: { status: "ACTIVE" },
+        where: { status: "ACTIVE", ...OFFICIAL_ROTARACT_MEMBER_FILTER },
         _sum: { points: true },
       }),
       prisma.member.findMany({
-        where: { status: "ACTIVE" },
+        where: { status: "ACTIVE", ...OFFICIAL_ROTARACT_MEMBER_FILTER },
         select: { id: true, points: true },
         orderBy: { points: "desc" },
       }),

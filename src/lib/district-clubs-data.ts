@@ -177,6 +177,11 @@ export const OFFICIAL_DISTRICT_CLUB_FILTER = {
   charterNumber: { in: OFFICIAL_CLUB_CHARTER_IDS },
 };
 
+/** Limit member queries to official rotaract clubs (excludes district council roster). */
+export const OFFICIAL_ROTARACT_MEMBER_FILTER = {
+  club: OFFICIAL_DISTRICT_CLUB_FILTER,
+};
+
 export function clubDescription(club: DistrictClubRecord): string | undefined {
   const parts: string[] = [];
   if (club.sponsoringClub) parts.push(`Sponsoring club: ${club.sponsoringClub}`);

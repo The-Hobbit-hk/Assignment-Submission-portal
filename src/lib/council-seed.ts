@@ -4,7 +4,6 @@ import {
   COUNCIL_PASSWORD,
   COUNCIL_USERS,
   DISTRICT_COUNCIL_CLUB,
-  councilSeedPoints,
   type CouncilUserSeed,
 } from "@/lib/council-roster-data";
 
@@ -52,7 +51,7 @@ export async function upsertCouncilMember(
   councilUser: CouncilUserSeed,
   clubId: string,
   userId: string,
-  index: number
+  _index: number
 ) {
   const email = councilUser.email.toLowerCase().trim();
 
@@ -69,13 +68,14 @@ export async function upsertCouncilMember(
       profession: councilUser.title,
       role: "MEMBER",
       status: "ACTIVE",
-      points: councilSeedPoints(index),
+      points: 0,
     },
     update: {
       userId,
       firstName: councilUser.name,
       profession: councilUser.title,
       status: "ACTIVE",
+      points: 0,
     },
   });
 }

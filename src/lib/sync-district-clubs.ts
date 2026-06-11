@@ -67,10 +67,27 @@ export async function syncDistrictClubs(prisma: PrismaClient) {
     console.log(`Removed non-official club: ${club.name} (${club.charterNumber ?? "no charter"})`);
   }
 
+  const resetCouncilPoints = await prisma.member.updateMany({
+    where: { club: { charterNumber: DISTRICT_COUNCIL_CLUB.riClubId } },
+    data: { points: 0 },
+  });
+
+  const prunedMembers = await prisma.member.deleteMany({
+    where: {
+      club: {
+        charterNumber: {
+          notIn: [...OFFICIAL_CLUB_CHARTER_IDS, DISTRICT_COUNCIL_CLUB.riClubId],
+        },
+      },
+    },
+  });
+
   return {
     total: DISTRICT_CLUBS.length,
     created,
     updated,
     removed,
+    prunedMembers: prunedMembers.count,
+    resetCouncilPoints: resetCouncilPoints.count,
   };
 }
