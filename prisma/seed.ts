@@ -4,7 +4,8 @@ import path from "path";
 import bcrypt from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
-import { COUNCIL_PASSWORD, COUNCIL_USERS } from "./data/council-users";
+import { COUNCIL_PASSWORD, COUNCIL_USERS } from "../src/lib/council-roster-data";
+import { importCouncilRoster } from "../src/lib/council-seed";
 import {
   DISTRICT_CLUBS,
   clubDescription,
@@ -68,44 +69,6 @@ async function main() {
       })
     )
   );
-
-  const memberData = [
-    { firstName: "Aarav", lastName: "Sharma", email: "aarav@example.com", role: "PRESIDENT" as const, points: 450, clubIdx: 0 },
-    { firstName: "Priya", lastName: "Patel", email: "priya@example.com", role: "SECRETARY" as const, points: 380, clubIdx: 0 },
-    { firstName: "Rohan", lastName: "Desai", email: "rohan@example.com", role: "MEMBER" as const, points: 290, clubIdx: 0 },
-    { firstName: "Sneha", lastName: "Kulkarni", email: "sneha@example.com", role: "PRESIDENT" as const, points: 420, clubIdx: 1 },
-    { firstName: "Vikram", lastName: "Joshi", email: "vikram@example.com", role: "TREASURER" as const, points: 310, clubIdx: 1 },
-    { firstName: "Ananya", lastName: "Mehta", email: "ananya@example.com", role: "MEMBER" as const, points: 275, clubIdx: 1 },
-    { firstName: "Karan", lastName: "Singh", email: "karan@example.com", role: "PRESIDENT" as const, points: 395, clubIdx: 2 },
-    { firstName: "Divya", lastName: "Rao", email: "divya@example.com", role: "SECRETARY" as const, points: 340, clubIdx: 2 },
-    { firstName: "Arjun", lastName: "Nair", email: "arjun@example.com", role: "MEMBER" as const, points: 220, clubIdx: 2 },
-    { firstName: "Meera", lastName: "Iyer", email: "meera@example.com", role: "PRESIDENT" as const, points: 180, clubIdx: 3 },
-  ];
-
-  for (const m of memberData) {
-    const member = await prisma.member.create({
-      data: {
-        clubId: clubs[m.clubIdx].id,
-        firstName: m.firstName,
-        lastName: m.lastName,
-        email: m.email,
-        role: m.role,
-        status: "ACTIVE",
-        points: m.points,
-        profession: "Professional",
-        joinedAt: new Date(2024, Math.floor(Math.random() * 12), 1),
-      },
-    });
-
-    await prisma.activity.create({
-      data: {
-        type: "MEMBER_JOINED",
-        title: `${m.firstName} ${m.lastName} joined ${clubs[m.clubIdx].name}`,
-        memberId: member.id,
-        clubId: clubs[m.clubIdx].id,
-      },
-    });
-  }
 
   const now = new Date();
   const events = [
@@ -242,25 +205,27 @@ async function main() {
     }
   }
 
-  const councilAccounts: { id: string; email: string; role: string; name: string; title: string }[] = [];
+  await importCouncilRoster(prisma);
 
-  for (const councilUser of COUNCIL_USERS) {
-    const user = await prisma.user.create({
-      data: {
-        name: councilUser.name,
-        email: councilUser.email.toLowerCase().trim(),
-        password: councilHash,
-        role: councilUser.role,
-      },
-    });
-    councilAccounts.push({
+  const councilUsers = await prisma.user.findMany({
+    where: {
+      email: { in: COUNCIL_USERS.map((u) => u.email.toLowerCase().trim()) },
+    },
+    select: { id: true, email: true, role: true, name: true },
+  });
+
+  const councilAccounts = councilUsers.map((user) => {
+    const roster = COUNCIL_USERS.find(
+      (c) => c.email.toLowerCase().trim() === user.email
+    );
+    return {
       id: user.id,
       email: user.email,
       role: user.role,
-      name: councilUser.name,
-      title: councilUser.title,
-    });
-  }
+      name: roster?.name ?? user.name ?? "",
+      title: roster?.title ?? "",
+    };
+  });
 
   const demoClub =
     clubs.find((c) => c.charterNumber === CLUB_LOGIN.riClubId) ?? clubs[2];
@@ -345,7 +310,7 @@ async function main() {
 
   console.log("Seed completed:", {
     clubs: clubs.length,
-    members: memberData.length,
+    councilMembers: COUNCIL_USERS.length,
     events: events.length,
     bluebookTasks: bluebookTasks.length,
     councilAccounts: councilAccounts.length,

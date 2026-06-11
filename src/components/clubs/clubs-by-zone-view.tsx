@@ -57,6 +57,11 @@ export function ClubsByZoneView({
                     </div>
                     <div>
                       <p className="font-medium">{club.name}</p>
+                      {club.president?.name && (
+                        <p className="text-xs text-muted-foreground">
+                          President: {club.president.name}
+                        </p>
+                      )}
                       {club.city && (
                         <p className="flex items-center gap-1 text-xs text-muted-foreground">
                           <MapPin className="h-3 w-3" />

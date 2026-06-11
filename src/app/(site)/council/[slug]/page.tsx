@@ -1,5 +1,10 @@
 import { notFound } from "next/navigation";
 import { ContentPageView } from "@/components/site/content-page";
+import { CouncilRosterList } from "@/components/site/council-roster-list";
+import {
+  getCouncilByGroup,
+  type CouncilGroupSlug,
+} from "@/lib/council-roster-data";
 import { COUNCIL_PAGES } from "@/lib/site-content";
 
 export function generateStaticParams() {
@@ -14,5 +19,13 @@ export default async function CouncilSlugPage({
   const { slug } = await params;
   const content = COUNCIL_PAGES[slug];
   if (!content) notFound();
-  return <ContentPageView content={content} />;
+
+  const members = getCouncilByGroup(slug as CouncilGroupSlug);
+
+  return (
+    <>
+      <ContentPageView content={content} />
+      <CouncilRosterList members={members} />
+    </>
+  );
 }

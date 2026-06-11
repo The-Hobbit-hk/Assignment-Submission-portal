@@ -5,7 +5,10 @@ import { COUNCIL_PAGES } from "@/lib/site-content";
 export default function CouncilPage() {
   return (
     <>
-      <PageHero title="Council 25-26" subtitle="District leadership for RIY 2025-26" />
+      <PageHero
+        title="Council 25-26"
+        subtitle="57 district office bearers leading Rotaract District 3131 for RIY 2025-26"
+      />
       <section className="py-16">
         <div className="mx-auto grid max-w-4xl gap-4 px-4 sm:grid-cols-2 lg:px-8">
           {Object.entries(COUNCIL_PAGES).map(([slug, page]) => (

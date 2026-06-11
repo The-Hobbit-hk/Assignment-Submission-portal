@@ -181,6 +181,22 @@ npm run db:seed
 
 Never re-seed production without understanding it resets demo data.
 
+### Import district council roster (safe — does not wipe data)
+
+```bash
+npm run db:import-council
+```
+
+Creates login accounts and member profiles for all **57** council office bearers (used on `/council/*` and Council Live Scores). Default password: `Rotaract@3131`.
+
+### Import club presidents (safe — does not wipe data)
+
+```bash
+npm run db:import-presidents
+```
+
+Sets the club president on each matched club (name, email, phone, RI ID, Instagram in bio).
+
 ### Import district clubs (safe — does not wipe data)
 
 ```bash

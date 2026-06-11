@@ -38,8 +38,13 @@ export function ClubsByZone({
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-semibold text-zinc-900">{club.name}</h3>
+                    {club.presidentName && (
+                      <p className="mt-1 text-xs text-zinc-600">
+                        President: {club.presidentName}
+                      </p>
+                    )}
                     {club.city && (
-                      <p className="mt-1 flex items-center gap-1 text-xs text-zinc-500">
+                      <p className="mt-0.5 flex items-center gap-1 text-xs text-zinc-500">
                         <MapPin className="h-3 w-3" />
                         {club.city}
                       </p>

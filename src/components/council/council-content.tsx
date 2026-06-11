@@ -111,7 +111,7 @@ export function CouncilContent() {
                   <TableRow key={entry.id} className="border-border/30">
                     <TableCell className="text-foreground">{entry.rank}</TableCell>
                     <TableCell className="font-medium text-foreground">
-                      Rtr. {entry.name}
+                      {entry.name}
                     </TableCell>
                     <TableCell className="text-foreground">{entry.score}</TableCell>
                     <TableCell>{entry.email ?? "—"}</TableCell>

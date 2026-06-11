@@ -58,19 +58,36 @@ export type PublicClub = {
   description: string | null;
   charterNumber: string | null;
   memberCount: number;
+  presidentName: string | null;
+  presidentEmail: string | null;
 };
 
 export async function getPublicClubsByZone(): Promise<Record<string, PublicClub[]>> {
   const clubs = await prisma.club.findMany({
-    where: { status: { in: ["ACTIVE", "PROVISIONAL"] } },
+    where: {
+      status: { in: ["ACTIVE", "PROVISIONAL"] },
+      charterNumber: { not: "3131-COUNCIL" },
+    },
     orderBy: [{ zone: "asc" }, { name: "asc" }],
-    include: { _count: { select: { members: true } } },
+    include: {
+      _count: { select: { members: true } },
+      members: {
+        where: { role: "PRESIDENT", status: "ACTIVE" },
+        take: 1,
+        select: { firstName: true, lastName: true, email: true },
+      },
+    },
   });
 
   const grouped: Record<string, PublicClub[]> = {};
 
   for (const club of clubs) {
     const zone = club.zone?.trim() || "Unassigned Zone";
+    const president = club.members[0];
+    const presidentName = president
+      ? `${president.firstName} ${president.lastName}`.trim()
+      : null;
+
     const item: PublicClub = {
       id: club.id,
       name: club.name,
@@ -80,6 +97,8 @@ export async function getPublicClubsByZone(): Promise<Record<string, PublicClub[
       description: club.description,
       charterNumber: club.charterNumber,
       memberCount: club._count.members,
+      presidentName: presidentName || null,
+      presidentEmail: president?.email ?? null,
     };
     if (!grouped[zone]) grouped[zone] = [];
     grouped[zone].push(item);

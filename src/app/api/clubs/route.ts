@@ -2,15 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
-import { buildClubWhere, serializeClubListItem } from "@/lib/club";
+import { buildClubWhere, clubListInclude, serializeClubListItem } from "@/lib/club";
 import { createClubSchema, clubQuerySchema } from "@/lib/validators/club";
 import { logActivity } from "@/lib/activity";
-
-const clubInclude = {
-  president: { select: { id: true, name: true, email: true } },
-  secretary: { select: { id: true, name: true, email: true } },
-  _count: { select: { members: true, events: true } },
-};
 
 export async function GET(request: Request) {
   const { error } = await requireAuth();
@@ -35,7 +29,7 @@ export async function GET(request: Request) {
         skip,
         take: limit,
         orderBy: { name: "asc" },
-        include: clubInclude,
+        include: clubListInclude,
       }),
       prisma.club.count({ where }),
     ]);
@@ -86,7 +80,7 @@ export async function POST(request: Request) {
         secretaryId: data.secretaryId,
         serviceHours: data.serviceHours ?? 0,
       },
-      include: clubInclude,
+      include: clubListInclude,
     });
 
     await logActivity({

@@ -7,11 +7,57 @@ import type {
   ClubPerformance,
 } from "@/types/club";
 
+const presidentMemberSelect = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  email: true,
+  phone: true,
+  riId: true,
+} as const;
+
+export const clubListInclude = {
+  president: { select: { id: true, name: true, email: true } },
+  secretary: { select: { id: true, name: true, email: true } },
+  members: {
+    where: { role: "PRESIDENT", status: "ACTIVE" },
+    take: 1,
+    select: presidentMemberSelect,
+  },
+  _count: { select: { members: true, events: true } },
+} as const;
+
 type ClubWithRelations = Club & {
   president: Pick<User, "id" | "name" | "email"> | null;
   secretary: Pick<User, "id" | "name" | "email"> | null;
+  members?: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string | null;
+    riId: string | null;
+  }>;
   _count?: { members: number; events: number };
 };
+
+function resolveClubPresident(club: ClubWithRelations) {
+  if (club.president) {
+    return {
+      id: club.president.id,
+      name: club.president.name,
+      email: club.president.email,
+    };
+  }
+  const member = club.members?.[0];
+  if (!member) return null;
+  const name = `${member.firstName} ${member.lastName}`.trim();
+  return {
+    id: member.id,
+    name: name || null,
+    email: member.email,
+  };
+}
 
 export function serializeClubListItem(club: ClubWithRelations): ClubListItem {
   return {
@@ -25,13 +71,7 @@ export function serializeClubListItem(club: ClubWithRelations): ClubListItem {
     serviceHours: club.serviceHours,
     memberCount: club._count?.members ?? 0,
     eventCount: club._count?.events ?? 0,
-    president: club.president
-      ? {
-          id: club.president.id,
-          name: club.president.name,
-          email: club.president.email,
-        }
-      : null,
+    president: resolveClubPresident(club),
     secretary: club.secretary
       ? {
           id: club.secretary.id,

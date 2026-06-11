@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
-import { serializeClubDetail } from "@/lib/club";
+import { clubListInclude, serializeClubDetail } from "@/lib/club";
 import { updateClubSchema } from "@/lib/validators/club";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
-
-const clubInclude = {
-  president: { select: { id: true, name: true, email: true } },
-  secretary: { select: { id: true, name: true, email: true } },
-  _count: { select: { members: true, events: true } },
-};
 
 export async function GET(_request: Request, { params }: RouteParams) {
   const { error } = await requireAuth();
@@ -23,7 +17,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
   try {
     const club = await prisma.club.findUnique({
       where: { id },
-      include: clubInclude,
+      include: clubListInclude,
     });
 
     if (!club) {
@@ -62,7 +56,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const club = await prisma.club.update({
       where: { id },
       data: updateData,
-      include: clubInclude,
+      include: clubListInclude,
     });
 
     return NextResponse.json(serializeClubDetail(club));
