@@ -559,7 +559,31 @@ body {
   transform: translateY(0);
 }
 
+@keyframes council-ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.council-card-ring {
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  animation: council-ring-spin 20s linear infinite;
+}
+
+.council-member-card:focus-within {
+  outline: 2px solid rgba(217, 30, 92, 0.45);
+  outline-offset: 3px;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .council-card-ring {
+    animation: none !important;
+  }
+
   .site-page-enter,
   .site-welcome-bar,
   .site-hero-eyebrow,

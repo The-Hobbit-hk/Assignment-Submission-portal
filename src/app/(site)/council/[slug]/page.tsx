@@ -25,7 +25,7 @@ export default async function CouncilSlugPage({
   return (
     <>
       <ContentPageView content={content} />
-      <CouncilRosterList members={members} />
+      <CouncilRosterList members={members} sectionTitle={content.title} />
     </>
   );
 }
