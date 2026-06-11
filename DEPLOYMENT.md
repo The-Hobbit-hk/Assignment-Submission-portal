@@ -227,10 +227,11 @@ Vercel Hobby plan has a **4.5 MB request body limit**. For 5 MB uploads, use **V
 - Run `supabase/storage-setup.sql`
 - Check Storage bucket `uploads` is public
 
-### NextAuth redirect loops
+### NextAuth redirect loops / logout 404
 
-- Set `AUTH_URL` to exact production URL (no trailing slash)
+- `AUTH_URL` and `NEXT_PUBLIC_APP_URL` must match the **actual** Vercel deployment URL (see Vercel → Domains). If the project URL is still `assignment-submission-portal.vercel.app`, do not set `AUTH_URL` to `rotaract-3131-erp.vercel.app` until that domain is assigned in Vercel Settings → General (project rename).
 - Set `AUTH_TRUST_HOST=true`
+- No trailing slash on `AUTH_URL`
 
 ### Prisma errors after deploy
 
