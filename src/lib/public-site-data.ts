@@ -23,6 +23,7 @@ export async function getPublicCalendarEvents() {
       status: true,
       registrationOpensAt: true,
       registrationClosesAt: true,
+      registrationUrl: true,
       club: { select: { name: true, zone: true, city: true } },
     },
   });
@@ -44,6 +45,7 @@ export async function getPublicDistrictEvents() {
       status: true,
       registrationOpensAt: true,
       registrationClosesAt: true,
+      registrationUrl: true,
       type: true,
     },
   });

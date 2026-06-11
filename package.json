@@ -18,6 +18,7 @@
     "db:import-clubs": "npx tsx scripts/import-clubs.ts",
     "db:import-council": "npx tsx scripts/import-council.ts",
     "db:import-presidents": "npx tsx scripts/import-presidents.ts",
+    "db:ensure-district-assembly": "npx tsx scripts/ensure-district-assembly.ts",
     "db:dev": "npx prisma dev --detach --name rac3131",
     "db:setup": "npm run db:dev && npm run db:push && npm run db:seed",
     "postinstall": "prisma generate"

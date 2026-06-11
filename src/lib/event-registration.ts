@@ -5,6 +5,7 @@ export type EventRegistrationFields = {
   status: string;
   registrationOpensAt: Date | null;
   registrationClosesAt: Date | null;
+  registrationUrl?: string | null;
 };
 
 export function getRegistrationState(

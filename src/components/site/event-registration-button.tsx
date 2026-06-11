@@ -26,6 +26,19 @@ export function EventRegistrationButton({
   );
 
   if (state === "open") {
+    if (event.registrationUrl) {
+      return (
+        <a
+          href={event.registrationUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(base, "bg-accent text-white hover:bg-accent/90")}
+        >
+          {label}
+        </a>
+      );
+    }
+
     return (
       <Link
         href={`/login?callbackUrl=/dashboard/events/${event.id}`}

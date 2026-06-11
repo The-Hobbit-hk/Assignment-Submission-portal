@@ -78,11 +78,12 @@ async function main() {
       title: "District Assembly",
       clubIdx: null,
       type: "DISTRICT" as const,
-      days: 20,
+      fixedStartDate: new Date("2026-07-04T10:00:00+05:30"),
       hours: 10,
       attendees: 200,
-      regOpenDays: -7,
-      regCloseDays: 18,
+      registrationOpensAt: new Date("2026-06-01T00:00:00+05:30"),
+      registrationClosesAt: new Date("2026-07-04T23:59:59+05:30"),
+      registrationUrl: "https://forms.gle/bgaP8kYZup8V3VmT9",
     },
     {
       title: "District PDI Summit",
@@ -124,17 +125,27 @@ async function main() {
   ];
 
   for (const e of events) {
-    const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() + e.days);
+    const startDate =
+      "fixedStartDate" in e && e.fixedStartDate
+        ? e.fixedStartDate
+        : (() => {
+            const d = new Date(now);
+            d.setDate(d.getDate() + e.days);
+            return d;
+          })();
 
     const registrationOpensAt =
-      "regOpenDays" in e && e.regOpenDays != null
-        ? new Date(now.getTime() + e.regOpenDays * 24 * 60 * 60 * 1000)
-        : undefined;
+      "registrationOpensAt" in e && e.registrationOpensAt
+        ? e.registrationOpensAt
+        : "regOpenDays" in e && e.regOpenDays != null
+          ? new Date(now.getTime() + e.regOpenDays * 24 * 60 * 60 * 1000)
+          : undefined;
     const registrationClosesAt =
-      "regCloseDays" in e && e.regCloseDays != null
-        ? new Date(now.getTime() + e.regCloseDays * 24 * 60 * 60 * 1000)
-        : undefined;
+      "registrationClosesAt" in e && e.registrationClosesAt
+        ? e.registrationClosesAt
+        : "regCloseDays" in e && e.regCloseDays != null
+          ? new Date(now.getTime() + e.regCloseDays * 24 * 60 * 60 * 1000)
+          : undefined;
 
     await prisma.event.create({
       data: {
@@ -149,6 +160,7 @@ async function main() {
         budget: 15000,
         registrationOpensAt,
         registrationClosesAt,
+        registrationUrl: "registrationUrl" in e ? e.registrationUrl : undefined,
         maxAttendees: e.type === "DISTRICT" ? 300 : undefined,
       },
     });
