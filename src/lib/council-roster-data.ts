@@ -26,6 +26,12 @@ export const DISTRICT_COUNCIL_CLUB = {
   city: "Pune",
 };
 
+/** Limit member queries to the official district council roster only. */
+export const COUNCIL_MEMBER_FILTER = {
+  status: "ACTIVE" as const,
+  club: { charterNumber: DISTRICT_COUNCIL_CLUB.riClubId },
+};
+
 /** District Council 26-27 — official roster */
 export const COUNCIL_USERS: CouncilUserSeed[] = [
   { name: "PHF. DRR. Dr. Karishma Awari", email: "rtr.dr.karishmaawari@gmail.com", title: "District Rotaract Representative", role: "DISTRICT_ADMIN", group: "drr" },

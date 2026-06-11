@@ -1,5 +1,6 @@
 import type { CouncilEntityType, Prisma } from "@/generated/prisma/client";
 import { runWithTtl } from "@/lib/cache";
+import { COUNCIL_MEMBER_FILTER, DISTRICT_COUNCIL_CLUB } from "@/lib/council-roster-data";
 import {
   OFFICIAL_DISTRICT_CLUB_FILTER,
   OFFICIAL_ROTARACT_MEMBER_FILTER,
@@ -26,7 +27,7 @@ export async function ensureCouncilScoresSynced(
   force = false
 ) {
   await runWithTtl(
-    `council-sync:${month}:${year}`,
+    `council-sync:council-roster:${month}:${year}`,
     () => syncCouncilScores(prisma, month, year),
     { force }
   );
@@ -57,7 +58,7 @@ export async function syncCouncilScores(
         _sum: { points: true },
       }),
       prisma.member.findMany({
-        where: { status: "ACTIVE", ...OFFICIAL_ROTARACT_MEMBER_FILTER },
+        where: { ...COUNCIL_MEMBER_FILTER },
         select: { id: true, points: true },
         orderBy: { points: "desc" },
       }),
@@ -219,27 +220,33 @@ export async function fetchCouncilLeaderboard(
 ) {
   const { entityType, month, year, period, search, page, limit, skip } = params;
   const yearOnly = period === "yearly";
+  const councilMemberScope =
+    entityType === "MEMBER"
+      ? {
+          member: {
+            club: { charterNumber: DISTRICT_COUNCIL_CLUB.riClubId },
+            ...(search
+              ? {
+                  OR: [
+                    {
+                      firstName: { contains: search, mode: "insensitive" as const },
+                    },
+                    {
+                      lastName: { contains: search, mode: "insensitive" as const },
+                    },
+                  ],
+                }
+              : {}),
+          },
+        }
+      : search
+        ? { club: { name: { contains: search, mode: "insensitive" as const } } }
+        : {};
+
   const where = {
     entityType,
     ...(yearOnly ? { year } : { month, year }),
-    ...(search && entityType === "CLUB"
-      ? { club: { name: { contains: search, mode: "insensitive" as const } } }
-      : search && entityType === "MEMBER"
-        ? {
-            OR: [
-              {
-                member: {
-                  firstName: { contains: search, mode: "insensitive" as const },
-                },
-              },
-              {
-                member: {
-                  lastName: { contains: search, mode: "insensitive" as const },
-                },
-              },
-            ],
-          }
-        : {}),
+    ...councilMemberScope,
   };
 
   const [entries, total] = await Promise.all([
