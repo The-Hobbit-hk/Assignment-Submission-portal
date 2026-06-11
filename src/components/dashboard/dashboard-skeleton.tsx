@@ -2,12 +2,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function DashboardSkeleton() {
   return (
-    <div className="grid gap-4 lg:grid-cols-5">
-      <Skeleton className="h-[420px] lg:col-span-3" />
-      <div className="space-y-3 lg:col-span-2">
-        {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-36" />
-        ))}
+    <div className="space-y-5">
+      <Skeleton className="h-24 w-full rounded-2xl" />
+      <div className="grid gap-5 lg:grid-cols-5">
+        <Skeleton className="h-[520px] rounded-2xl lg:col-span-3" />
+        <Skeleton className="h-[520px] rounded-2xl lg:col-span-2" />
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { SectionLabel } from "@/components/layout/page-heading";
 import { WEEKDAY_LABELS_FULL, WEEKDAY_LABELS_SHORT } from "@/lib/calendar-utils";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/types/dashboard";
@@ -12,10 +12,23 @@ interface CalendarWidgetProps {
   events: CalendarEvent[];
 }
 
+const EVENT_TYPE_COLORS: Record<string, string> = {
+  DISTRICT: "from-accent to-rose-500",
+  SERVICE: "from-emerald-500 to-teal-500",
+  PROFESSIONAL: "from-indigo-500 to-violet-500",
+  SOCIAL: "from-sky-500 to-blue-500",
+  TRAINING: "from-amber-500 to-orange-500",
+  INSTALLATION: "from-fuchsia-500 to-pink-500",
+};
+
+function eventGradient(type: string) {
+  return EVENT_TYPE_COLORS[type] ?? "from-accent to-rose-500";
+}
+
 export function CalendarWidget({ events }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const { days, monthLabel } = useMemo(() => {
+  const { days, monthLabel, monthShort } = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
@@ -30,7 +43,8 @@ export function CalendarWidget({ events }: CalendarWidgetProps) {
       monthLabel: currentDate.toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
-      }).toUpperCase(),
+      }),
+      monthShort: currentDate.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
     };
   }, [currentDate]);
 
@@ -49,103 +63,172 @@ export function CalendarWidget({ events }: CalendarWidgetProps) {
     return map;
   }, [events, currentDate]);
 
+  const upcomingInMonth = useMemo(
+    () =>
+      [...events].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      ),
+    [events]
+  );
+
   const today = new Date();
   const isCurrentMonth =
     today.getMonth() === currentDate.getMonth() &&
     today.getFullYear() === currentDate.getFullYear();
 
   return (
-    <div className="space-y-4">
-      <SectionLabel>Calendar</SectionLabel>
-
-      <div className="depth-card rounded-xl p-3 sm:p-4">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 border-border/60 bg-transparent text-xs"
-              onClick={() => setCurrentDate(new Date())}
-            >
-              Today
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() =>
-                setCurrentDate(
-                  new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
-                )
-              }
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() =>
-                setCurrentDate(
-                  new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
-                )
-              }
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+    <div className="dashboard-panel">
+      <div className="dashboard-panel-header">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10 text-accent shadow-sm">
+            <CalendarDays className="h-4 w-4" />
           </div>
-          <span className="text-xs font-medium uppercase tracking-wide sm:text-sm">
-            {monthLabel}
-          </span>
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Calendar
+            </p>
+            <p className="text-sm font-semibold text-foreground">{monthLabel}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 text-xs"
+            onClick={() => setCurrentDate(new Date())}
+          >
+            Today
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() =>
+              setCurrentDate(
+                new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+              )
+            }
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={() =>
+              setCurrentDate(
+                new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+              )
+            }
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="p-4 sm:p-5">
+        <div className="overflow-hidden rounded-xl border border-border/50 bg-gradient-to-b from-white to-zinc-50/80 shadow-inner">
+          <div className="grid grid-cols-7 border-b border-border/40 bg-muted/30">
+            {WEEKDAY_LABELS_FULL.map((day, index) => (
+              <div
+                key={day}
+                className="py-2 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs"
+              >
+                <span className="sm:hidden">{WEEKDAY_LABELS_SHORT[index]}</span>
+                <span className="hidden sm:inline">{day}</span>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7">
+            {days.map((day, i) => {
+              const dayEvents = day ? eventsByDay.get(day) ?? [] : [];
+              const isToday = Boolean(day && isCurrentMonth && day === today.getDate());
+
+              return (
+                <div
+                  key={i}
+                  className={cn(
+                    "min-h-[4rem] border-b border-r border-border/30 p-1 last:border-r-0 sm:min-h-[5.25rem] sm:p-1.5",
+                    day === null && "bg-zinc-50/50",
+                    isToday && "bg-accent/[0.06]"
+                  )}
+                >
+                  {day && (
+                    <>
+                      <div className="flex items-center justify-between gap-1">
+                        <span
+                          className={cn(
+                            "inline-flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-medium sm:text-xs",
+                            isToday
+                              ? "bg-accent font-semibold text-white shadow-md shadow-accent/30"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          {day}
+                        </span>
+                        {dayEvents.length > 1 && (
+                          <span className="rounded-full bg-accent/15 px-1.5 py-0.5 text-[9px] font-semibold text-accent">
+                            +{dayEvents.length}
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-1 space-y-0.5">
+                        {dayEvents.slice(0, 2).map((ev) => (
+                          <div
+                            key={ev.id}
+                            className={cn(
+                              "truncate rounded-md bg-gradient-to-r px-1.5 py-0.5 text-[9px] font-medium text-white shadow-sm sm:text-[10px]",
+                              eventGradient(ev.type)
+                            )}
+                            title={ev.title}
+                          >
+                            {ev.title}
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="table-scroll grid grid-cols-7 border border-border/40">
-          {WEEKDAY_LABELS_FULL.map((day, index) => (
-            <div
-              key={day}
-              className="border-b border-r border-border/40 py-1.5 text-center text-[10px] font-medium text-muted-foreground last:border-r-0 sm:py-2 sm:text-xs"
-            >
-              <span className="sm:hidden">{WEEKDAY_LABELS_SHORT[index]}</span>
-              <span className="hidden sm:inline">{day}</span>
-            </div>
-          ))}
-          {days.map((day, i) => {
-            const dayEvents = day ? eventsByDay.get(day) ?? [] : [];
-            return (
-              <div
-                key={i}
-                className={cn(
-                  "min-h-[3rem] border-b border-r border-border/40 p-0.5 last:border-r-0 sm:min-h-[4.5rem] sm:p-1",
-                  day === null && "bg-transparent",
-                  isCurrentMonth && day === today.getDate() && "bg-accent/5"
-                )}
-              >
-                {day && (
-                  <>
-                    <span className="text-[10px] text-muted-foreground sm:text-xs">{day}</span>
-                    <div className="mt-0.5 space-y-0.5">
-                      {dayEvents.length > 0 && (
-                        <span
-                          className="inline-block h-1.5 w-1.5 rounded-full bg-accent sm:hidden"
-                          title={`${dayEvents.length} event(s)`}
-                        />
+        {upcomingInMonth.length > 0 && (
+          <div className="mt-4">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Upcoming in {monthShort}
+            </p>
+            <ul className="space-y-2">
+              {upcomingInMonth.slice(0, 4).map((ev) => (
+                <li key={ev.id}>
+                  <Link
+                    href={`/dashboard/events/${ev.id}`}
+                    className="depth-card-interactive flex items-center gap-3 rounded-lg border border-border/40 bg-white/80 px-3 py-2.5"
+                  >
+                    <div
+                      className={cn(
+                        "flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-gradient-to-br text-[10px] font-bold text-white shadow-sm",
+                        eventGradient(ev.type)
                       )}
-                      {dayEvents.slice(0, 2).map((ev) => (
-                        <div
-                          key={ev.id}
-                          className="hidden truncate rounded bg-[#e8a598]/80 px-1 py-0.5 text-[10px] text-[#1a1a1a] sm:block"
-                          title={ev.title}
-                        >
-                          {ev.title}
-                        </div>
-                      ))}
+                    >
+                      <span>{new Date(ev.date).getDate()}</span>
+                      <span className="text-[8px] font-medium uppercase opacity-90">
+                        {new Date(ev.date).toLocaleDateString("en-US", { month: "short" })}
+                      </span>
                     </div>
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">{ev.title}</p>
+                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        {ev.type.replace("_", " ")}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   );
