@@ -5,7 +5,7 @@ import { JoinRotaractSection } from "@/components/site/join-rotaract-section";
 import { PageHero } from "@/components/site/page-hero";
 import { SiteReveal } from "@/components/site/site-reveal";
 import { SponsorshipPreview } from "@/components/site/sponsorship-preview";
-import { PORTAL_OPTIONS } from "@/config/portals";
+import { TestimonialsSection } from "@/components/site/testimonials-section";
 import { siteConfig } from "@/config/site";
 
 export function HomePage() {
@@ -57,30 +57,7 @@ export function HomePage() {
       </SiteReveal>
 
       <SiteReveal delay={160}>
-        <section className="border-t border-zinc-200 bg-zinc-50 py-10 sm:py-12 lg:py-14">
-          <div className="mx-auto max-w-6xl px-4 lg:px-8">
-            <div className="mb-8 text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-                Member Access
-              </p>
-              <h2 className="mt-2 font-display text-2xl font-bold text-zinc-900 sm:text-3xl">
-                Access Your Portal
-              </h2>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {PORTAL_OPTIONS.map((portal) => (
-                <Link
-                  key={portal.id}
-                  href={`/login?portal=${portal.id}`}
-                  className="depth-card depth-card-interactive rounded-xl p-5 hover:border-accent/30"
-                >
-                  <h3 className="font-semibold text-accent">{portal.title}</h3>
-                  <p className="mt-2 text-sm text-zinc-600">{portal.description}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
+        <TestimonialsSection />
       </SiteReveal>
     </>
   );

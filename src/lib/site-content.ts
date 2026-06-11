@@ -11,6 +11,28 @@ export type ContentPage = {
   };
 };
 
+export type SponsorTier = "Gold Partner" | "Silver Partner" | "Community Partner";
+
+export type AnnualSponsor = {
+  name: string;
+  tier: SponsorTier;
+  /** Optional logo path under /public */
+  logo?: string;
+  website?: string;
+};
+
+export const ANNUAL_SPONSORS: AnnualSponsor[] = [
+  { name: "Pune Tech Solutions", tier: "Gold Partner" },
+  { name: "Western Maharashtra Healthcare", tier: "Gold Partner" },
+  { name: "Konkan Infra Projects", tier: "Silver Partner" },
+  { name: "Bavdhan Business Park", tier: "Silver Partner" },
+  { name: "Raigad Youth Foundation", tier: "Silver Partner" },
+  { name: "Camp Education Trust", tier: "Community Partner" },
+  { name: "Shaniwarwada Media House", tier: "Community Partner" },
+  { name: "District Print & Signage Co.", tier: "Community Partner" },
+  { name: "Pimpri Industrial Association", tier: "Community Partner" },
+];
+
 export const SPONSORSHIP = {
   title: "Partner with Rotaract District 3131",
   intro:
@@ -39,6 +61,51 @@ export const JOIN_ROTARACT = {
   joinText:
     "Rotaract is for young professionals aged 18+ who want to lead, serve, and grow. Find a club in your zone or contact the district team to start a new club.",
 } as const;
+
+export const DISTRICT_TESTIMONIALS = [
+  {
+    quote:
+      "District 3131 gives every club a clear structure to grow — from reporting and events to council support. REIGN is not just a theme; it is how we lead this year.",
+    name: "PHF. DRR. Dr. Karishma Awari",
+    role: "District Rotaract Representative",
+    club: "Rotaract Club of Pune Shaniwarwada",
+  },
+  {
+    quote:
+      "Serving as District General Secretary, I have seen how organised district systems help clubs deliver impact faster. Fellowship here is backed by real accountability.",
+    name: "PHF. Rtr. Harshvardhan Kale",
+    role: "District General Secretary",
+    club: "Rotaract Club of Bavdhan Pioneers",
+  },
+  {
+    quote:
+      "Monthly reporting and transparent club data have made it easier for us to track progress across all 101 clubs. The district team is always approachable and supportive.",
+    name: "Rtr. Dr. Aishwarya Patil",
+    role: "District Secretary - Reporting",
+    club: "Rotaract Club of Pune Shaniwarwada",
+  },
+  {
+    quote:
+      "From zone visits to flagship events, being part of this district has shaped my leadership. Rotaract 3131 is where service meets professional growth.",
+    name: "Rtr. Aniket Sardar",
+    role: "District Zonal Representative",
+    club: "Rotaract Club of Khopoli",
+  },
+  {
+    quote:
+      "Bluebook assignments and council portfolios push you to think beyond your club. That district-wide perspective is what makes Rotaract special here.",
+    name: "Rtr. Samrudhi Khade",
+    role: "District Director - Professional Development",
+    club: "Rotaract Club of Pune Zenith",
+  },
+  {
+    quote:
+      "Our club finds strength in the district network — shared resources, mentorship, and events that unite Rotaractors from Pune to Raigad every Rotary year.",
+    name: "Rtr. Jayesh Chavan",
+    role: "District Director - Club Service",
+    club: "Rotaract Club of Pune City Fortune",
+  },
+] as const;
 
 export const CONTACT = {
   phone: "+91-9657870768",

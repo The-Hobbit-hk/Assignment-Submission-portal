@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AnnualSponsorsSection } from "@/components/site/annual-sponsors-section";
 import { SPONSORSHIP } from "@/lib/site-content";
 
 export function SponsorshipPreview() {
@@ -13,21 +14,32 @@ export function SponsorshipPreview() {
             {SPONSORSHIP.title}
           </h2>
           <p className="mt-4 max-w-2xl leading-relaxed text-zinc-600">{SPONSORSHIP.intro}</p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {SPONSORSHIP.tiers.map((tier) => (
-              <div
-                key={tier.name}
-                className="rounded-xl border border-zinc-200 bg-white p-4"
-              >
-                <h3 className="font-semibold text-accent">{tier.name}</h3>
-                <ul className="mt-3 space-y-1.5 text-sm text-zinc-600">
-                  {tier.benefits.map((b) => (
-                    <li key={b}>• {b}</li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+
+          <div className="mt-10">
+            <AnnualSponsorsSection compact />
           </div>
+
+          <div className="mt-10 border-t border-zinc-200 pt-10">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+              Partnership packages
+            </p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              {SPONSORSHIP.tiers.map((tier) => (
+                <div
+                  key={tier.name}
+                  className="rounded-xl border border-zinc-200 bg-white p-4"
+                >
+                  <h3 className="font-semibold text-accent">{tier.name}</h3>
+                  <ul className="mt-3 space-y-1.5 text-sm text-zinc-600">
+                    {tier.benefits.map((b) => (
+                      <li key={b}>• {b}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <Link
             href="/sponsorship"
             className="mt-8 inline-flex rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800"
