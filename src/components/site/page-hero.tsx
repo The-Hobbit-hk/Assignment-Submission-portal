@@ -17,7 +17,7 @@ export function PageHero({
   return (
     <section
       className={cn(
-        "relative flex items-center justify-center overflow-hidden border-b border-zinc-200 bg-gradient-to-b from-zinc-50 to-white",
+        "page-hero-section relative flex items-center justify-center overflow-hidden border-b border-zinc-200 bg-gradient-to-b from-zinc-50 to-white",
         large
           ? backgroundImage
             ? "min-h-[58vh] pt-site-header sm:min-h-[68vh] lg:min-h-[78vh]"
@@ -48,6 +48,9 @@ export function PageHero({
           }}
         />
       )}
+      <div className="site-hero-orb site-hero-orb-left pointer-events-none absolute left-[8%] top-[22%] h-24 w-24 rounded-full bg-accent/10 blur-2xl" />
+      <div className="site-hero-orb site-hero-orb-right pointer-events-none absolute right-[10%] top-[30%] h-32 w-32 rounded-full bg-indigo-400/10 blur-3xl" />
+
       <div
         className={cn(
           "relative z-10 mx-auto max-w-4xl rounded-2xl px-4 text-center lg:px-8",
@@ -59,9 +62,13 @@ export function PageHero({
             : "py-10 sm:py-14 lg:py-16"
         )}
       >
+        <p className="site-hero-eyebrow mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent shadow-sm backdrop-blur-sm sm:text-xs">
+          <span className="site-hero-dot h-1.5 w-1.5 rounded-full bg-accent" />
+          Rotaract District 3131
+        </p>
         <h1
           className={cn(
-            "font-display font-bold text-zinc-900",
+            "site-hero-title font-display font-bold text-zinc-900",
             large
               ? "text-3xl sm:text-4xl md:text-6xl lg:text-7xl"
               : "text-2xl sm:text-3xl md:text-4xl"
@@ -70,8 +77,11 @@ export function PageHero({
           {title}
         </h1>
         {subtitle && (
-          <p className="mx-auto mt-4 max-w-2xl text-base text-zinc-700 md:text-lg">{subtitle}</p>
+          <p className="site-hero-subtitle mx-auto mt-4 max-w-2xl text-base text-zinc-700 md:text-lg">
+            {subtitle}
+          </p>
         )}
+        <div className="site-hero-line mx-auto mt-6 h-0.5 w-16 rounded-full bg-gradient-to-r from-transparent via-accent to-transparent sm:mt-8 sm:w-24" />
       </div>
     </section>
   );

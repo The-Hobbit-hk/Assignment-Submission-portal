@@ -377,3 +377,204 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(217, 30, 92, 0.45);
 }
+
+/* ── Public site page transitions ───────────────────────── */
+.site-page-root {
+  padding-top: var(--site-header-height);
+}
+
+.site-page-root .page-hero-section {
+  padding-top: 0 !important;
+}
+
+@keyframes site-page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes site-welcome-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes site-hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes site-hero-line-grow {
+  from {
+    opacity: 0;
+    transform: scaleX(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes site-hero-orb-float {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.06);
+    opacity: 0.85;
+  }
+}
+
+@keyframes site-shimmer-slide {
+  0% {
+    background-position: 200% center;
+  }
+  100% {
+    background-position: -200% center;
+  }
+}
+
+@keyframes site-spark-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes site-dot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 30, 92, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(217, 30, 92, 0);
+  }
+}
+
+.site-page-enter {
+  animation: site-page-enter 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.site-welcome-bar {
+  animation: site-welcome-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.site-welcome-text {
+  background: linear-gradient(
+    90deg,
+    #3f3f46 0%,
+    #d91e5c 35%,
+    #6366f1 65%,
+    #3f3f46 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: site-shimmer-slide 8s linear infinite;
+}
+
+.site-welcome-spark {
+  animation: site-spark-pulse 2.4s ease-in-out infinite;
+}
+
+.site-hero-eyebrow {
+  animation: site-hero-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.site-hero-title {
+  animation: site-hero-rise 0.95s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both;
+}
+
+.site-hero-subtitle {
+  animation: site-hero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.34s both;
+}
+
+.site-hero-line {
+  animation: site-hero-line-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.48s both;
+}
+
+.site-hero-dot {
+  animation: site-dot-pulse 2.2s ease-out infinite;
+}
+
+.site-hero-orb {
+  animation: site-hero-orb-float 7s ease-in-out infinite;
+}
+
+.site-hero-orb-right {
+  animation-delay: 1.4s;
+}
+
+.site-page-stagger > section:nth-of-type(2),
+.site-page-stagger > .site-scroll-reveal:nth-of-type(2) {
+  animation: site-page-enter 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
+}
+
+.site-page-stagger > section:nth-of-type(3),
+.site-page-stagger > .site-scroll-reveal:nth-of-type(3) {
+  animation: site-page-enter 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+.site-page-stagger > section:nth-of-type(4),
+.site-page-stagger > .site-scroll-reveal:nth-of-type(4) {
+  animation: site-page-enter 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.28s both;
+}
+
+.site-scroll-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.site-scroll-reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-page-enter,
+  .site-welcome-bar,
+  .site-hero-eyebrow,
+  .site-hero-title,
+  .site-hero-subtitle,
+  .site-hero-line,
+  .site-hero-orb,
+  .site-welcome-spark,
+  .site-welcome-text,
+  .site-page-stagger > section,
+  .site-scroll-reveal {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}

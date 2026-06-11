@@ -1,12 +1,14 @@
 import Image from "next/image";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { PageHero } from "@/components/site/page-hero";
+import { SiteReveal } from "@/components/site/site-reveal";
 import type { ContentPage } from "@/lib/site-content";
 
 export function ContentPageView({ content, heroTitle }: { content: ContentPage; heroTitle?: string }) {
   return (
     <>
       <PageHero title={heroTitle ?? content.title} />
+      <SiteReveal>
       <section className="py-10 sm:py-14 lg:py-16">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <div className="grid gap-8 sm:gap-12 lg:grid-cols-2 lg:items-start">
@@ -50,6 +52,7 @@ export function ContentPageView({ content, heroTitle }: { content: ContentPage; 
           </div>
         </div>
       </section>
+      </SiteReveal>
     </>
   );
 }

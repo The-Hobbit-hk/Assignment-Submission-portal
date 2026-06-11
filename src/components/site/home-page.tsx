@@ -2,6 +2,7 @@ import Link from "next/link";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { JoinRotaractSection } from "@/components/site/join-rotaract-section";
 import { PageHero } from "@/components/site/page-hero";
+import { SiteReveal } from "@/components/site/site-reveal";
 import { SponsorshipPreview } from "@/components/site/sponsorship-preview";
 import { PORTAL_OPTIONS } from "@/config/portals";
 import { siteConfig } from "@/config/site";
@@ -16,6 +17,7 @@ export function HomePage() {
         large
       />
 
+      <SiteReveal>
       <section className="py-12 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 text-center lg:px-8">
           <h2 className="bg-gradient-to-r from-amber-600 via-amber-500 to-rose-600 bg-clip-text font-display text-3xl font-bold text-transparent md:text-4xl">
@@ -36,11 +38,17 @@ export function HomePage() {
           </div>
         </div>
       </section>
+      </SiteReveal>
 
+      <SiteReveal delay={80}>
       <JoinRotaractSection />
+      </SiteReveal>
 
+      <SiteReveal delay={120}>
       <SponsorshipPreview />
+      </SiteReveal>
 
+      <SiteReveal delay={160}>
       <section className="border-t border-zinc-200 bg-zinc-50 py-12 sm:py-16 lg:py-20">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <div className="mb-10 text-center">
@@ -65,6 +73,7 @@ export function HomePage() {
           </div>
         </div>
       </section>
+      </SiteReveal>
     </>
   );
 }
