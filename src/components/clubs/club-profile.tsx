@@ -22,7 +22,7 @@ export function ClubProfile({ clubId }: ClubProfileProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-32 w-full" />
       </div>
@@ -34,7 +34,7 @@ export function ClubProfile({ clubId }: ClubProfileProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/dashboard/clubs">
@@ -47,7 +47,7 @@ export function ClubProfile({ clubId }: ClubProfileProps) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight">{club.name}</h1>
+              <h1 className="text-xl font-semibold tracking-tight">{club.name}</h1>
               <ClubStatusBadge status={club.status} />
             </div>
             {(club.city || club.zone) && (

@@ -197,7 +197,7 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
 
           <div className="space-y-2">
             <Label>Assign to council members</Label>
-            <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-border/60 bg-black/20 p-2">
+            <div className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-border/60 bg-muted/50 p-2">
               {members.length === 0 ? (
                 <p className="px-2 py-3 text-sm text-muted-foreground">
                   No council members found.
@@ -207,7 +207,7 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
                   <label
                     key={m.id}
                     className={cn(
-                      "flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm transition hover:bg-white/5",
+                      "flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm transition hover:bg-muted",
                       selectedMembers.includes(m.id) && "bg-accent/10"
                     )}
                   >

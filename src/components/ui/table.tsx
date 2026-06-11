@@ -29,7 +29,7 @@ const TableRow = ({
 }: React.HTMLAttributes<HTMLTableRowElement>) => (
   <tr
     className={cn(
-      "border-b border-border/60 transition-colors hover:bg-white/5 data-[state=selected]:bg-white/5",
+      "border-b border-border/60 transition-colors hover:bg-muted/80 data-[state=selected]:bg-muted",
       className
     )}
     {...props}
@@ -42,7 +42,7 @@ const TableHead = ({
 }: React.ThHTMLAttributes<HTMLTableCellElement>) => (
   <th
     className={cn(
-      "h-10 px-4 text-left align-middle text-xs font-medium text-muted-foreground",
+      "h-8 px-3 text-left align-middle text-xs font-medium text-muted-foreground",
       className
     )}
     {...props}
@@ -54,7 +54,7 @@ const TableCell = ({
   ...props
 }: React.TdHTMLAttributes<HTMLTableCellElement>) => (
   <td
-    className={cn("p-4 align-middle text-sm", className)}
+    className={cn("px-3 py-2 align-middle text-sm", className)}
     {...props}
   />
 );

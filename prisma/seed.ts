@@ -150,15 +150,67 @@ async function main() {
   const events = [
     { title: "Blood Donation Drive", clubIdx: 0, type: "SERVICE" as const, days: 5, hours: 8, attendees: 45 },
     { title: "Career Fair 2026", clubIdx: 1, type: "PROFESSIONAL" as const, days: 12, hours: 6, attendees: 120 },
-    { title: "District Assembly", clubIdx: null, type: "DISTRICT" as const, days: 20, hours: 10, attendees: 200 },
+    {
+      title: "District Assembly",
+      clubIdx: null,
+      type: "DISTRICT" as const,
+      days: 20,
+      hours: 10,
+      attendees: 200,
+      regOpenDays: -7,
+      regCloseDays: 18,
+    },
+    {
+      title: "District PDI Summit",
+      clubIdx: null,
+      type: "DISTRICT" as const,
+      days: 45,
+      hours: 8,
+      attendees: 150,
+      regOpenDays: 30,
+      regCloseDays: 44,
+    },
     { title: "Beach Cleanup", clubIdx: 2, type: "SERVICE" as const, days: -10, hours: 4, attendees: 35, status: "COMPLETED" as const },
     { title: "Leadership Workshop", clubIdx: 0, type: "TRAINING" as const, days: -25, hours: 5, attendees: 28, status: "COMPLETED" as const },
     { title: "Club Social Night", clubIdx: 1, type: "SOCIAL" as const, days: 8, hours: 3, attendees: 60 },
+    {
+      title: "Installation — Rotaract Club of Mumbai Central",
+      clubIdx: 0,
+      type: "INSTALLATION" as const,
+      days: 30,
+      hours: 3,
+      attendees: 80,
+    },
+    {
+      title: "Installation — Rotaract Club of Pune IT",
+      clubIdx: 1,
+      type: "INSTALLATION" as const,
+      days: 35,
+      hours: 3,
+      attendees: 70,
+    },
+    {
+      title: "Installation — Rotaract Club of Thane East",
+      clubIdx: 3,
+      type: "INSTALLATION" as const,
+      days: 40,
+      hours: 3,
+      attendees: 50,
+    },
   ];
 
   for (const e of events) {
     const startDate = new Date(now);
     startDate.setDate(startDate.getDate() + e.days);
+
+    const registrationOpensAt =
+      "regOpenDays" in e && e.regOpenDays != null
+        ? new Date(now.getTime() + e.regOpenDays * 24 * 60 * 60 * 1000)
+        : undefined;
+    const registrationClosesAt =
+      "regCloseDays" in e && e.regCloseDays != null
+        ? new Date(now.getTime() + e.regCloseDays * 24 * 60 * 60 * 1000)
+        : undefined;
 
     await prisma.event.create({
       data: {
@@ -171,6 +223,9 @@ async function main() {
         attendees: e.attendees,
         serviceHours: e.hours,
         budget: 15000,
+        registrationOpensAt,
+        registrationClosesAt,
+        maxAttendees: e.type === "DISTRICT" ? 300 : undefined,
       },
     });
 

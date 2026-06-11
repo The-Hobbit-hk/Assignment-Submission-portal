@@ -37,7 +37,7 @@ export function CouncilContent() {
   const end = Math.min(page * rowsPerPage, total);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       <PageHeading title="Council Live Scores" />
 
       <div className="flex flex-wrap gap-3">

@@ -14,9 +14,9 @@ export function ReportingFormLayout({
   className?: string;
 }) {
   return (
-    <div className={cn("mx-auto max-w-3xl space-y-8", className)}>
+    <div className={cn("mx-auto max-w-3xl space-y-5", className)}>
       <div>
-        <h1 className="font-display text-xl font-semibold uppercase tracking-wide text-foreground md:text-2xl">
+        <h1 className="font-display text-lg font-semibold uppercase tracking-wide text-foreground">
           {title}
         </h1>
         {subtitle && (
@@ -26,7 +26,7 @@ export function ReportingFormLayout({
 
       {banner}
 
-      <div className="space-y-6">{children}</div>
+      <div className="space-y-4">{children}</div>
     </div>
   );
 }
@@ -47,7 +47,7 @@ export function ReportingPanel({
       id={id}
       className="overflow-hidden rounded-xl border border-border/50 bg-card/50 shadow-sm"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 bg-black/25 px-5 py-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 bg-muted/50 px-5 py-3.5">
         <h2 className="text-sm font-semibold uppercase tracking-wider text-foreground">
           {title}
         </h2>

@@ -16,6 +16,8 @@ export interface EventItem {
   club: { id: string; name: string } | null;
   attendees: number;
   maxAttendees: number | null;
+  registrationOpensAt: string | null;
+  registrationClosesAt: string | null;
   serviceHours: number;
   budget: number | null;
   bannerUrl: string | null;

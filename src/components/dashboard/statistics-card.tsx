@@ -14,11 +14,11 @@ export function StatisticsCard({ metric }: StatisticsCardProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-2xl font-bold text-foreground">
+        <p className="text-xl font-bold text-foreground">
           {metric.value.toLocaleString()}
         </p>
         <div className="space-y-1">
-          <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{

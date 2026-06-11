@@ -35,7 +35,7 @@ export function ClubsGrid({ clubs, isLoading }: ClubsGridProps) {
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {clubs.map((club) => (
         <Link key={club.id} href={`/dashboard/clubs/${club.id}`}>
-          <Card className="h-full transition-colors hover:border-accent/40 hover:bg-white/5">
+          <Card className="h-full transition-colors hover:border-accent/40 hover:bg-muted">
             <CardHeader className="flex flex-row items-start justify-between pb-2">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/15 text-accent">

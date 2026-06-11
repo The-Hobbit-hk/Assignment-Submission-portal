@@ -55,21 +55,18 @@ export function LoginForm({ portal }: { portal?: PortalMeta }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {portal && (
-        <p className="text-sm text-white/60">{portal.description}</p>
-      )}
+      {portal && <p className="text-sm text-muted-foreground">{portal.description}</p>}
       {error && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
         </div>
       )}
       <div className="space-y-2">
-        <Label htmlFor="email" className="text-white/80">Email</Label>
+        <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
           placeholder={portal?.loginHint ?? "you@rotaract3131.org"}
-          className="border-white/20 bg-white/5 text-white placeholder:text-white/30"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -79,7 +76,7 @@ export function LoginForm({ portal }: { portal?: PortalMeta }) {
       </div>
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="password" className="text-white/80">Password</Label>
+          <Label htmlFor="password">Password</Label>
           <Link href="/forgot-password" className="text-xs text-accent hover:underline">
             Forgot password?
           </Link>
@@ -88,7 +85,6 @@ export function LoginForm({ portal }: { portal?: PortalMeta }) {
           id="password"
           type="password"
           placeholder="••••••••"
-          className="border-white/20 bg-white/5 text-white placeholder:text-white/30"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -100,7 +96,7 @@ export function LoginForm({ portal }: { portal?: PortalMeta }) {
         {isLoading && <Loader2 className="animate-spin" />}
         Login
       </Button>
-      <p className="text-center text-xs text-white/50">
+      <p className="text-center text-xs text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link href="/register" className="text-accent hover:underline">
           Register

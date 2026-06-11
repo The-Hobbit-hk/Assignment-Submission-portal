@@ -22,7 +22,7 @@ export function ReportsContent() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold uppercase tracking-wide">Export</h1>
+        <h1 className="font-display text-xl font-semibold uppercase tracking-wide">Export</h1>
         <p className="mt-1 text-sm text-muted-foreground">Generate and download district reports in multiple formats.</p>
       </div>
 

@@ -41,7 +41,7 @@ export function ClubMembersList({ clubId }: ClubMembersListProps) {
             <Link
               key={member.id}
               href={`/dashboard/members/${member.id}`}
-              className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5"
+              className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
             >
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="text-xs">

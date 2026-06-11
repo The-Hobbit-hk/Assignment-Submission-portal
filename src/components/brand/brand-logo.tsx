@@ -43,11 +43,11 @@ export function BrandLogo({
           width={36}
           height={36}
           priority={priority}
-          className="h-9 w-9 shrink-0 object-contain"
+          className="h-8 w-8 shrink-0 object-contain"
           aria-hidden
         />
         <div className="min-w-0 leading-tight">
-          <p className="truncate text-sm font-semibold tracking-tight text-foreground">
+          <p className="truncate text-[13px] font-semibold tracking-tight text-foreground">
             Rotaract
           </p>
           <p className="truncate text-[11px] text-muted-foreground">District 3131</p>

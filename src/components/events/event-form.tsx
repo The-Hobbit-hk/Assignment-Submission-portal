@@ -37,6 +37,12 @@ export function EventForm({
     status: initial?.status ?? "UPCOMING",
     clubId: lockedClub?.id ?? initial?.clubId ?? "",
     maxAttendees: initial?.maxAttendees ?? "",
+    registrationOpensAt: initial?.registrationOpensAt
+      ? initial.registrationOpensAt.slice(0, 16)
+      : "",
+    registrationClosesAt: initial?.registrationClosesAt
+      ? initial.registrationClosesAt.slice(0, 16)
+      : "",
     serviceHours: initial?.serviceHours ?? 0,
   });
 
@@ -51,6 +57,12 @@ export function EventForm({
         endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
         clubId: form.clubId || undefined,
         maxAttendees: form.maxAttendees ? Number(form.maxAttendees) : undefined,
+        registrationOpensAt: form.registrationOpensAt
+          ? new Date(form.registrationOpensAt).toISOString()
+          : undefined,
+        registrationClosesAt: form.registrationClosesAt
+          ? new Date(form.registrationClosesAt).toISOString()
+          : undefined,
         serviceHours: Number(form.serviceHours),
       });
     } catch (err) {
@@ -74,7 +86,7 @@ export function EventForm({
         {lockedClub ? (
           <div className="space-y-2">
             <Label>Club</Label>
-            <Input value={lockedClub.name} disabled className="bg-white/5" />
+            <Input value={lockedClub.name} disabled className="bg-muted" />
           </div>
         ) : (
           <div className="space-y-2"><Label>Club</Label>
@@ -89,7 +101,7 @@ export function EventForm({
         <div className="space-y-2"><Label>Type</Label>
           <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{["SERVICE","PROFESSIONAL","SOCIAL","DISTRICT","TRAINING"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+            <SelectContent>{["SERVICE","PROFESSIONAL","SOCIAL","DISTRICT","TRAINING","ISD","INSTALLATION"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
           </Select>
         </div>
         <div className="space-y-2"><Label>Status</Label>
@@ -100,6 +112,26 @@ export function EventForm({
         </div>
         <div className="space-y-2"><Label>Max attendees</Label><Input type="number" value={form.maxAttendees} onChange={(e) => setForm({ ...form, maxAttendees: e.target.value })} /></div>
       </div>
+      {(form.type === "DISTRICT" || form.type === "INSTALLATION") && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Registration opens</Label>
+            <Input
+              type="datetime-local"
+              value={form.registrationOpensAt}
+              onChange={(e) => setForm({ ...form, registrationOpensAt: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Registration closes</Label>
+            <Input
+              type="datetime-local"
+              value={form.registrationClosesAt}
+              onChange={(e) => setForm({ ...form, registrationClosesAt: e.target.value })}
+            />
+          </div>
+        </div>
+      )}
       <Button type="submit" disabled={loading}>{loading && <Loader2 className="animate-spin" />}{submitLabel}</Button>
     </form>
   );

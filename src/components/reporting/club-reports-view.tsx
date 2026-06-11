@@ -22,7 +22,7 @@ export function ClubReportsView() {
   }[] } | undefined)?.clubs ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeading
         title="Club Reporting Overview"
         subtitle="View admin and event reports submitted by all clubs."

@@ -34,11 +34,11 @@ export function BluebookTaskDetail({ taskId }: { taskId: string }) {
   const sub = task.submissions?.[0];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild><Link href="/dashboard/bluebook"><ArrowLeft className="h-4 w-4" /></Link></Button>
         <div>
-          <h1 className="text-2xl font-bold">{task.title}</h1>
+          <h1 className="text-xl font-semibold">{task.title}</h1>
           <p className="text-muted-foreground">{task.category} · Max {task.maxScore} pts</p>
         </div>
         {task.isExpired && <Badge variant="destructive">Expired</Badge>}

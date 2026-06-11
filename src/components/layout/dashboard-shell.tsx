@@ -9,14 +9,14 @@ interface DashboardShellProps {
 
 export function DashboardShell({ children }: DashboardShellProps) {
   return (
-    <div className="dashboard-gradient flex min-h-screen">
+    <div className="dashboard-shell dashboard-gradient flex min-h-screen text-sm">
       <div className="hidden lg:block">
         <AppSidebar className="fixed left-0 top-0 z-30 h-screen" />
       </div>
 
       <div className="flex min-h-screen flex-1 flex-col lg:pl-[var(--sidebar-width)]">
         <AppNavbar />
-        <main className="flex-1 bg-[#0f0f11] p-4 lg:p-6">{children}</main>
+        <main className="flex-1 bg-background p-3 lg:p-4">{children}</main>
       </div>
     </div>
   );

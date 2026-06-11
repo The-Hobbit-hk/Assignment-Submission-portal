@@ -126,7 +126,7 @@ export function ManageReportingMemberForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-border/40 bg-black/20 p-4">
+    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border border-border/40 bg-muted/50 p-4">
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <div className="grid gap-3 sm:grid-cols-2">

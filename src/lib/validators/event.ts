@@ -7,6 +7,7 @@ export const eventTypeEnum = z.enum([
   "DISTRICT",
   "TRAINING",
   "ISD",
+  "INSTALLATION",
 ]);
 
 export const eventStatusEnum = z.enum([
@@ -29,6 +30,8 @@ export const createEventSchema = z.object({
   status: eventStatusEnum.default("UPCOMING"),
   clubId: z.string().optional(),
   maxAttendees: z.number().int().positive().optional(),
+  registrationOpensAt: z.string().datetime().optional().nullable(),
+  registrationClosesAt: z.string().datetime().optional().nullable(),
   serviceHours: z.number().int().min(0).optional(),
   budget: z.number().min(0).optional(),
 });

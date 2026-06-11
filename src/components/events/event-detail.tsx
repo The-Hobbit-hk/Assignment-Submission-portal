@@ -38,11 +38,11 @@ export function EventDetail({ eventId }: { eventId: string }) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild><Link href="/dashboard/events"><ArrowLeft className="h-4 w-4" /></Link></Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold">{event.title}</h1>
+          <h1 className="text-xl font-semibold">{event.title}</h1>
           <p className="text-muted-foreground">{event.club?.name ?? "District Event"}</p>
         </div>
         <Button variant="outline" asChild><Link href={`/dashboard/events/${eventId}/edit`}>Edit</Link></Button>
@@ -89,7 +89,7 @@ export function EventDetail({ eventId }: { eventId: string }) {
           <CardContent>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {event.gallery.map((img) => (
-                <div key={img.id} className="relative aspect-square overflow-hidden rounded-lg bg-white/5">
+                <div key={img.id} className="relative aspect-square overflow-hidden rounded-lg bg-muted">
                   <Image src={img.url} alt={img.caption ?? "Event photo"} fill className="object-cover" unoptimized />
                 </div>
               ))}

@@ -11,11 +11,11 @@ export function PageHeading({ title, subtitle, action, className }: PageHeadingP
   return (
     <div className={cn("flex flex-wrap items-start justify-between gap-4", className)}>
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
           {title}
         </h1>
         {subtitle && (
-          <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
         )}
       </div>
       {action}

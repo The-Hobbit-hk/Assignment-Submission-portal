@@ -57,7 +57,7 @@ export function RecentActivity({ activities }: RecentActivityProps) {
                 <div className="relative flex flex-col items-center">
                   <div
                     className={cn(
-                      "flex h-8 w-8 items-center justify-center rounded-full bg-white/5",
+                      "flex h-8 w-8 items-center justify-center rounded-full bg-muted",
                       config.color
                     )}
                   >

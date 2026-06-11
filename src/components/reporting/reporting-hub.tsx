@@ -27,9 +27,9 @@ export function ReportingHub() {
   const year = now.getFullYear();
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8">
+    <div className="mx-auto max-w-3xl space-y-5">
       <div>
-        <h1 className="font-display text-2xl font-semibold uppercase tracking-wide text-foreground">
+        <h1 className="font-display text-xl font-semibold uppercase tracking-wide text-foreground">
           Monthly Reporting
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">

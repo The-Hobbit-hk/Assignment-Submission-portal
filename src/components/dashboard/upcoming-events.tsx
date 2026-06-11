@@ -29,7 +29,7 @@ export function UpcomingEvents({ events }: UpcomingEventsProps) {
           events.map((event) => (
             <div
               key={event.id}
-              className="flex gap-3 rounded-lg border border-border/40 p-3 transition-colors hover:bg-white/5"
+              className="flex gap-3 rounded-lg border border-border/40 p-3 transition-colors hover:bg-muted"
             >
               <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-accent/15 text-accent">
                 <span className="text-xs font-bold leading-none">

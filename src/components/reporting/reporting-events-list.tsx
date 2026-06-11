@@ -103,7 +103,7 @@ export function ReportingEventsListCompact({ events }: { events: EventRow[] }) {
       {events.map((event) => (
         <li
           key={event.id}
-          className="flex items-start gap-3 rounded-lg border border-border/40 bg-black/20 px-3 py-2.5 text-sm"
+          className="flex items-start gap-3 rounded-lg border border-border/40 bg-muted/50 px-3 py-2.5 text-sm"
         >
           <Calendar className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
           <div className="min-w-0">

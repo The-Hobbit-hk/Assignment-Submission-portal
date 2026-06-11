@@ -18,7 +18,7 @@ export function AppNavbar() {
   const { setMobileSidebarOpen } = useUIStore();
 
   return (
-    <header className="sticky top-0 z-40 flex h-[var(--navbar-height)] items-center justify-between border-b border-border/40 bg-[#121214]/95 px-4 backdrop-blur-sm lg:px-6">
+    <header className="sticky top-0 z-40 flex h-[var(--navbar-height)] items-center justify-between border-b border-border bg-white/95 px-3 backdrop-blur-sm lg:px-4">
       <Sheet onOpenChange={setMobileSidebarOpen}>
         <SheetTrigger asChild>
           <Button
@@ -30,7 +30,7 @@ export function AppNavbar() {
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-[var(--sidebar-width)] border-border/40 bg-[#121214] p-0">
+        <SheetContent side="left" className="w-[var(--sidebar-width)] border-border bg-white p-0">
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation</SheetTitle>
           </SheetHeader>

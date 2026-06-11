@@ -51,7 +51,7 @@ export function ReportingFileUpload({
   };
 
   return (
-    <div className={cn("mt-3 space-y-2 rounded-lg border border-border/40 bg-black/20 p-3", className)}>
+    <div className={cn("mt-3 space-y-2 rounded-lg border border-border/40 bg-muted/50 p-3", className)}>
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
 
       {hasFile ? (

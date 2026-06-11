@@ -18,7 +18,7 @@ export function MemberProfileCard({ memberId }: MemberProfileCardProps) {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <Skeleton className="h-8 w-32" />
         <Skeleton className="h-48 w-full" />
       </div>
@@ -32,7 +32,7 @@ export function MemberProfileCard({ memberId }: MemberProfileCardProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/dashboard/members">
@@ -40,7 +40,7 @@ export function MemberProfileCard({ memberId }: MemberProfileCardProps) {
           </Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">
+          <h1 className="text-xl font-semibold tracking-tight">
             {member.firstName} {member.lastName}
           </h1>
           <p className="text-muted-foreground">{member.club.name}</p>
@@ -53,7 +53,7 @@ export function MemberProfileCard({ memberId }: MemberProfileCardProps) {
         </Button>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardContent className="flex flex-col items-center gap-4 pt-6">
             <Avatar className="h-24 w-24">

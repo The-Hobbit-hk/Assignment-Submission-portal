@@ -98,6 +98,12 @@ export async function POST(request: Request) {
         status: d.status,
         clubId: resolvedClubId,
         maxAttendees: d.maxAttendees,
+        registrationOpensAt: d.registrationOpensAt
+          ? new Date(d.registrationOpensAt)
+          : undefined,
+        registrationClosesAt: d.registrationClosesAt
+          ? new Date(d.registrationClosesAt)
+          : undefined,
         serviceHours: d.serviceHours ?? 0,
         budget: d.budget,
       },

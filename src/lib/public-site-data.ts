@@ -1,0 +1,89 @@
+import { prisma } from "@/lib/prisma";
+
+export async function getPublicCalendarEvents() {
+  const yearStart = new Date();
+  yearStart.setMonth(0, 1);
+  yearStart.setHours(0, 0, 0, 0);
+
+  return prisma.event.findMany({
+    where: {
+      type: { in: ["DISTRICT", "INSTALLATION"] },
+      startDate: { gte: yearStart },
+      status: { not: "CANCELLED" },
+    },
+    orderBy: { startDate: "asc" },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      startDate: true,
+      endDate: true,
+      location: true,
+      type: true,
+      status: true,
+      registrationOpensAt: true,
+      registrationClosesAt: true,
+      club: { select: { name: true, zone: true, city: true } },
+    },
+  });
+}
+
+export async function getPublicDistrictEvents() {
+  return prisma.event.findMany({
+    where: {
+      type: "DISTRICT",
+      status: { in: ["UPCOMING", "ONGOING"] },
+    },
+    orderBy: { startDate: "asc" },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      startDate: true,
+      location: true,
+      status: true,
+      registrationOpensAt: true,
+      registrationClosesAt: true,
+      type: true,
+    },
+  });
+}
+
+export type PublicClub = {
+  id: string;
+  name: string;
+  city: string | null;
+  zone: string | null;
+  status: string;
+  description: string | null;
+  memberCount: number;
+};
+
+export async function getPublicClubsByZone(): Promise<Record<string, PublicClub[]>> {
+  const clubs = await prisma.club.findMany({
+    where: { status: { in: ["ACTIVE", "PROVISIONAL"] } },
+    orderBy: [{ zone: "asc" }, { name: "asc" }],
+    include: { _count: { select: { members: true } } },
+  });
+
+  const grouped: Record<string, PublicClub[]> = {};
+
+  for (const club of clubs) {
+    const zone = club.zone?.trim() || "Unassigned Zone";
+    const item: PublicClub = {
+      id: club.id,
+      name: club.name,
+      city: club.city,
+      zone: club.zone,
+      status: club.status,
+      description: club.description,
+      memberCount: club._count.members,
+    };
+    if (!grouped[zone]) grouped[zone] = [];
+    grouped[zone].push(item);
+  }
+
+  return Object.fromEntries(
+    Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b))
+  );
+}

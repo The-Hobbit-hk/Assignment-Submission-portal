@@ -36,7 +36,7 @@ export function KpiCard({ metric }: KpiCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-2xl font-bold text-foreground">{metric.value}</p>
+        <p className="text-xl font-bold text-foreground">{metric.value}</p>
         <div className="mt-1 flex items-center gap-1">
           {metric.trend === "up" && (
             <TrendingUp className="h-3 w-3 text-green-400" />

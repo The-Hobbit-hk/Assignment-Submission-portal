@@ -33,7 +33,7 @@ export function MyCouncilTasks() {
   if (isLoading) return <Skeleton className="h-64" />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeading title="My Bluebook Tasks" subtitle="Tasks assigned to you by the District Secretary." />
       <div className="space-y-3">
         {(tasks as CouncilTask[] | undefined)?.length ? (

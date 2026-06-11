@@ -27,13 +27,13 @@ export function MembersContent() {
   const clubs = clubsData?.data?.map((c) => ({ id: c.id, name: c.name })) ?? [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
             Members
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             View and manage district and club members.
           </p>
         </div>

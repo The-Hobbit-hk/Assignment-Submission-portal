@@ -32,7 +32,7 @@ export function AssignmentPortal() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <PageHeading
         title="Bluebook Task Assignment"
         subtitle="Create new bluebook tasks and assign them to council members."

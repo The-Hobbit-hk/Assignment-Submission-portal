@@ -24,7 +24,7 @@ export function ReportingWindowBanner({
       className={cn(
         "flex items-start gap-3 rounded-lg border px-4 py-3 text-sm",
         open
-          ? "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400"
+          ? "border-green-500/30 bg-green-500/10 text-green-700"
           : "border-destructive/30 bg-destructive/10 text-destructive",
         className
       )}

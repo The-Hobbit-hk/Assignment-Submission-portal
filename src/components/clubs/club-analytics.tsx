@@ -54,7 +54,7 @@ export function ClubAnalyticsPanel({ clubId }: ClubAnalyticsPanelProps) {
   const maxGrowth = Math.max(...data.memberGrowth.map((g) => g.count), 1);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
@@ -67,7 +67,7 @@ export function ClubAnalyticsPanel({ clubId }: ClubAnalyticsPanelProps) {
                 <Icon className="h-4 w-4 text-accent" />
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-bold">{stat.value}</p>
+                <p className="text-xl font-bold">{stat.value}</p>
                 <p className="text-xs text-muted-foreground">{stat.sub}</p>
               </CardContent>
             </Card>

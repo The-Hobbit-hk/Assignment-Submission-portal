@@ -89,7 +89,7 @@ export function EventsBrowsingView({
     : "No club events this month.";
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative max-w-md flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -104,7 +104,7 @@ export function EventsBrowsingView({
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-1 rounded-lg bg-white/5 p-1">
+          <div className="flex gap-1 rounded-lg bg-muted p-1">
             {([["grid", Grid3X3], ["list", List], ["calendar", CalendarDays]] as const).map(
               ([mode, Icon]) => (
                 <Button
@@ -132,7 +132,7 @@ export function EventsBrowsingView({
           eventLinkBase={eventLinkBase}
         />
       ) : view === "list" ? (
-        <div className="space-y-8">
+        <div className="space-y-5">
           <EventsSection title={districtSectionTitle} count={districtEvents.length}>
             {districtEvents.length === 0 ? (
               <EmptySection message="No district events this month." />
@@ -162,7 +162,7 @@ export function EventsBrowsingView({
           </EventsSection>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-5">
           <EventsSection title={districtSectionTitle} count={districtEvents.length}>
             {districtEvents.length === 0 ? (
               <EmptySection message="No district events this month." />
@@ -217,7 +217,7 @@ function EventsSection({
 }) {
   return (
     <section className="overflow-hidden rounded-xl border border-border/50 bg-card/30">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 bg-black/20 px-5 py-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/40 bg-muted/50 px-5 py-3.5">
         <h2 className="text-sm font-semibold uppercase tracking-wider">{title}</h2>
         <div className="flex items-center gap-2">
           {action}
@@ -316,7 +316,7 @@ function EventListRow({
   return (
     <Link
       href={`${eventLinkBase}/${event.id}`}
-      className="flex items-center gap-4 rounded-lg border border-border/40 p-4 transition-colors hover:bg-white/5"
+      className="flex items-center gap-4 rounded-lg border border-border/40 p-4 transition-colors hover:bg-muted"
     >
       <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-lg bg-accent/15 text-xs font-bold text-accent">
         <span>{new Date(event.startDate).getDate()}</span>

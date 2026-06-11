@@ -45,15 +45,15 @@ function NavLink({
       href={item.href}
       onClick={onNavigate}
       className={cn(
-        "flex items-center gap-3 rounded-md py-2 text-sm transition-colors",
-        nested ? "px-3 pl-9" : "px-3 py-2.5",
+        "flex items-center gap-2.5 rounded-md py-1.5 text-[13px] transition-colors",
+        nested ? "px-2.5 pl-8" : "px-2.5",
         active
           ? "bg-secondary text-foreground"
           : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
         item.disabled && "pointer-events-none opacity-40"
       )}
     >
-      <Icon className="h-4 w-4 shrink-0 text-accent" />
+      <Icon className="h-3.5 w-3.5 shrink-0 text-accent" />
       <span>{item.title}</span>
     </Link>
   );
@@ -67,7 +67,7 @@ export function AppSidebar({ className, onNavigate }: AppSidebarProps) {
   return (
     <aside
       className={cn(
-        "flex h-full w-[var(--sidebar-width)] flex-col border-r border-border/40 bg-[#121214]",
+        "flex h-full w-[var(--sidebar-width)] flex-col border-r border-border bg-white",
         className
       )}
     >
@@ -77,7 +77,7 @@ export function AppSidebar({ className, onNavigate }: AppSidebarProps) {
 
       <Separator className="bg-border/40" />
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-1.5 py-2">
         {mainNavigation.map((item) => {
           if (item.children?.length) {
             const groupActive = isItemActive(pathname, item);
@@ -87,11 +87,11 @@ export function AppSidebar({ className, onNavigate }: AppSidebarProps) {
               <div key={item.title} className="space-y-0.5">
                 <div
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm",
+                    "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px]",
                     groupActive ? "text-foreground" : "text-muted-foreground"
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0 text-accent" />
+                  <Icon className="h-3.5 w-3.5 shrink-0 text-accent" />
                   <span className="flex-1 font-medium">{item.title}</span>
                   <ChevronDown className="h-3.5 w-3.5 opacity-50" />
                 </div>
@@ -137,9 +137,9 @@ export function AppSidebar({ className, onNavigate }: AppSidebarProps) {
                   router.push("/login");
                   router.refresh();
                 }}
-                className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
+                className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
               >
-                <Icon className="h-4 w-4 shrink-0 text-accent" />
+                <Icon className="h-3.5 w-3.5 shrink-0 text-accent" />
                 <span>{item.title}</span>
               </button>
             );
@@ -150,9 +150,9 @@ export function AppSidebar({ className, onNavigate }: AppSidebarProps) {
               key={item.href}
               href={item.href!}
               onClick={onNavigate}
-              className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
+              className="flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
             >
-              <Icon className="h-4 w-4 shrink-0 text-accent" />
+              <Icon className="h-3.5 w-3.5 shrink-0 text-accent" />
               <span>{item.title}</span>
             </Link>
           );

@@ -28,10 +28,10 @@ export function ProfileContent() {
   ];
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-4">
       <PageHeading title="My Profile" />
 
-      <div className="rounded-xl border border-border/40 bg-card/80 p-6 md:p-8">
+      <div className="rounded-xl border border-border/40 bg-card/80 p-4 md:p-5">
         <div className="flex flex-col gap-8 md:flex-row md:items-start">
           <div className="flex flex-col items-center gap-3 md:w-48">
             <Avatar className="h-28 w-28 border-2 border-border/40">
@@ -48,8 +48,8 @@ export function ProfileContent() {
             <p className="text-center text-lg font-semibold">{displayName}</p>
           </div>
 
-          <div className="flex-1 space-y-6">
-            <div className="grid gap-6 sm:grid-cols-2">
+          <div className="flex-1 space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               {fields.map((f) => (
                 <div key={f.label}>
                   <p className="text-sm font-semibold text-foreground">{f.label}</p>
