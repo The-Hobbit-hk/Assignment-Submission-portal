@@ -1,0 +1,17 @@
+export const themeConfig = {
+  brand: "#D91E5C",
+  accent: "#D91E5C",
+  accentHover: "#B8184F",
+  accentMuted: "rgba(217, 30, 92, 0.15)",
+  background: "#000000",
+  surface: "#1C1C1E",
+  surfaceElevated: "#27272A",
+  border: "rgba(255, 255, 255, 0.08)",
+  glass: "rgba(15, 22, 41, 0.65)",
+  textPrimary: "#F8FAFC",
+  textSecondary: "#94A3B8",
+  textMuted: "#64748B",
+  success: "#22C55E",
+  warning: "#F59E0B",
+  danger: "#EF4444",
+} as const;

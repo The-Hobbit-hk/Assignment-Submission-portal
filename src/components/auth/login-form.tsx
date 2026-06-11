@@ -1,0 +1,111 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { PortalId } from "@/config/portals";
+
+type PortalMeta = {
+  id: PortalId;
+  title: string;
+  description: string;
+  loginHint: string;
+} | null;
+
+export function LoginForm({ portal }: { portal?: PortalMeta }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError("Invalid email or password. Please try again.");
+        return;
+      }
+
+      router.push(callbackUrl);
+      router.refresh();
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {portal && (
+        <p className="text-sm text-white/60">{portal.description}</p>
+      )}
+      {error && (
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+      <div className="space-y-2">
+        <Label htmlFor="email" className="text-white/80">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          placeholder={portal?.loginHint ?? "you@rotaract3131.org"}
+          className="border-white/20 bg-white/5 text-white placeholder:text-white/30"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          autoComplete="email"
+          disabled={isLoading}
+        />
+      </div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password" className="text-white/80">Password</Label>
+          <Link href="/forgot-password" className="text-xs text-accent hover:underline">
+            Forgot password?
+          </Link>
+        </div>
+        <Input
+          id="password"
+          type="password"
+          placeholder="••••••••"
+          className="border-white/20 bg-white/5 text-white placeholder:text-white/30"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          autoComplete="current-password"
+          disabled={isLoading}
+        />
+      </div>
+      <Button type="submit" className="w-full" disabled={isLoading}>
+        {isLoading && <Loader2 className="animate-spin" />}
+        Login
+      </Button>
+      <p className="text-center text-xs text-white/50">
+        Don&apos;t have an account?{" "}
+        <Link href="/register" className="text-accent hover:underline">
+          Register
+        </Link>
+      </p>
+    </form>
+  );
+}

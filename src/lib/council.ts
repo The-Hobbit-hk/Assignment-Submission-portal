@@ -1,0 +1,253 @@
+import type { CouncilEntityType, Prisma } from "@/generated/prisma/client";
+import { runWithTtl } from "@/lib/cache";
+
+export function getBadge(score: number): string | null {
+  if (score >= 400) return "Gold";
+  if (score >= 300) return "Silver";
+  if (score >= 200) return "Bronze";
+  if (score >= 100) return "Rising Star";
+  return null;
+}
+
+export function getTrendLabel(trend: number): "up" | "down" | "neutral" {
+  if (trend > 0) return "up";
+  if (trend < 0) return "down";
+  return "neutral";
+}
+
+export async function ensureCouncilScoresSynced(
+  prisma: typeof import("@/lib/prisma").prisma,
+  month: number,
+  year: number,
+  force = false
+) {
+  await runWithTtl(
+    `council-sync:${month}:${year}`,
+    () => syncCouncilScores(prisma, month, year),
+    { force }
+  );
+}
+
+export async function syncCouncilScores(
+  prisma: typeof import("@/lib/prisma").prisma,
+  month: number,
+  year: number
+) {
+  const prevMonth = month === 1 ? 12 : month - 1;
+  const prevYear = month === 1 ? year - 1 : year;
+
+  const [clubs, bluebookByClub, memberPointsByClub, members, prevScores] =
+    await Promise.all([
+      prisma.club.findMany({
+        where: { status: "ACTIVE" },
+        select: { id: true },
+      }),
+      prisma.bluebookSubmission.groupBy({
+        by: ["clubId"],
+        where: { status: "APPROVED", task: { month, year } },
+        _sum: { allocatedScore: true },
+      }),
+      prisma.member.groupBy({
+        by: ["clubId"],
+        where: { status: "ACTIVE" },
+        _sum: { points: true },
+      }),
+      prisma.member.findMany({
+        where: { status: "ACTIVE" },
+        select: { id: true, points: true },
+        orderBy: { points: "desc" },
+      }),
+      prisma.councilScore.findMany({
+        where: { month: prevMonth, year: prevYear },
+        select: { entityType: true, entityId: true, score: true },
+      }),
+    ]);
+
+  const bluebookMap = new Map(
+    bluebookByClub.map((b) => [b.clubId, b._sum.allocatedScore ?? 0])
+  );
+  const memberPointsMap = new Map(
+    memberPointsByClub.map((m) => [m.clubId, m._sum.points ?? 0])
+  );
+  const prevMap = new Map(
+    prevScores.map((p) => [`${p.entityType}:${p.entityId}`, p.score])
+  );
+
+  const clubScores = clubs
+    .map((club) => {
+      const bluebook = bluebookMap.get(club.id) ?? 0;
+      const memberPts = memberPointsMap.get(club.id) ?? 0;
+      return {
+        entityId: club.id,
+        clubId: club.id,
+        score: bluebook + Math.round(memberPts * 0.1),
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  const clubRecords: Prisma.CouncilScoreCreateManyInput[] = clubScores.map(
+    (c, i) => ({
+      entityType: "CLUB",
+      entityId: c.entityId,
+      clubId: c.clubId,
+      month,
+      year,
+      score: c.score,
+      rank: i + 1,
+      badge: getBadge(c.score),
+      trend: c.score - (prevMap.get(`CLUB:${c.entityId}`) ?? 0),
+    })
+  );
+
+  const memberRecords: Prisma.CouncilScoreCreateManyInput[] = members.map(
+    (m, i) => ({
+      entityType: "MEMBER",
+      entityId: m.id,
+      memberId: m.id,
+      month,
+      year,
+      score: m.points,
+      rank: i + 1,
+      badge: getBadge(m.points),
+      trend: m.points - (prevMap.get(`MEMBER:${m.id}`) ?? 0),
+    })
+  );
+
+  await prisma.$transaction([
+    prisma.councilScore.deleteMany({
+      where: { month, year, entityType: "CLUB" },
+    }),
+    prisma.councilScore.deleteMany({
+      where: { month, year, entityType: "MEMBER" },
+    }),
+    ...(clubRecords.length
+      ? [prisma.councilScore.createMany({ data: clubRecords })]
+      : []),
+    ...(memberRecords.length
+      ? [prisma.councilScore.createMany({ data: memberRecords })]
+      : []),
+  ]);
+}
+
+export function serializeCouncilEntry(entry: {
+  id: string;
+  entityType: CouncilEntityType;
+  entityId: string;
+  month: number;
+  year: number;
+  score: number;
+  rank: number | null;
+  badge: string | null;
+  trend: number;
+  club?: { id: string; name: string } | null;
+  member?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    club?: { name: string };
+  } | null;
+}) {
+  const name =
+    entry.entityType === "CLUB"
+      ? (entry.club?.name ?? "Unknown Club")
+      : entry.member
+        ? `${entry.member.firstName} ${entry.member.lastName}`
+        : "Unknown Member";
+
+  return {
+    id: entry.id,
+    entityType: entry.entityType,
+    entityId: entry.entityId,
+    name,
+    email: entry.member?.email ?? null,
+    clubName: entry.member?.club?.name ?? entry.club?.name ?? null,
+    month: entry.month,
+    year: entry.year,
+    score: entry.score,
+    rank: entry.rank,
+    badge: entry.badge,
+    trend: entry.trend,
+    trendDirection: getTrendLabel(entry.trend),
+  };
+}
+
+const councilInclude = {
+  club: { select: { id: true, name: true } },
+  member: {
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      club: { select: { name: true } },
+    },
+  },
+} as const;
+
+export async function fetchCouncilPodium(
+  prisma: typeof import("@/lib/prisma").prisma,
+  entityType: CouncilEntityType,
+  month: number,
+  year: number
+) {
+  const top3 = await prisma.councilScore.findMany({
+    where: { entityType, month, year },
+    orderBy: { rank: "asc" },
+    take: 3,
+    include: councilInclude,
+  });
+  return top3.map(serializeCouncilEntry);
+}
+
+export async function fetchCouncilLeaderboard(
+  prisma: typeof import("@/lib/prisma").prisma,
+  params: {
+    entityType: CouncilEntityType;
+    month: number;
+    year: number;
+    period: string;
+    search: string;
+    page: number;
+    limit: number;
+    skip: number;
+  }
+) {
+  const { entityType, month, year, period, search, page, limit, skip } = params;
+  const yearOnly = period === "yearly";
+  const where = {
+    entityType,
+    ...(yearOnly ? { year } : { month, year }),
+    ...(search && entityType === "CLUB"
+      ? { club: { name: { contains: search, mode: "insensitive" as const } } }
+      : search && entityType === "MEMBER"
+        ? {
+            OR: [
+              {
+                member: {
+                  firstName: { contains: search, mode: "insensitive" as const },
+                },
+              },
+              {
+                member: {
+                  lastName: { contains: search, mode: "insensitive" as const },
+                },
+              },
+            ],
+          }
+        : {}),
+  };
+
+  const [entries, total] = await Promise.all([
+    prisma.councilScore.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { rank: "asc" },
+      include: councilInclude,
+    }),
+    prisma.councilScore.count({ where }),
+  ]);
+
+  return { entries, total, page, limit };
+}
