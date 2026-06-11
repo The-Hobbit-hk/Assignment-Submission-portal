@@ -1,5 +1,6 @@
 import type { UserRole } from "@/types/auth";
 import type { NavItem } from "@/types/navigation";
+import { isZonalRepresentative } from "@/lib/zonal-reps";
 import {
   BarChart3,
   BookOpen,
@@ -54,7 +55,15 @@ export function canViewAllClubReports(role: UserRole) {
   return isReportingSecretary(role);
 }
 
-export function getNavigationForRole(role: UserRole): NavItem[] {
+export function canViewZoneClubReports(email?: string | null) {
+  return !!email && isZonalRepresentative(email);
+}
+
+export function canViewClubReportingOverview(role: UserRole, email?: string | null) {
+  return canViewAllClubReports(role) || canViewZoneClubReports(email);
+}
+
+export function getNavigationForRole(role: UserRole, email?: string | null): NavItem[] {
   const reportingChildren: NavItem[] = [];
 
   if (canSubmitClubReporting(role)) {
@@ -75,6 +84,12 @@ export function getNavigationForRole(role: UserRole): NavItem[] {
       { title: "Export Admin", href: "/dashboard/reporting/export/admin", icon: Briefcase },
       { title: "Export Events", href: "/dashboard/reporting/export/events", icon: Briefcase }
     );
+  } else if (canViewZoneClubReports(email)) {
+    reportingChildren.push({
+      title: "Zone Reporting",
+      href: "/dashboard/reporting/club-reports",
+      icon: Building2,
+    });
   } else if (DISTRICT_ROLES.includes(role)) {
     reportingChildren.push({
       title: "Export",

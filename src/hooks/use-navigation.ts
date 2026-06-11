@@ -7,5 +7,5 @@ import type { UserRole } from "@/types/auth";
 export function useRoleNavigation() {
   const { data: session } = useSession();
   const role = (session?.user?.role ?? "MEMBER") as UserRole;
-  return getNavigationForRole(role);
+  return getNavigationForRole(role, session?.user?.email);
 }

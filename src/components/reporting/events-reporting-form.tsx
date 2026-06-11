@@ -7,7 +7,7 @@ import { EventsBrowsingView } from "@/components/events/events-browsing-view";
 import { ReportingFormLayout } from "@/components/reporting/reporting-form-layout";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
 import { getReportingPeriodLabel } from "@/lib/reporting";
-import { useEventsReportingPortal } from "@/hooks/use-reporting";
+import { useEventsReportingPortal, useSaveEventsReport } from "@/hooks/use-reporting";
 import { useReportingWindow } from "@/hooks/use-reporting-window";
 import { useSession } from "next-auth/react";
 import { isClubUser } from "@/lib/roles";
@@ -20,10 +20,18 @@ export function EventsReportingForm() {
   const { data: session } = useSession();
   const clubUser = isClubUser(session?.user?.role ?? "MEMBER");
   const { data: window } = useReportingWindow(month, year);
-  const { data } = useEventsReportingPortal(month, year);
+  const { data, refetch } = useEventsReportingPortal(month, year);
+  const saveEventsReport = useSaveEventsReport();
 
   const clubId = session?.user?.clubId ?? data?.clubId ?? null;
   const clubName = data?.clubName ?? session?.user?.name ?? "Your club";
+  const reportingClosed = clubUser && window && !window.open;
+  const eventsSubmitted = data?.report?.status === "SUBMITTED";
+
+  const handleSubmitEventsReport = async () => {
+    await saveEventsReport.mutateAsync({ month, year, submit: true });
+    await refetch();
+  };
 
   return (
     <ReportingFormLayout
@@ -65,14 +73,29 @@ export function EventsReportingForm() {
         <Link href="/dashboard/reporting/admin" className="text-accent hover:underline">
           Admin Reporting
         </Link>
-        .
+        . Monthly reporting is complete only after both events and admin reports are submitted.
       </p>
 
-      {clubUser && window && !window.open && (
-        <p className="text-sm text-muted-foreground">
-          Reporting window is closed for monthly admin submission. You can still add and view club
-          events here.
-        </p>
+      {clubUser && clubId && (
+        <div className="space-y-2 border-t border-border/40 pt-4">
+          {reportingClosed && (
+            <p className="text-sm text-destructive">{window?.message}</p>
+          )}
+          <Button
+            onClick={handleSubmitEventsReport}
+            disabled={saveEventsReport.isPending || reportingClosed || eventsSubmitted}
+            className="bg-accent px-10 text-accent-foreground hover:bg-accent/90"
+          >
+            {saveEventsReport.isPending
+              ? "Submitting..."
+              : eventsSubmitted
+                ? "Events report submitted"
+                : "Submit events report"}
+          </Button>
+          {eventsSubmitted && (
+            <p className="text-sm text-green-500">Events report submitted for this month.</p>
+          )}
+        </div>
       )}
     </ReportingFormLayout>
   );

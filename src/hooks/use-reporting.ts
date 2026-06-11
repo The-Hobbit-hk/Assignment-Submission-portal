@@ -26,7 +26,7 @@ export function useAdminReport(filters: ReportFilters) {
 }
 
 export type EventsPortalData = {
-  report: Record<string, unknown> | null;
+  report: { status: string; submittedAt?: string | null } | null;
   clubEvents: {
     id: string;
     title: string;
@@ -111,7 +111,10 @@ export function useSaveAdminReport() {
       if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
       return res.json();
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["reporting", "admin"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["reporting", "admin"] });
+      qc.invalidateQueries({ queryKey: ["reporting", "club-reports"] });
+    },
   });
 }
 
@@ -151,6 +154,7 @@ export function useSaveEventsReport() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["reporting", "events"] });
       qc.invalidateQueries({ queryKey: ["reporting", "events-portal"] });
+      qc.invalidateQueries({ queryKey: ["reporting", "club-reports"] });
     },
   });
 }
