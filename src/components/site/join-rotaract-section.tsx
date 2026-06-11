@@ -3,9 +3,9 @@ import { JOIN_ROTARACT } from "@/lib/site-content";
 
 export function JoinRotaractSection() {
   return (
-    <section className="border-y border-zinc-200 bg-white py-10 sm:py-12 lg:py-14">
+    <section className="border-y border-zinc-200 bg-zinc-50 py-12 sm:py-14">
       <div className="mx-auto grid max-w-6xl gap-6 px-4 md:grid-cols-2 lg:px-8">
-        <div className="depth-card rounded-2xl border border-zinc-200 p-8">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             Existing Member
           </p>
@@ -20,7 +20,7 @@ export function JoinRotaractSection() {
             Sign in to portal
           </Link>
         </div>
-        <div className="depth-card rounded-2xl border border-zinc-200 p-8">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
             New to Rotaract
           </p>

@@ -387,10 +387,6 @@ body {
   padding-top: 0 !important;
 }
 
-.home-hero-section {
-  background-color: #09090b;
-}
-
 @keyframes site-page-enter {
   from {
     opacity: 0;
