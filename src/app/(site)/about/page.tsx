@@ -8,7 +8,7 @@ export default function AboutPage() {
   return (
     <>
       <PageHero title="About us" />
-      <section className="py-16">
+      <section className="py-8 sm:py-10">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <div className="relative mx-auto max-w-4xl overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50">
             <div className="flex min-h-[280px] items-center justify-center p-12">

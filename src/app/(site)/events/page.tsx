@@ -11,7 +11,7 @@ export default async function EventsPage() {
   return (
     <>
       <PageHero title="Events" subtitle="District events across RID 3131" />
-      <section className="py-16">
+      <section className="py-8 sm:py-10">
         <div className="mx-auto max-w-4xl space-y-6 px-4 lg:px-8">
           {events.length === 0 ? (
             <p className="text-center text-zinc-500">No upcoming district events.</p>

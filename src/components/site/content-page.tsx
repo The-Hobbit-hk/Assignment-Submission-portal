@@ -9,7 +9,7 @@ export function ContentPageView({ content, heroTitle }: { content: ContentPage; 
     <>
       <PageHero title={heroTitle ?? content.title} />
       <SiteReveal>
-      <section className="py-10 sm:py-14 lg:py-16">
+      <section className="py-8 sm:py-10 lg:py-12">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <div className="grid gap-8 sm:gap-12 lg:grid-cols-2 lg:items-start">
             <div className="flex justify-center lg:sticky lg:sticky-below-header">

@@ -20,7 +20,7 @@ const GROUP_ORDER: CouncilGroupSlug[] = [
 
 export function CouncilGroupNav() {
   return (
-    <section className="py-14 sm:py-16 lg:py-20">
+    <section className="py-8 sm:py-10 lg:py-12">
       <div className="mx-auto max-w-6xl px-4 lg:px-8">
         <SiteReveal>
           <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-accent">

@@ -15,6 +15,8 @@ export type CouncilUserSeed = {
   email: string;
   title: string;
   club: string;
+  /** Public path under /council/ when a headshot is available */
+  photo?: string;
   role: UserRole;
   group: CouncilGroupSlug;
 };
@@ -37,7 +39,7 @@ export const COUNCIL_MEMBER_FILTER = {
 export const COUNCIL_USERS: CouncilUserSeed[] = [
   { name: "PHF. DRR. Dr. Karishma Awari", email: "rtr.dr.karishmaawari@gmail.com", title: "District Rotaract Representative", club: "Rotaract Club of Pune Shaniwarwada", role: "DISTRICT_ADMIN", group: "drr" },
   { name: "PHF. PDRR. Drishti Singh", email: "rtrdrishtisingh@gmail.com", title: "District Learning Facilitator", club: "Rotaract Club of Humanitas", role: "COUNCIL_MEMBER", group: "core-council" },
-  { name: "PHF. Rtr. Harshvardhan Kale", email: "rtr.harshvardhan3131@gmail.com", title: "District General Secretary", club: "Rotaract Club of Bavdhan Pioneers", role: "DISTRICT_SECRETARY", group: "core-council" },
+  { name: "PHF. Rtr. Harshvardhan Kale", email: "rtr.harshvardhan3131@gmail.com", title: "District General Secretary", club: "Rotaract Club of Bavdhan Pioneers", photo: "/council/harshvardhan-kale.png", role: "DISTRICT_SECRETARY", group: "core-council" },
   { name: "Rtr. Suraj Surkutla", email: "rtrsurajsurkutla@gmail.com", title: "District Secretary - Administration", club: "Rotaract Club of Pune Vishwam", role: "COUNCIL_MEMBER", group: "core-council" },
   { name: "Rtr. Hamid Shaikh", email: "rtn.rtr.hamids@gmail.com", title: "District Secretary - Events", club: "Rotaract Club of Aundh Smartcity", role: "COUNCIL_MEMBER", group: "core-council" },
   { name: "Rtr. Disha Daga", email: "rtrdishadaga@gmail.com", title: "District Secretary - Protocols", club: "Rotaract Club of Bibwewadi Pune", role: "COUNCIL_MEMBER", group: "core-council" },

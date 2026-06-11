@@ -17,12 +17,12 @@ export function PageHero({
   return (
     <section
       className={cn(
-        "page-hero-section relative flex items-center justify-center overflow-hidden border-b border-zinc-200 bg-gradient-to-b from-zinc-50 to-white",
+        "page-hero-section relative flex justify-center overflow-hidden border-b border-zinc-200 bg-gradient-to-b from-zinc-50 to-white",
         large
           ? backgroundImage
-            ? "min-h-[58vh] pt-site-header sm:min-h-[68vh] lg:min-h-[78vh]"
-            : "min-h-[50vh] pt-site-header sm:min-h-[60vh] lg:min-h-[70vh]"
-          : "min-h-[10rem] pt-site-header sm:min-h-[14rem]",
+            ? "min-h-[48vh] items-center pt-site-header sm:min-h-[56vh] lg:min-h-[64vh]"
+            : "min-h-[40vh] items-center pt-site-header sm:min-h-[48vh] lg:min-h-[56vh]"
+          : "items-start",
         className
       )}
     >
@@ -58,11 +58,11 @@ export function PageHero({
             large &&
             "depth-panel mx-4 max-w-3xl bg-white/55 px-6 py-8 backdrop-blur-sm sm:mx-auto sm:px-10",
           backgroundImage && large
-            ? "py-12 pb-20 sm:py-16 sm:pb-24 lg:py-20 lg:pb-28"
-            : "py-10 sm:py-14 lg:py-16"
+            ? "py-10 pb-16 sm:py-12 sm:pb-20 lg:py-16 lg:pb-24"
+            : "py-5 pb-6 sm:py-6 sm:pb-7"
         )}
       >
-        <p className="site-hero-eyebrow mb-4 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent shadow-sm backdrop-blur-sm sm:text-xs">
+        <p className="site-hero-eyebrow mb-2 inline-flex items-center gap-2 rounded-full border border-accent/20 bg-white/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent shadow-sm backdrop-blur-sm sm:text-xs">
           <span className="site-hero-dot h-1.5 w-1.5 rounded-full bg-accent" />
           Rotaract District 3131
         </p>
@@ -77,11 +77,11 @@ export function PageHero({
           {title}
         </h1>
         {subtitle && (
-          <p className="site-hero-subtitle mx-auto mt-4 max-w-2xl text-base text-zinc-700 md:text-lg">
+          <p className="site-hero-subtitle mx-auto mt-2 max-w-2xl text-base text-zinc-700 md:text-lg">
             {subtitle}
           </p>
         )}
-        <div className="site-hero-line mx-auto mt-6 h-0.5 w-16 rounded-full bg-gradient-to-r from-transparent via-accent to-transparent sm:mt-8 sm:w-24" />
+        <div className="site-hero-line mx-auto mt-4 h-0.5 w-16 rounded-full bg-gradient-to-r from-transparent via-accent to-transparent sm:mt-5 sm:w-24" />
       </div>
     </section>
   );

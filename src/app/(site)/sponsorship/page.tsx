@@ -6,7 +6,7 @@ export default function SponsorshipPage() {
   return (
     <>
       <PageHero title="Sponsorship" subtitle={SPONSORSHIP.intro} />
-      <section className="py-16">
+      <section className="py-8 sm:py-10">
         <div className="mx-auto max-w-5xl px-4 lg:px-8">
           <div className="grid gap-6 md:grid-cols-3">
             {SPONSORSHIP.tiers.map((tier) => (

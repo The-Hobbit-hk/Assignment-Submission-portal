@@ -19,7 +19,7 @@ export default async function ResourceSlugPage({
   return (
     <>
       <PageHero title={resource.title} />
-      <section className="py-16">
+      <section className="py-8 sm:py-10">
         <div className="mx-auto max-w-3xl space-y-6 px-4 lg:px-8">
           <p className="leading-relaxed text-zinc-600">{resource.description}</p>
           {resource.externalUrl && (

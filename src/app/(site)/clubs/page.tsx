@@ -14,7 +14,7 @@ export default async function ClubsPage() {
         title="Rotaract Clubs"
         subtitle="101 clubs across Pune and Raigad — organised by zone"
       />
-      <section className="py-16">
+      <section className="py-8 sm:py-10">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
           <ClubsByZone zones={zones} zoneMeta={DISTRICT_ZONE_META} />
         </div>

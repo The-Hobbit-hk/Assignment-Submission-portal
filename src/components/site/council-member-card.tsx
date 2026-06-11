@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Mail } from "lucide-react";
 import type { CouncilUserSeed } from "@/lib/council-roster-data";
 import {
@@ -23,6 +24,7 @@ export function CouncilMemberCard({
   const displayName = councilDisplayName(member.name);
   const gradient = councilAvatarGradient(member.email);
   const clubShort = councilShortClub(member.club);
+  const hasPhoto = Boolean(member.photo);
 
   return (
     <article
@@ -39,22 +41,35 @@ export function CouncilMemberCard({
           featured && "sm:aspect-[16/11]"
         )}
       >
-        <div
-          className="absolute inset-0 transition duration-700 group-hover:scale-105"
-          style={{ background: gradient }}
-        />
-
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.14]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 15%, white 0%, transparent 45%), radial-gradient(circle at 85% 80%, rgba(255,255,255,0.25) 0%, transparent 40%)",
-          }}
-        />
-
-        <span className="pointer-events-none absolute left-1/2 top-[28%] -translate-x-1/2 select-none font-display text-[5.5rem] font-bold leading-none text-white/10 sm:text-7xl">
-          {initials}
-        </span>
+        {hasPhoto ? (
+          <>
+            <Image
+              src={member.photo!}
+              alt={displayName}
+              fill
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              className="object-cover object-top transition duration-700 group-hover:scale-105"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-black/10" />
+          </>
+        ) : (
+          <>
+            <div
+              className="absolute inset-0 transition duration-700 group-hover:scale-105"
+              style={{ background: gradient }}
+            />
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.14]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 20% 15%, white 0%, transparent 45%), radial-gradient(circle at 85% 80%, rgba(255,255,255,0.25) 0%, transparent 40%)",
+              }}
+            />
+            <span className="pointer-events-none absolute left-1/2 top-[28%] -translate-x-1/2 select-none font-display text-[5.5rem] font-bold leading-none text-white/10 sm:text-7xl">
+              {initials}
+            </span>
+          </>
+        )}
 
         <div className="council-card-ring pointer-events-none absolute -right-6 -top-6 h-28 w-28 opacity-0 transition duration-500 group-hover:opacity-100" />
 

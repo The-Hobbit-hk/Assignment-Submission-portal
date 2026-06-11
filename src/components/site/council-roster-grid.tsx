@@ -34,7 +34,7 @@ export function CouncilRosterGrid({
   const featured = members.length === 1;
 
   return (
-    <section className="border-t border-zinc-200 bg-gradient-to-b from-zinc-50 to-white py-14 sm:py-16 lg:py-20">
+    <section className="border-t border-zinc-200 bg-gradient-to-b from-zinc-50 to-white py-8 sm:py-10 lg:py-12">
       <div className="mx-auto max-w-6xl px-4 lg:px-8">
         <SiteReveal>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
