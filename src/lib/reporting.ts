@@ -9,6 +9,57 @@ export function getReportingPeriodLabel(month: number, year: number) {
   return `${MONTHS[month - 1]?.toUpperCase() ?? "MONTH"} ${year}`;
 }
 
+/** Report period filed during the following month's submission window. */
+export function getReportPeriodForWindow(windowMonth: number, windowYear: number) {
+  let reportMonth = windowMonth - 1;
+  let reportYear = windowYear;
+  if (reportMonth < 1) {
+    reportMonth = 12;
+    reportYear -= 1;
+  }
+  return { month: reportMonth, year: reportYear };
+}
+
+export function getSubmissionWindowForReportPeriod(reportMonth: number, reportYear: number) {
+  let windowMonth = reportMonth + 1;
+  let windowYear = reportYear;
+  if (windowMonth > 12) {
+    windowMonth = 1;
+    windowYear += 1;
+  }
+  return { month: windowMonth, year: windowYear };
+}
+
+/** Active report period (e.g. July 1–10 → June). */
+export function getActiveReportPeriod(now = new Date()) {
+  const windowMonth = now.getMonth() + 1;
+  const windowYear = now.getFullYear();
+  return getReportPeriodForWindow(windowMonth, windowYear);
+}
+
+export function getSubmissionWindowLabel(reportMonth: number, reportYear: number) {
+  const { month, year } = getSubmissionWindowForReportPeriod(reportMonth, reportYear);
+  const opensAt = new Date(year, month - 1, 1, 0, 0, 0, 0);
+  const closesAt = new Date(year, month - 1, 10, 23, 59, 59, 999);
+  return {
+    reportLabel: getReportingPeriodLabel(reportMonth, reportYear),
+    windowMonth: month,
+    windowYear: year,
+    opensAt,
+    closesAt,
+    openLabel: opensAt.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }),
+    closeLabel: closesAt.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }),
+  };
+}
+
 export type SerializedMonthlyReport = ReturnType<typeof serializeMonthlyReport>;
 
 export type ReportSubmissionLabel = "SUBMITTED" | "DRAFT" | "NOT SUBMITTED";

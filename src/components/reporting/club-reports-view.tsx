@@ -9,7 +9,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ReportingStatusBadge } from "@/components/reporting/reporting-status-badge";
 import { useClubReports } from "@/hooks/use-reporting-window";
 import { canViewAllClubReports } from "@/lib/roles";
-import { getReportingPeriodLabel } from "@/lib/reporting";
+import {
+  getActiveReportPeriod,
+  getReportingPeriodLabel,
+  getSubmissionWindowLabel,
+} from "@/lib/reporting";
 import { DISTRICT_ZONE_META } from "@/lib/district-clubs-data";
 import { CheckCircle2, Download, XCircle } from "lucide-react";
 import type { UserRole } from "@/types/auth";
@@ -47,9 +51,9 @@ function SummaryCard({
 }
 
 export function ClubReportsView() {
-  const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
+  const active = getActiveReportPeriod();
+  const [month, setMonth] = useState(active.month);
+  const [year, setYear] = useState(active.year);
   const [zone, setZone] = useState("");
 
   const { data: session } = useSession();
@@ -59,8 +63,11 @@ export function ClubReportsView() {
   const { data, isLoading, isError } = useClubReports(month, year, zone || undefined);
 
   const periodLabel = getReportingPeriodLabel(month, year);
+  const windowLabel = getSubmissionWindowLabel(month, year);
   const clubs = data?.clubs ?? [];
   const summary = data?.summary;
+  const exportParams = new URLSearchParams({ month: String(month), year: String(year) });
+  if (zone) exportParams.set("zone", zone);
 
   const zoneOptions = useMemo(
     () => DISTRICT_ZONE_META.map((z) => z.zone),
@@ -69,8 +76,8 @@ export function ClubReportsView() {
 
   const title = districtView ? "Club Reporting Overview" : "Zone Reporting Overview";
   const subtitle = districtView
-    ? `Track admin and events submissions for all clubs — ${periodLabel}. A club is complete only when both reports are submitted.`
-    : `Track reporting completion for clubs in your zone(s) — ${periodLabel}.`;
+    ? `Report period: ${periodLabel}. Clubs submit during ${windowLabel.openLabel} – ${windowLabel.closeLabel}. A club is complete only when both admin and events reports are submitted.`
+    : `Report period: ${periodLabel}. Track completion for clubs in your zone(s).`;
 
   if (isError) {
     return (
@@ -88,18 +95,21 @@ export function ClubReportsView() {
         action={
           districtView ? (
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <a href={`/api/reporting/export/admin?month=${month}&year=${year}`}>
+              <Button size="sm" className="bg-accent text-accent-foreground" asChild>
+                <a href={`/api/reporting/export/club-reports?${exportParams}`} download>
                   <Download className="h-4 w-4" />
-                  <span className="hidden sm:inline">Admin Excel</span>
-                  <span className="sm:hidden">Admin</span>
+                  <span className="hidden sm:inline">Download Excel</span>
+                  <span className="sm:hidden">Excel</span>
                 </a>
               </Button>
               <Button variant="outline" size="sm" asChild>
-                <a href={`/api/reporting/export/events?month=${month}&year=${year}`}>
-                  <Download className="h-4 w-4" />
-                  <span className="hidden sm:inline">Events Excel</span>
-                  <span className="sm:hidden">Events</span>
+                <a href={`/api/reporting/export/admin?${exportParams}`} download>
+                  Admin only
+                </a>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <a href={`/api/reporting/export/events?${exportParams}`} download>
+                  Events only
                 </a>
               </Button>
             </div>
@@ -109,7 +119,7 @@ export function ClubReportsView() {
 
       <div className="flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground">Month</span>
+          <span className="text-muted-foreground">Report period</span>
           <select
             value={month}
             onChange={(e) => setMonth(parseInt(e.target.value, 10))}

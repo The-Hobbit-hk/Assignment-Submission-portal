@@ -62,9 +62,21 @@ export function ReportingWindowBanner({
             open ? "text-green-700/90" : "text-destructive/85"
           )}
         >
-          {open
-            ? "Submissions accepted from the 1st to the 10th of each month. Complete both events and admin reporting before the deadline."
-            : data.message}
+          {open ? (
+            <>
+              Reporting for <span className="font-medium">{data.reportLabel}</span> is open until{" "}
+              {data.closesAt
+                ? new Date(data.closesAt).toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })
+                : "the 10th"}
+              . Complete both events and admin reporting before the deadline.
+            </>
+          ) : (
+            data.message
+          )}
         </p>
         {!open && (
           <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">

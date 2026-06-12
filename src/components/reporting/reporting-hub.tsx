@@ -6,6 +6,7 @@ import { ArrowRight, CalendarDays, ClipboardList, FileBarChart2, Lock } from "lu
 import { ReportingClosedDialog } from "@/components/reporting/reporting-closed-dialog";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
 import { useReportingWindow } from "@/hooks/use-reporting-window";
+import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting";
 import { cn } from "@/lib/utils";
 
 const links = [
@@ -30,10 +31,8 @@ const links = [
 ];
 
 export function ReportingHub() {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
-  const periodLabel = now.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+  const { month, year } = getActiveReportPeriod();
+  const periodLabel = getReportingPeriodLabel(month, year);
 
   const { data: window } = useReportingWindow(month, year);
   const reportingClosed = window && !window.open;
@@ -63,8 +62,9 @@ export function ReportingHub() {
             Monthly Reporting
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-            Club reporting for Rotaract District 3131. Tell the story of your work with proper
-            proof and structure — events, administration, and member updates in one place.
+            Submit your <span className="font-medium text-foreground">{periodLabel}</span> report
+            during the first 10 days of the following month. Complete both events and admin
+            reporting before the deadline.
           </p>
         </div>
         <div
@@ -164,8 +164,9 @@ export function ReportingHub() {
       </div>
 
       <div className="depth-card rounded-xl px-4 py-3 text-center text-xs text-muted-foreground sm:text-sm">
-        Reporting is accepted from the <span className="font-medium text-foreground">1st to 10th</span>{" "}
-        of each month.
+        Clubs report for the <span className="font-medium text-foreground">previous calendar month</span>{" "}
+        between the <span className="font-medium text-foreground">1st and 10th</span> of the following month
+        (e.g. June reporting in early July).
         {reportingClosed
           ? " The window is closed — you will be notified here when submissions reopen."
           : " Use the links above to submit your reports."}

@@ -1,13 +1,25 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { PageHeading } from "@/components/layout/page-heading";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BluebookStatusBadge } from "@/components/bluebook/bluebook-status-badge";
 import { useCouncilBluebookOverview } from "@/hooks/use-council-assignments";
 import { getReportingPeriodLabel } from "@/lib/reporting";
-import { CheckCircle2, ExternalLink, XCircle } from "lucide-react";
+import { Download, ExternalLink, FileSpreadsheet } from "lucide-react";
+
+const CATEGORIES = [
+  "Reporting",
+  "Service",
+  "Membership",
+  "Governance",
+  "Administration",
+  "Events",
+  "Professional Development",
+];
 
 const MONTHS = [
   { value: 1, label: "January" },
@@ -45,8 +57,17 @@ export function CouncilBluebookOverview() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
+  const [statusFilter, setStatusFilter] = useState("");
+  const [memberFilter, setMemberFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [reviewStatusFilter, setReviewStatusFilter] = useState("");
 
-  const { data, isLoading, isError } = useCouncilBluebookOverview(month, year);
+  const { data, isLoading, isError } = useCouncilBluebookOverview(month, year, {
+    status: statusFilter || undefined,
+    memberId: memberFilter || undefined,
+    category: categoryFilter || undefined,
+    reviewStatus: reviewStatusFilter || undefined,
+  });
   const periodLabel = getReportingPeriodLabel(month, year);
   const members = data?.members ?? [];
   const submissions = data?.submissions ?? [];
@@ -96,6 +117,82 @@ export function CouncilBluebookOverview() {
             ))}
           </select>
         </label>
+        <label className="space-y-1 text-sm">
+          <span className="text-muted-foreground">Submission status</span>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+          >
+            <option value="">All</option>
+            <option value="DRAFT">Pending</option>
+            <option value="SUBMITTED">Submitted</option>
+            <option value="APPROVED">Reviewed</option>
+          </select>
+        </label>
+        <label className="space-y-1 text-sm">
+          <span className="text-muted-foreground">Council member</span>
+          <select
+            value={memberFilter}
+            onChange={(e) => setMemberFilter(e.target.value)}
+            className="depth-card block max-w-[220px] rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+          >
+            <option value="">All members</option>
+            {members.map((row) => (
+              <option key={row.member.id} value={row.member.id}>
+                {row.member.name ?? row.member.email}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="space-y-1 text-sm">
+          <span className="text-muted-foreground">Department</span>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+          >
+            <option value="">All departments</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="space-y-1 text-sm">
+          <span className="text-muted-foreground">Review status</span>
+          <select
+            value={reviewStatusFilter}
+            onChange={(e) => setReviewStatusFilter(e.target.value)}
+            className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+          >
+            <option value="">All</option>
+            <option value="not_submitted">Not submitted</option>
+            <option value="under_review">Pending review</option>
+            <option value="reviewed">Reviewed</option>
+          </select>
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <a
+              href={`/api/reports/council-bluebook?format=excel&month=${month}&year=${year}`}
+              download
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              Excel
+            </a>
+          </Button>
+          <Button variant="outline" size="sm" asChild>
+            <a
+              href={`/api/reports/council-bluebook?format=pdf&month=${month}&year=${year}`}
+              download
+            >
+              <Download className="h-4 w-4" />
+              PDF
+            </a>
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -103,30 +200,32 @@ export function CouncilBluebookOverview() {
       ) : (
         <>
           {summary && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
               <SummaryCard label="Council members" value={summary.totalMembers} />
               <SummaryCard label="With tasks" value={summary.membersWithAssignments} />
-              <SummaryCard label="Fully complete" value={summary.membersComplete} accent="text-green-600" />
-              <SummaryCard label="Incomplete" value={summary.membersIncomplete} accent="text-destructive" />
+              <SummaryCard label="Pending submissions" value={summary.pendingSubmissions} accent="text-amber-600" />
+              <SummaryCard label="Under review" value={summary.pendingReview} />
+              <SummaryCard label="Reviewed" value={summary.reviewedReports} accent="text-green-600" />
+              <SummaryCard label="Late submissions" value={summary.lateSubmissions} accent="text-destructive" />
               <SummaryCard label="Total tasks" value={summary.totalAssignments} />
-              <SummaryCard label="Submitted" value={summary.submitted} />
-              <SummaryCard label="Approved" value={summary.approved} accent="text-green-600" />
-              <SummaryCard label="Draft" value={summary.draft} />
+              <SummaryCard label="Task submitted" value={summary.submitted} />
+              <SummaryCard label="Task reviewed" value={summary.approved} accent="text-green-600" />
+              <SummaryCard label="Task pending" value={summary.draft} />
             </div>
           )}
 
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">By council member</h2>
             <div className="table-scroll rounded-lg border border-border/40">
-              <Table className="ref-table min-w-[640px]">
+              <Table className="ref-table min-w-[900px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Council member</TableHead>
                     <TableHead>Tasks assigned</TableHead>
-                    <TableHead>Submitted</TableHead>
-                    <TableHead>Approved</TableHead>
-                    <TableHead>Draft</TableHead>
-                    <TableHead>Monthly complete</TableHead>
+                    <TableHead>Submission status</TableHead>
+                    <TableHead>Review status</TableHead>
+                    <TableHead>Points awarded</TableHead>
+                    <TableHead />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -144,22 +243,24 @@ export function CouncilBluebookOverview() {
                           <div className="text-xs text-muted-foreground">{row.member.email}</div>
                         </TableCell>
                         <TableCell>{row.assignedCount}</TableCell>
-                        <TableCell>{row.submittedCount}</TableCell>
-                        <TableCell>{row.approvedCount}</TableCell>
-                        <TableCell>{row.draftCount}</TableCell>
+                        <TableCell>{row.submissionStatusLabel}</TableCell>
+                        <TableCell>{row.reviewStatusLabel}</TableCell>
                         <TableCell>
-                          {row.assignedCount === 0 ? (
-                            <span className="text-sm text-muted-foreground">No tasks</span>
-                          ) : row.completed ? (
-                            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
-                              <CheckCircle2 className="h-4 w-4" />
-                              Complete
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-destructive">
-                              <XCircle className="h-4 w-4" />
-                              Incomplete
-                            </span>
+                          {row.assignedCount > 0
+                            ? `${row.pointsAwarded} / ${row.pointsPossible}${
+                                row.percentageScore != null ? ` (${row.percentageScore}%)` : ""
+                              }`
+                            : "—"}
+                        </TableCell>
+                        <TableCell>
+                          {row.assignedCount > 0 && (
+                            <Button size="sm" variant="outline" asChild>
+                              <Link
+                                href={`/dashboard/bluebook/review/${row.member.id}?month=${month}&year=${year}`}
+                              >
+                                Review
+                              </Link>
+                            </Button>
                           )}
                         </TableCell>
                       </TableRow>

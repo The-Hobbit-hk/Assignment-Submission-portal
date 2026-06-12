@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { getReportData, type ReportType } from "@/lib/reports";
 import { rowsToCsv, rowsToExcel, rowsToPdf, exportResponse } from "@/lib/export";
 
-const VALID_TYPES = ["members", "clubs", "events", "bluebook", "performance"];
+const VALID_TYPES = ["members", "clubs", "events", "bluebook", "council-bluebook", "performance"];
 
 interface RouteParams { params: Promise<{ type: string }> }
 

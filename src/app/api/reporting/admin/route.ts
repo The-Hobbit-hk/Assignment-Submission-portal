@@ -5,14 +5,16 @@ import { serializeMonthlyReport } from "@/lib/reporting";
 import { assertClubReportingAccess, resolveReportingClubId } from "@/lib/reporting-access";
 import { upsertMonthlyReport } from "@/lib/reporting-store";
 import { adminReportSchema } from "@/lib/validators/reporting";
+import { getActiveReportPeriod } from "@/lib/reporting";
 
 export async function GET(request: Request) {
   const { session, error } = await requireAuth();
   if (error) return error;
 
   const { searchParams } = new URL(request.url);
-  const month = parseInt(searchParams.get("month") ?? String(new Date().getMonth() + 1));
-  const year = parseInt(searchParams.get("year") ?? String(new Date().getFullYear()));
+  const active = getActiveReportPeriod();
+  const month = parseInt(searchParams.get("month") ?? String(active.month));
+  const year = parseInt(searchParams.get("year") ?? String(active.year));
   const clubId = resolveReportingClubId(session!, searchParams.get("clubId"));
 
   try {

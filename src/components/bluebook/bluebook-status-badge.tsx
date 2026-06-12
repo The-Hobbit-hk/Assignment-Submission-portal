@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { taskStatusLabel } from "@/lib/bluebook-labels";
 import type { BluebookSubmissionStatus } from "@/generated/prisma/client";
 
 const VARIANTS: Record<
@@ -14,5 +15,5 @@ const VARIANTS: Record<
 
 export function BluebookStatusBadge({ status }: { status: string }) {
   const variant = VARIANTS[status as BluebookSubmissionStatus] ?? "secondary";
-  return <Badge variant={variant}>{status.replace("_", " ")}</Badge>;
+  return <Badge variant={variant}>{taskStatusLabel(status)}</Badge>;
 }

@@ -5,12 +5,11 @@ import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReportingClosedDialog } from "@/components/reporting/reporting-closed-dialog";
 import { useReportingWindow } from "@/hooks/use-reporting-window";
+import { getActiveReportPeriod } from "@/lib/reporting";
 
 export function ReportingWindowBlock({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
+  const { month, year } = getActiveReportPeriod();
   const { data: window, isLoading } = useReportingWindow(month, year);
   const [dialogOpen, setDialogOpen] = useState(false);
 

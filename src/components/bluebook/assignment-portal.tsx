@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CreateTaskDialog } from "@/components/bluebook/create-task-dialog";
+import { BluebookCycleForm } from "@/components/bluebook/bluebook-cycle-form";
 import { useAssignTasks, useAssignmentPortal } from "@/hooks/use-council-assignments";
 
 export function AssignmentPortal() {
@@ -38,6 +39,8 @@ export function AssignmentPortal() {
         subtitle="Create new bluebook tasks and assign them to council members."
         action={<CreateTaskDialog members={members} month={month} year={year} />}
       />
+
+      <BluebookCycleForm month={month} year={year} />
 
       <div className="space-y-3">
         <h2 className="text-sm font-medium text-foreground">Assign existing task</h2>

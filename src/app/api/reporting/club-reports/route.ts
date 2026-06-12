@@ -8,6 +8,7 @@ import {
 import { canViewAllClubReports, canViewZoneClubReports } from "@/lib/roles";
 import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { getZonesForZonalRep } from "@/lib/zonal-reps";
+import { getActiveReportPeriod } from "@/lib/reporting-window";
 
 export async function GET(request: Request) {
   const { session, error } = await requireAuth();
@@ -23,8 +24,9 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const month = parseInt(searchParams.get("month") ?? String(new Date().getMonth() + 1));
-  const year = parseInt(searchParams.get("year") ?? String(new Date().getFullYear()));
+  const active = getActiveReportPeriod();
+  const month = parseInt(searchParams.get("month") ?? String(active.month));
+  const year = parseInt(searchParams.get("year") ?? String(active.year));
   const zoneFilter = searchParams.get("zone")?.trim() || null;
 
   const assignedZones = getZonesForZonalRep(email);

@@ -17,7 +17,7 @@ import { ReportingFileUpload } from "@/components/reporting/reporting-file-uploa
 import { ManageReportingMemberForm } from "@/components/reporting/manage-reporting-member-form";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
 import { YesNoSelect } from "@/components/reporting/yes-no-select";
-import { getReportingPeriodLabel } from "@/lib/reporting";
+import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting";
 import {
   uploadAdminReportFile,
   useAdminReport,
@@ -28,9 +28,7 @@ import { useSession } from "next-auth/react";
 import { isClubUser } from "@/lib/roles";
 
 export function AdminReportingForm() {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
+  const { month, year } = getActiveReportPeriod();
 
   const { data: session } = useSession();
   const clubUser = isClubUser(session?.user?.role ?? "MEMBER");

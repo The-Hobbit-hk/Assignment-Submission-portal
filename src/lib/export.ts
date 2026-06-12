@@ -17,11 +17,23 @@ export async function rowsToExcel(
   headers: string[],
   rows: (string | number | null)[][]
 ): Promise<Buffer> {
+  return multiSheetExcel([{ name: sheetName, headers, rows }]);
+}
+
+export async function multiSheetExcel(
+  sheets: {
+    name: string;
+    headers: string[];
+    rows: (string | number | null)[][];
+  }[]
+): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet(sheetName);
-  sheet.addRow(headers);
-  rows.forEach((row) => sheet.addRow(row));
-  sheet.getRow(1).font = { bold: true };
+  for (const { name, headers, rows } of sheets) {
+    const sheet = workbook.addWorksheet(name.slice(0, 31));
+    sheet.addRow(headers);
+    rows.forEach((row) => sheet.addRow(row));
+    sheet.getRow(1).font = { bold: true };
+  }
   const buffer = await workbook.xlsx.writeBuffer();
   return Buffer.from(buffer);
 }

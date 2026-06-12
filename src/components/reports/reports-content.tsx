@@ -8,7 +8,12 @@ const REPORTS = [
   { type: "members", title: "Member Reports", description: "Full member roster with club, role, and points." },
   { type: "clubs", title: "Club Reports", description: "Club directory with member and event counts." },
   { type: "events", title: "Event Reports", description: "All events with attendance and registration data." },
-  { type: "bluebook", title: "Bluebook Reports", description: "Task submissions and allocated scores." },
+  { type: "bluebook", title: "Club Bluebook Reports", description: "Club task submissions and allocated scores." },
+  {
+    type: "council-bluebook",
+    title: "Council Blue Book Reports",
+    description: "Council member scores, department performance, and submission analytics.",
+  },
   { type: "performance", title: "Performance Reports", description: "Council scores, ranks, and trends." },
 ];
 

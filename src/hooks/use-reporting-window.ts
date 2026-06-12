@@ -3,18 +3,23 @@
 import { useQuery } from "@tanstack/react-query";
 import type { ClubReportingRow, ClubReportingSummary } from "@/lib/reporting-club-status";
 
+export type ReportingWindowState = {
+  open: boolean;
+  message: string | null;
+  reportMonth: number;
+  reportYear: number;
+  reportLabel: string;
+  opensAt: string | null;
+  closesAt: string | null;
+};
+
 export function useReportingWindow(month: number, year: number) {
   return useQuery({
     queryKey: ["reporting", "window", month, year],
     queryFn: async () => {
       const res = await fetch(`/api/reporting/window?month=${month}&year=${year}`);
       if (!res.ok) throw new Error("Failed");
-      return res.json() as Promise<{
-        open: boolean;
-        message: string | null;
-        opensAt: string | null;
-        closesAt: string | null;
-      }>;
+      return res.json() as Promise<ReportingWindowState>;
     },
   });
 }

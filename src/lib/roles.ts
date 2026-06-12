@@ -84,10 +84,6 @@ export function getNavigationForRole(role: UserRole, email?: string | null): Nav
       href: "/dashboard/reporting/club-reports",
       icon: Building2,
     });
-    reportingChildren.push(
-      { title: "Export Admin", href: "/dashboard/reporting/export/admin", icon: Briefcase },
-      { title: "Export Events", href: "/dashboard/reporting/export/events", icon: Briefcase }
-    );
   } else if (canViewZoneClubReports(email)) {
     reportingChildren.push({
       title: "Zone Reporting",

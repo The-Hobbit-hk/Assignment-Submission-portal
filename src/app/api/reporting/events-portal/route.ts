@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { buildEventWhere, serializeEvent } from "@/lib/event";
 import { jsonCached } from "@/lib/api-response";
-import { serializeMonthlyReport } from "@/lib/reporting";
+import { getActiveReportPeriod, serializeMonthlyReport } from "@/lib/reporting";
 import { resolveReportingClubId } from "@/lib/reporting-access";
 
 const eventInclude = {
@@ -16,9 +16,9 @@ export async function GET(request: Request) {
   if (error) return error;
 
   const { searchParams } = new URL(request.url);
-  const now = new Date();
-  const month = parseInt(searchParams.get("month") ?? String(now.getMonth() + 1));
-  const year = parseInt(searchParams.get("year") ?? String(now.getFullYear()));
+  const active = getActiveReportPeriod();
+  const month = parseInt(searchParams.get("month") ?? String(active.month));
+  const year = parseInt(searchParams.get("year") ?? String(active.year));
   const clubId = resolveReportingClubId(session!, searchParams.get("clubId"));
 
   try {

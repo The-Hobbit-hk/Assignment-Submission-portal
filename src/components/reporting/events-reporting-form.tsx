@@ -6,16 +6,14 @@ import { Button } from "@/components/ui/button";
 import { EventsBrowsingView } from "@/components/events/events-browsing-view";
 import { ReportingFormLayout } from "@/components/reporting/reporting-form-layout";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
-import { getReportingPeriodLabel } from "@/lib/reporting";
+import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting";
 import { useEventsReportingPortal, useSaveEventsReport } from "@/hooks/use-reporting";
 import { useReportingWindow } from "@/hooks/use-reporting-window";
 import { useSession } from "next-auth/react";
 import { isClubUser } from "@/lib/roles";
 
 export function EventsReportingForm() {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
+  const { month, year } = getActiveReportPeriod();
 
   const { data: session } = useSession();
   const clubUser = isClubUser(session?.user?.role ?? "MEMBER");
