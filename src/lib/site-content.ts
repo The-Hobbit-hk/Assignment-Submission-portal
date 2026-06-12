@@ -16,39 +16,123 @@ export type SponsorTier = "Gold Partner" | "Silver Partner" | "Community Partner
 export type AnnualSponsor = {
   name: string;
   tier: SponsorTier;
+  /** Short line shown on sponsor spotlight cards */
+  tagline?: string;
   /** Optional logo path under /public */
   logo?: string;
   website?: string;
 };
 
 export const ANNUAL_SPONSORS: AnnualSponsor[] = [
-  { name: "Pune Tech Solutions", tier: "Gold Partner" },
-  { name: "Western Maharashtra Healthcare", tier: "Gold Partner" },
-  { name: "Konkan Infra Projects", tier: "Silver Partner" },
-  { name: "Bavdhan Business Park", tier: "Silver Partner" },
-  { name: "Raigad Youth Foundation", tier: "Silver Partner" },
-  { name: "Camp Education Trust", tier: "Community Partner" },
-  { name: "Shaniwarwada Media House", tier: "Community Partner" },
-  { name: "District Print & Signage Co.", tier: "Community Partner" },
-  { name: "Pimpri Industrial Association", tier: "Community Partner" },
+  {
+    name: "Pune Tech Solutions",
+    tier: "Gold Partner",
+    tagline: "Empowering digital-ready youth across Pune",
+  },
+  {
+    name: "Western Maharashtra Healthcare",
+    tier: "Gold Partner",
+    tagline: "Health outreach with district-wide impact",
+  },
+  {
+    name: "Konkan Infra Projects",
+    tier: "Silver Partner",
+    tagline: "Building communities, building leaders",
+  },
+  {
+    name: "Bavdhan Business Park",
+    tier: "Silver Partner",
+    tagline: "Professional growth for young entrepreneurs",
+  },
+  {
+    name: "Raigad Youth Foundation",
+    tier: "Silver Partner",
+    tagline: "Service leadership in Konkan & Raigad",
+  },
+  {
+    name: "Camp Education Trust",
+    tier: "Community Partner",
+    tagline: "Education-first community programmes",
+  },
+  {
+    name: "Shaniwarwada Media House",
+    tier: "Community Partner",
+    tagline: "Amplifying stories of service",
+  },
+  {
+    name: "District Print & Signage Co.",
+    tier: "Community Partner",
+    tagline: "Visible support at every district event",
+  },
+  {
+    name: "Pimpri Industrial Association",
+    tier: "Community Partner",
+    tagline: "Industry meets youth leadership",
+  },
 ];
 
 export const SPONSORSHIP = {
   title: "Partner with Rotaract District 3131",
   intro:
-    "Support youth leadership, community service, and professional development across Pune and Raigad. Our district events reach 2700+ Rotaractors and 100+ clubs.",
+    "Support youth leadership, community service, and professional development across Pune and Raigad. Our district events reach 2700+ Rotaractors and 101 official clubs.",
+  thankYou:
+    "To our RIY 2026-27 partners — your belief in young leaders powers district assemblies, installations, service projects, and the REIGN journey across Pune and Raigad. We are proud to showcase you.",
+  valueProps: [
+    {
+      label: "2,700+",
+      title: "Rotaractors reached",
+      detail: "Engaged young professionals across the district every Rotary year",
+    },
+    {
+      label: "101",
+      title: "Official clubs",
+      detail: "Zone-wise presence from Pune to Raigad for sustained brand recall",
+    },
+    {
+      label: "12+",
+      title: "Flagship touchpoints",
+      detail: "Assembly, installations, sports meet, trek, culturals & more",
+    },
+    {
+      label: "CSR",
+      title: "Purpose-led visibility",
+      detail: "Align your brand with Rotary's ethics of service above self",
+    },
+  ],
   tiers: [
     {
       name: "Gold Partner",
-      benefits: ["Logo on district event banners", "Speaking slot at District Assembly", "Social media features"],
+      tagline: "Maximum district-wide visibility",
+      featured: true,
+      benefits: [
+        "Premier logo placement on all district event banners",
+        "Speaking slot at District Assembly",
+        "Dedicated social media features & reels",
+        "Name on district website hero partner wall",
+        "VIP seating at flagship events",
+      ],
     },
     {
       name: "Silver Partner",
-      benefits: ["Logo on event collateral", "Booth at flagship district events", "Newsletter mention"],
+      tagline: "Strong event-floor presence",
+      benefits: [
+        "Logo on event collateral & digital creatives",
+        "Booth at flagship district events",
+        "Newsletter & WhatsApp broadcast mention",
+        "Partner spotlight on district channels",
+        "Certificate of appreciation from DRR",
+      ],
     },
     {
       name: "Community Partner",
-      benefits: ["Acknowledgement at club events", "Certificate of appreciation", "District website listing"],
+      tagline: "Meaningful local recognition",
+      benefits: [
+        "Acknowledgement at club & district events",
+        "Certificate of appreciation",
+        "Listing on district website partner grid",
+        "Invitation to select district programmes",
+        "Association with youth-led service impact",
+      ],
     },
   ],
 } as const;

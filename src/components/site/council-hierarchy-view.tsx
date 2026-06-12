@@ -40,14 +40,14 @@ function CouncilHierarchySection({
       id={slug}
       className={cn(
         "scroll-mt-site-header px-4 py-14 sm:px-6 sm:py-16 lg:px-8",
-        !isFirst && "border-t border-white/10"
+        !isFirst && "border-t border-zinc-200"
       )}
     >
       <div className="mx-auto max-w-6xl">
         <h2
           className={cn(
             "text-center font-display text-2xl font-bold sm:text-3xl",
-            accentTitle ? "text-amber-500" : "text-white"
+            accentTitle ? "text-accent" : "text-zinc-900"
           )}
         >
           {page.title.replace(/\s*\(DRR\)\s*/i, "")}
@@ -67,7 +67,7 @@ function CouncilSectionNav({ groups }: { groups: CouncilGroupSlug[] }) {
   return (
     <nav
       aria-label="Council sections"
-      className="sticky-below-header z-20 border-b border-white/10 bg-zinc-950/95 backdrop-blur-md"
+      className="sticky-below-header z-20 border-b border-zinc-200 bg-white/95 backdrop-blur-md"
     >
       <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-2.5 sm:justify-center sm:px-6 lg:px-8">
         {items.map((item) => {
@@ -84,7 +84,7 @@ function CouncilSectionNav({ groups }: { groups: CouncilGroupSlug[] }) {
             <a
               key={item.slug}
               href={`#${item.slug}`}
-              className="shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium text-zinc-400 transition hover:bg-white/10 hover:text-white sm:text-sm"
+              className="shrink-0 rounded-full px-3.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-accent/10 hover:text-accent sm:text-sm"
             >
               {short}
             </a>
@@ -107,7 +107,7 @@ export function CouncilHierarchyView({
   const sections = HIERARCHY.filter((item) => activeGroups.includes(item.slug));
 
   return (
-    <div className="bg-zinc-950">
+    <div className="bg-white">
       {showNav && <CouncilSectionNav groups={activeGroups} />}
       {sections.map((section, index) => (
         <CouncilHierarchySection
@@ -132,21 +132,21 @@ export function CouncilHierarchyIntro({
   backHref?: string;
 }) {
   return (
-    <header className="border-b border-white/10 bg-zinc-950 px-4 py-10 text-center sm:px-6 sm:py-12 lg:px-8">
+    <header className="border-b border-zinc-200 bg-gradient-to-b from-zinc-50 to-white px-4 py-10 text-center sm:px-6 sm:py-12 lg:px-8">
       <div className="mx-auto max-w-3xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-500/90">
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-accent">
           RIY 2026-27 · REIGN
         </p>
-        <h1 className="mt-3 font-display text-3xl font-bold text-white sm:text-4xl">{title}</h1>
+        <h1 className="mt-3 font-display text-3xl font-bold text-zinc-900 sm:text-4xl">{title}</h1>
         {subtitle && (
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-zinc-400 sm:text-base">
+          <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-zinc-600 sm:text-base">
             {subtitle}
           </p>
         )}
         {backHref && (
           <Link
             href={backHref}
-            className="mt-6 inline-flex text-sm font-medium text-amber-500/90 transition hover:text-amber-400"
+            className="mt-6 inline-flex text-sm font-medium text-accent transition hover:text-accent/80"
           >
             ← View full council hierarchy
           </Link>
