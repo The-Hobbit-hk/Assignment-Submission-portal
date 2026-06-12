@@ -15,6 +15,7 @@ import {
   useReopenCouncilReport,
   useReviewCouncilMember,
 } from "@/hooks/use-council-assignments";
+import { toast } from "@/lib/toast";
 
 export function CouncilMemberReview({
   memberId,
@@ -56,16 +57,23 @@ export function CouncilMemberReview({
       : null;
 
   const saveReview = (markReviewed: boolean) => {
-    review.mutate({
-      month,
-      year,
-      scores: assignments.map((a) => ({
-        assignmentId: a.id,
-        allocatedScore: scores[a.id] ?? 0,
-      })),
-      reviewerComment: comment,
-      markReviewed,
-    });
+    review.mutate(
+      {
+        month,
+        year,
+        scores: assignments.map((a) => ({
+          assignmentId: a.id,
+          allocatedScore: scores[a.id] ?? 0,
+        })),
+        reviewerComment: comment,
+        markReviewed,
+      },
+      {
+        onSuccess: () => {
+          toast.success(markReviewed ? "Review saved and locked" : "Scores saved");
+        },
+      }
+    );
   };
 
   return (

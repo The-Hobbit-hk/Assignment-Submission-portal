@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiJson } from "@/lib/api-client";
 import type { PaginatedResult } from "@/lib/pagination";
 import type {
   ClubAnalytics,
@@ -32,22 +33,15 @@ function buildQueryString(filters: ClubFilters) {
 export function useClubsList(filters: ClubFilters = { limit: 100 }) {
   return useQuery({
     queryKey: ["clubs", filters],
-    queryFn: async (): Promise<PaginatedResult<ClubListItem>> => {
-      const res = await fetch(`/api/clubs?${buildQueryString(filters)}`);
-      if (!res.ok) throw new Error("Failed to fetch clubs");
-      return res.json();
-    },
+    queryFn: () =>
+      apiJson<PaginatedResult<ClubListItem>>(`/api/clubs?${buildQueryString(filters)}`),
   });
 }
 
 export function useClub(id: string) {
   return useQuery({
     queryKey: ["clubs", id],
-    queryFn: async (): Promise<ClubDetail> => {
-      const res = await fetch(`/api/clubs/${id}`);
-      if (!res.ok) throw new Error("Failed to fetch club");
-      return res.json();
-    },
+    queryFn: () => apiJson<ClubDetail>(`/api/clubs/${id}`),
     enabled: !!id,
   });
 }
@@ -55,11 +49,7 @@ export function useClub(id: string) {
 export function useClubAnalytics(id: string) {
   return useQuery({
     queryKey: ["clubs", id, "analytics"],
-    queryFn: async (): Promise<ClubAnalytics> => {
-      const res = await fetch(`/api/clubs/${id}/analytics`);
-      if (!res.ok) throw new Error("Failed to fetch analytics");
-      return res.json();
-    },
+    queryFn: () => apiJson<ClubAnalytics>(`/api/clubs/${id}/analytics`),
     enabled: !!id,
   });
 }
@@ -67,11 +57,7 @@ export function useClubAnalytics(id: string) {
 export function useClubPerformance(id: string) {
   return useQuery({
     queryKey: ["clubs", id, "performance"],
-    queryFn: async (): Promise<ClubPerformance> => {
-      const res = await fetch(`/api/clubs/${id}/performance`);
-      if (!res.ok) throw new Error("Failed to fetch performance");
-      return res.json();
-    },
+    queryFn: () => apiJson<ClubPerformance>(`/api/clubs/${id}/performance`),
     enabled: !!id,
   });
 }
@@ -79,11 +65,7 @@ export function useClubPerformance(id: string) {
 export function useClubEvents(id: string) {
   return useQuery({
     queryKey: ["clubs", id, "events"],
-    queryFn: async (): Promise<ClubEventItem[]> => {
-      const res = await fetch(`/api/clubs/${id}/events`);
-      if (!res.ok) throw new Error("Failed to fetch events");
-      return res.json();
-    },
+    queryFn: () => apiJson<ClubEventItem[]>(`/api/clubs/${id}/events`),
     enabled: !!id,
   });
 }
@@ -91,11 +73,7 @@ export function useClubEvents(id: string) {
 export function useClubMembers(id: string) {
   return useQuery({
     queryKey: ["clubs", id, "members"],
-    queryFn: async (): Promise<MemberListItem[]> => {
-      const res = await fetch(`/api/clubs/${id}/members`);
-      if (!res.ok) throw new Error("Failed to fetch members");
-      return res.json();
-    },
+    queryFn: () => apiJson<MemberListItem[]>(`/api/clubs/${id}/members`),
     enabled: !!id,
   });
 }
@@ -103,18 +81,12 @@ export function useClubMembers(id: string) {
 export function useCreateClub() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Record<string, unknown>) => {
-      const res = await fetch("/api/clubs", {
+    mutationFn: (data: Record<string, unknown>) =>
+      apiJson<{ id: string }>("/api/clubs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Failed to create club");
-      }
-      return res.json();
-    },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clubs"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });

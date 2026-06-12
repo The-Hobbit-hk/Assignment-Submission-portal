@@ -9,6 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CreateTaskDialog } from "@/components/bluebook/create-task-dialog";
 import { BluebookCycleForm } from "@/components/bluebook/bluebook-cycle-form";
 import { useAssignTasks, useAssignmentPortal } from "@/hooks/use-council-assignments";
+import { notifyValidation, toast } from "@/lib/toast";
+import { QueryErrorState } from "@/components/ui/query-error-state";
 
 export function AssignmentPortal() {
   const now = new Date();
@@ -27,9 +29,13 @@ export function AssignmentPortal() {
   const loadingDropdowns = isFetching && tasks.length === 0 && members.length === 0;
 
   const handleAssign = async () => {
-    if (!taskId || !assigneeId) return;
+    if (!taskId || !assigneeId) {
+      notifyValidation("Select a task and council member to assign.");
+      return;
+    }
     await assign.mutateAsync({ taskId, assigneeIds: [assigneeId] });
     setAssigneeId("");
+    toast.success("Task assigned successfully");
   };
 
   return (
@@ -82,9 +88,7 @@ export function AssignmentPortal() {
       </div>
 
       {isError && (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {(error as Error)?.message ?? "Failed to load assignments. Please refresh the page."}
-        </div>
+        <QueryErrorState error={error} title="Failed to load assignments" />
       )}
 
       <div className="space-y-3">

@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
+import { apiJson } from "@/lib/api-client";
 import type {
   CouncilBluebookSummary,
   CouncilMemberBluebookRow,
@@ -99,11 +100,8 @@ export function useCouncilBluebookOverview(
 
   return useQuery({
     queryKey: ["bluebook", "council-overview", month, year, filters],
-    queryFn: async () => {
-      const res = await fetch(`/api/bluebook/council-overview?${params}`);
-      if (!res.ok) throw new Error("Failed to load council bluebook overview");
-      return res.json() as Promise<CouncilBluebookOverviewData>;
-    },
+    queryFn: () =>
+      apiJson<CouncilBluebookOverviewData>(`/api/bluebook/council-overview?${params}`),
     enabled: status === "authenticated",
     staleTime: 60_000,
     placeholderData: (prev) => prev,
@@ -115,11 +113,8 @@ export function useMyCouncilTasks(month: number, year: number) {
 
   return useQuery({
     queryKey: ["bluebook", "my-tasks", month, year],
-    queryFn: async () => {
-      const res = await fetch(`/api/bluebook/my-tasks?month=${month}&year=${year}`);
-      if (!res.ok) throw new Error("Failed");
-      return res.json() as Promise<MyCouncilTasksData>;
-    },
+    queryFn: () =>
+      apiJson<MyCouncilTasksData>(`/api/bluebook/my-tasks?month=${month}&year=${year}`),
     enabled: status === "authenticated",
   });
 }
@@ -127,13 +122,10 @@ export function useMyCouncilTasks(month: number, year: number) {
 export function useCouncilMemberReview(memberId: string, month: number, year: number) {
   return useQuery({
     queryKey: ["bluebook", "council-review", memberId, month, year],
-    queryFn: async () => {
-      const res = await fetch(
+    queryFn: () =>
+      apiJson<CouncilReviewData>(
         `/api/bluebook/council-review/${memberId}?month=${month}&year=${year}`
-      );
-      if (!res.ok) throw new Error("Failed to load review");
-      return res.json() as Promise<CouncilReviewData>;
-    },
+      ),
     enabled: Boolean(memberId),
   });
 }
@@ -141,24 +133,18 @@ export function useCouncilMemberReview(memberId: string, month: number, year: nu
 export function useReviewCouncilMember(memberId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: {
+    mutationFn: (data: {
       month: number;
       year: number;
       scores: { assignmentId: string; allocatedScore: number }[];
       reviewerComment?: string;
       markReviewed?: boolean;
-    }) => {
-      const res = await fetch(`/api/bluebook/council-review/${memberId}`, {
+    }) =>
+      apiJson<CouncilReviewData>(`/api/bluebook/council-review/${memberId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? "Review failed");
-      }
-      return res.json() as Promise<CouncilReviewData>;
-    },
+      }),
     onSuccess: (_, variables) => {
       qc.invalidateQueries({
         queryKey: ["bluebook", "council-review", memberId, variables.month, variables.year],
@@ -172,18 +158,12 @@ export function useReviewCouncilMember(memberId: string) {
 export function useSubmitCouncilReport(month: number, year: number) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (submissionNotes: string) => {
-      const res = await fetch("/api/bluebook/reports/submit", {
+    mutationFn: (submissionNotes: string) =>
+      apiJson("/api/bluebook/reports/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ month, year, submissionNotes }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? "Submit failed");
-      }
-      return res.json();
-    },
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bluebook", "my-tasks", month, year] });
       qc.invalidateQueries({ queryKey: ["bluebook", "council-overview"] });
@@ -194,32 +174,21 @@ export function useSubmitCouncilReport(month: number, year: number) {
 export async function uploadCouncilReportProof(month: number, year: number, file: File) {
   const fd = new FormData();
   fd.append("file", file);
-  const res = await fetch(`/api/bluebook/reports/upload?month=${month}&year=${year}`, {
+  return apiJson(`/api/bluebook/reports/upload?month=${month}&year=${year}`, {
     method: "POST",
     body: fd,
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error ?? "Upload failed");
-  }
-  return res.json();
 }
 
 export function useReopenCouncilReport() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { memberId: string; month: number; year: number }) => {
-      const res = await fetch("/api/bluebook/reports/reopen", {
+    mutationFn: (data: { memberId: string; month: number; year: number }) =>
+      apiJson("/api/bluebook/reports/reopen", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? "Reopen failed");
-      }
-      return res.json();
-    },
+      }),
     onSuccess: (_, variables) => {
       qc.invalidateQueries({
         queryKey: ["bluebook", "council-review", variables.memberId, variables.month, variables.year],
@@ -236,21 +205,18 @@ export function useReopenCouncilReport() {
 export function useCreateBluebookCycle() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: {
+    mutationFn: (data: {
       title: string;
       month: number;
       year: number;
       opensAt: string;
       closesAt: string;
-    }) => {
-      const res = await fetch("/api/bluebook/cycles", {
+    }) =>
+      apiJson("/api/bluebook/cycles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error((await res.json()).error ?? "Failed");
-      return res.json();
-    },
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bluebook", "cycles"] }),
   });
 }
@@ -262,13 +228,10 @@ export function useAssignmentPortal(month: number, year: number) {
 
   return useQuery({
     queryKey: ["bluebook", "assignment-portal", month, year],
-    queryFn: async () => {
-      const res = await fetch(
+    queryFn: () =>
+      apiJson<AssignmentPortalData>(
         `/api/bluebook/assignment-portal?month=${month}&year=${year}`
-      );
-      if (!res.ok) throw new Error("Failed to load assignment portal");
-      return res.json() as Promise<AssignmentPortalData>;
-    },
+      ),
     enabled: status === "authenticated",
     staleTime: 60_000,
     placeholderData: (prev) => prev,
@@ -278,22 +241,15 @@ export function useAssignmentPortal(month: number, year: number) {
 export function useCouncilAssignments() {
   return useQuery({
     queryKey: ["bluebook", "assignments"],
-    queryFn: async () => {
-      const res = await fetch("/api/bluebook/assignments");
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
+    queryFn: () => apiJson("/api/bluebook/assignments"),
   });
 }
 
 export function useCouncilMembers() {
   return useQuery({
     queryKey: ["users", "council-members"],
-    queryFn: async () => {
-      const res = await fetch("/api/users/council-members");
-      if (!res.ok) throw new Error("Failed");
-      return res.json() as Promise<{ id: string; name: string | null; email: string }[]>;
-    },
+    queryFn: () =>
+      apiJson<{ id: string; name: string | null; email: string }[]>("/api/users/council-members"),
   });
 }
 
@@ -312,18 +268,12 @@ export type CreateAndAssignInput = {
 export function useCreateAndAssignTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: CreateAndAssignInput) => {
-      const res = await fetch("/api/bluebook/assignment-portal", {
+    mutationFn: (data: CreateAndAssignInput) =>
+      apiJson("/api/bluebook/assignment-portal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? "Failed to create task");
-      }
-      return res.json();
-    },
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bluebook"] });
     },
@@ -333,15 +283,12 @@ export function useCreateAndAssignTask() {
 export function useAssignTasks() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { taskId: string; assigneeIds: string[]; notes?: string }) => {
-      const res = await fetch("/api/bluebook/assignments", {
+    mutationFn: (data: { taskId: string; assigneeIds: string[]; notes?: string }) =>
+      apiJson("/api/bluebook/assignments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error((await res.json()).error);
-      return res.json();
-    },
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bluebook"] });
     },
@@ -351,10 +298,8 @@ export function useAssignTasks() {
 export async function uploadCouncilProof(assignmentId: string, file: File) {
   const fd = new FormData();
   fd.append("file", file);
-  const res = await fetch(`/api/bluebook/assignments/${assignmentId}/proof`, {
+  return apiJson(`/api/bluebook/assignments/${assignmentId}/proof`, {
     method: "POST",
     body: fd,
   });
-  if (!res.ok) throw new Error("Upload failed");
-  return res.json();
 }

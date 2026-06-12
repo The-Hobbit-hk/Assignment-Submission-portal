@@ -5,6 +5,7 @@ import { buildEventWhere, serializeEvent } from "@/lib/event";
 import { jsonCached } from "@/lib/api-response";
 import { getActiveReportPeriod, serializeMonthlyReport } from "@/lib/reporting";
 import { resolveReportingClubId } from "@/lib/reporting-access";
+import { handleRouteError } from "@/lib/api-errors";
 
 const eventInclude = {
   club: { select: { id: true, name: true } },
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
       },
       { maxAge: 30 }
     );
-  } catch {
-    return NextResponse.json({ error: "Failed to load event reporting." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to load event reporting.");
   }
 }

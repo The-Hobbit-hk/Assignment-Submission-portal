@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { serializeCouncilAssignment } from "@/lib/council-bluebook";
 import { DISTRICT_ROLES, isDistrictSecretary } from "@/lib/roles";
+import { handleRouteError, notFound, forbidden } from "@/lib/api-errors";
 
 export async function PUT(
   request: Request,
@@ -19,7 +20,7 @@ export async function PUT(
     });
 
     if (!assignment) {
-      return NextResponse.json({ error: "Not found." }, { status: 404 });
+      return notFound("Not found.");
     }
 
     const body = await request.json();
@@ -27,7 +28,7 @@ export async function PUT(
     const isSecretary = isDistrictSecretary(session!.user.role);
 
     if (!isOwner && !DISTRICT_ROLES.includes(session!.user.role)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return forbidden();
     }
 
     const isSubmit = body.submit === true;
@@ -52,7 +53,7 @@ export async function PUT(
     });
 
     return NextResponse.json(serializeCouncilAssignment(updated));
-  } catch {
-    return NextResponse.json({ error: "Failed to update." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to update.");
   }
 }

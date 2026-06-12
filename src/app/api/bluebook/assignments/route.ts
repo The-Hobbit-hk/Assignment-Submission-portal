@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
 import { serializeCouncilAssignment } from "@/lib/council-bluebook";
 import { DISTRICT_ROLES } from "@/lib/roles";
+import { validationError, handleRouteError } from "@/lib/api-errors";
 
 const assignSchema = z.object({
   taskId: z.string(),
@@ -25,8 +26,8 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(assignments.map(serializeCouncilAssignment));
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch assignments." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to fetch assignments.");
   }
 }
 
@@ -38,7 +39,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsed = assignSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid assignment data." }, { status: 400 });
+      return validationError(parsed.error);
     }
 
     const { taskId, assigneeIds, notes } = parsed.data;
@@ -63,7 +64,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(created, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Failed to assign tasks." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to assign tasks.");
   }
 }

@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { ClubDetail } from "@/types/club";
+import { formErrorMessage, toast } from "@/lib/toast";
 
 interface ClubFormProps {
   initialData?: Partial<ClubDetail>;
@@ -56,8 +57,11 @@ export function ClubForm({
         description: form.description || undefined,
         serviceHours: Number(form.serviceHours),
       });
+      toast.success(
+        initialData?.id ? "Club updated successfully" : "Club created successfully"
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(formErrorMessage(err, "Something went wrong"));
     } finally {
       setIsLoading(false);
     }

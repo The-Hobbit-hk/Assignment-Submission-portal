@@ -10,6 +10,7 @@ import {
 import { upsertMonthlyReport } from "@/lib/reporting-store";
 import { adminReportSchema } from "@/lib/validators/reporting";
 import { getActiveReportPeriod } from "@/lib/reporting";
+import { validationError, handleRouteError, apiError } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { session, error } = await requireAuth();
@@ -26,8 +27,8 @@ export async function GET(request: Request) {
       where: { type: "ADMIN", month, year, clubId },
     });
     return NextResponse.json(report ? serializeMonthlyReport(report) : null);
-  } catch {
-    return NextResponse.json({ error: "Failed to load report." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to load report.");
   }
 }
 
@@ -39,18 +40,18 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsed = adminReportSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid report data." }, { status: 400 });
+      return validationError(parsed.error);
     }
 
     const d = parsed.data;
     const access = await assertClubReportingAccess(session!, d.month, d.year);
     if (!access.ok) {
-      return NextResponse.json({ error: access.error }, { status: access.status });
+      return apiError(access.error, access.status);
     }
 
     const clubResolved = await requireReportingClubId(session!, d.clubId);
     if (!clubResolved.ok) {
-      return NextResponse.json({ error: clubResolved.error }, { status: clubResolved.status });
+      return apiError(clubResolved.error, clubResolved.status);
     }
     const clubId = clubResolved.clubId;
     const isSubmit = d.submit === true;
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
     );
 
     return NextResponse.json(serializeMonthlyReport(report));
-  } catch {
-    return NextResponse.json({ error: "Failed to save report." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to save report.");
   }
 }

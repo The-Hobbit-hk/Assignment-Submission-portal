@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiJson } from "@/lib/api-client";
 import type { PaginatedResult } from "@/lib/pagination";
 
 export interface EventItem {
@@ -47,22 +48,14 @@ function buildQs(f: EventFilters) {
 export function useEvents(filters: EventFilters = {}) {
   return useQuery({
     queryKey: ["events", filters],
-    queryFn: async (): Promise<PaginatedResult<EventItem>> => {
-      const res = await fetch(`/api/events?${buildQs(filters)}`);
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
+    queryFn: () => apiJson<PaginatedResult<EventItem>>(`/api/events?${buildQs(filters)}`),
   });
 }
 
 export function useEvent(id: string) {
   return useQuery({
     queryKey: ["events", id],
-    queryFn: async (): Promise<EventItem> => {
-      const res = await fetch(`/api/events/${id}`);
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
+    queryFn: () => apiJson<EventItem>(`/api/events/${id}`),
     enabled: !!id,
   });
 }
@@ -70,11 +63,12 @@ export function useEvent(id: string) {
 export function useCreateEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Record<string, unknown>) => {
-      const res = await fetch("/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-      if (!res.ok) throw new Error((await res.json()).error);
-      return res.json();
-    },
+    mutationFn: (data: Record<string, unknown>) =>
+      apiJson<{ id: string }>("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["events"] });
       qc.invalidateQueries({ queryKey: ["reporting", "events-portal"] });
@@ -85,11 +79,12 @@ export function useCreateEvent() {
 export function useUpdateEvent(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Record<string, unknown>) => {
-      const res = await fetch(`/api/events/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-      if (!res.ok) throw new Error((await res.json()).error);
-      return res.json();
-    },
+    mutationFn: (data: Record<string, unknown>) =>
+      apiJson(`/api/events/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["events"] }); qc.invalidateQueries({ queryKey: ["events", id] }); },
   });
 }
@@ -97,10 +92,7 @@ export function useUpdateEvent(id: string) {
 export function useDeleteEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`/api/events/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed");
-    },
+    mutationFn: (id: string) => apiJson(`/api/events/${id}`, { method: "DELETE" }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["events"] }),
   });
 }
@@ -108,15 +100,12 @@ export function useDeleteEvent() {
 export function useRegisterEvent(eventId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (memberId: string) => {
-      const res = await fetch(`/api/events/${eventId}/registrations`, {
+    mutationFn: (memberId: string) =>
+      apiJson(`/api/events/${eventId}/registrations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ memberId }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error);
-      return res.json();
-    },
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["events", eventId] }),
   });
 }
@@ -125,7 +114,8 @@ export async function uploadEventFile(eventId: string, type: "banner" | "minutes
   const fd = new FormData();
   fd.append("file", file);
   if (caption) fd.append("caption", caption);
-  const res = await fetch(`/api/events/${eventId}/${type === "gallery" ? "gallery" : type}`, { method: "POST", body: fd });
-  if (!res.ok) throw new Error("Upload failed");
-  return res.json();
+  return apiJson(`/api/events/${eventId}/${type === "gallery" ? "gallery" : type}`, {
+    method: "POST",
+    body: fd,
+  });
 }

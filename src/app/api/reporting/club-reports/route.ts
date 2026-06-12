@@ -10,6 +10,7 @@ import { canViewAllClubReports, canViewZoneClubReports } from "@/lib/roles";
 import { OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { getZonesForZonalRep } from "@/lib/zonal-reps";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
+import { handleRouteError, forbidden } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { session, error } = await requireAuth();
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
   const zoneView = canViewZoneClubReports(email);
 
   if (!districtView && !zoneView) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbidden();
   }
 
   const { searchParams } = new URL(request.url);
@@ -70,7 +71,7 @@ export async function GET(request: Request) {
       summary,
       clubs: rows,
     });
-  } catch {
-    return NextResponse.json({ error: "Failed to load club reports." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to load club reports.");
   }
 }

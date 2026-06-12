@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiJson } from "@/lib/api-client";
 import type { PaginatedResult } from "@/lib/pagination";
 import type { MemberDetail, MemberFilters, MemberListItem } from "@/types/member";
 
@@ -18,22 +19,15 @@ function buildQueryString(filters: MemberFilters) {
 export function useMembers(filters: MemberFilters = {}) {
   return useQuery({
     queryKey: ["members", filters],
-    queryFn: async (): Promise<PaginatedResult<MemberListItem>> => {
-      const res = await fetch(`/api/members?${buildQueryString(filters)}`);
-      if (!res.ok) throw new Error("Failed to fetch members");
-      return res.json();
-    },
+    queryFn: () =>
+      apiJson<PaginatedResult<MemberListItem>>(`/api/members?${buildQueryString(filters)}`),
   });
 }
 
 export function useMember(id: string) {
   return useQuery({
     queryKey: ["members", id],
-    queryFn: async (): Promise<MemberDetail> => {
-      const res = await fetch(`/api/members/${id}`);
-      if (!res.ok) throw new Error("Failed to fetch member");
-      return res.json();
-    },
+    queryFn: () => apiJson<MemberDetail>(`/api/members/${id}`),
     enabled: !!id,
   });
 }
@@ -41,18 +35,12 @@ export function useMember(id: string) {
 export function useCreateMember() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Record<string, unknown>) => {
-      const res = await fetch("/api/members", {
+    mutationFn: (data: Record<string, unknown>) =>
+      apiJson<{ id: string }>("/api/members", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Failed to create member");
-      }
-      return res.json();
-    },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard"] });
@@ -63,18 +51,12 @@ export function useCreateMember() {
 export function useUpdateMember(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: Record<string, unknown>) => {
-      const res = await fetch(`/api/members/${id}`, {
+    mutationFn: (data: Record<string, unknown>) =>
+      apiJson(`/api/members/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Failed to update member");
-      }
-      return res.json();
-    },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members"] });
       queryClient.invalidateQueries({ queryKey: ["members", id] });
@@ -85,11 +67,7 @@ export function useUpdateMember(id: string) {
 export function useDeleteMember() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (id: string) => {
-      const res = await fetch(`/api/members/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error("Failed to delete member");
-      return res.json();
-    },
+    mutationFn: (id: string) => apiJson(`/api/members/${id}`, { method: "DELETE" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members"] });
     },
@@ -99,19 +77,14 @@ export function useDeleteMember() {
 export function useImportMembers() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ file, clubId }: { file: File; clubId: string }) => {
+    mutationFn: ({ file, clubId }: { file: File; clubId: string }) => {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("clubId", clubId);
-      const res = await fetch("/api/members/import", {
+      return apiJson<{ imported: number; skipped: number }>("/api/members/import", {
         method: "POST",
         body: formData,
       });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error ?? "Import failed");
-      }
-      return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members"] });

@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { forbidden, unauthorized } from "@/lib/api-errors";
 import type { UserRole } from "@/types/auth";
 
 export async function requireAuth() {
@@ -8,7 +8,7 @@ export async function requireAuth() {
   if (!session?.user) {
     return {
       session: null,
-      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+      error: unauthorized(),
     };
   }
 
@@ -22,7 +22,7 @@ export async function requireRole(roles: UserRole[]) {
   if (!roles.includes(session!.user.role)) {
     return {
       session: null,
-      error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+      error: forbidden(),
     };
   }
 

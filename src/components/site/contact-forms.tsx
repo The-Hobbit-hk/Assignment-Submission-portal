@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { CONTACT } from "@/lib/site-content";
 import { SOCIAL_LINKS } from "@/config/site-navigation";
+import { toast } from "@/lib/toast";
 
 function ContactForm({
   title,
@@ -27,6 +28,7 @@ function ContactForm({
           onSubmit={(e) => {
             e.preventDefault();
             setSent(true);
+            toast.success("Message sent. The district team will get back to you soon.");
           }}
         >
           <input

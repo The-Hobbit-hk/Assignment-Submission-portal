@@ -4,6 +4,7 @@ import { requireAuth, requireRole } from "@/lib/api-auth";
 import { serializeCycle } from "@/lib/bluebook-cycle";
 import { createBluebookCycleSchema } from "@/lib/validators/bluebook-cycle";
 import { canAssignBluebook } from "@/lib/roles";
+import { handleRouteError, apiError, forbidden } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { error } = await requireAuth();
@@ -28,8 +29,8 @@ export async function GET(request: Request) {
       take: 24,
     });
     return NextResponse.json(cycles.map(serializeCycle));
-  } catch {
-    return NextResponse.json({ error: "Failed to load cycles." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to load cycles.");
   }
 }
 
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
   const { session, error } = await requireRole(["DISTRICT_SECRETARY", "DISTRICT_ADMIN", "SUPER_ADMIN"]);
   if (error) return error;
   if (!canAssignBluebook(session!.user.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbidden();
   }
 
   try {
@@ -62,6 +63,6 @@ export async function POST(request: Request) {
     return NextResponse.json(serializeCycle(cycle));
   } catch (e) {
     const message = e instanceof Error ? e.message : "Invalid request.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return apiError(message, 400);
   }
 }

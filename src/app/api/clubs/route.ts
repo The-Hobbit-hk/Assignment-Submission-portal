@@ -5,6 +5,7 @@ import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
 import { buildClubWhere, clubListInclude, serializeClubListItem } from "@/lib/club";
 import { createClubSchema, clubQuerySchema } from "@/lib/validators/club";
 import { logActivity } from "@/lib/activity";
+import { validationError, handleRouteError } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { error } = await requireAuth();
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   const parsed = clubQuerySchema.safeParse(Object.fromEntries(searchParams));
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid query parameters." }, { status: 400 });
+    return validationError(parsed.error);
   }
 
   const { search, status, zone, page, limit } = parsed.data;
@@ -42,11 +43,8 @@ export async function GET(request: Request) {
         limit
       )
     );
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to fetch clubs." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to fetch clubs.");
   }
 }
 
@@ -59,10 +57,7 @@ export async function POST(request: Request) {
     const parsed = createClubSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid club data." },
-        { status: 400 }
-      );
+      return validationError(parsed.error);
     }
 
     const data = parsed.data;
@@ -91,10 +86,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(serializeClubListItem(club), { status: 201 });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to create club." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to create club.");
   }
 }

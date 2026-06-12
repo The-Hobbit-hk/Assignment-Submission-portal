@@ -5,6 +5,7 @@ import { DISTRICT_ROLES } from "@/lib/roles";
 import { jsonCached } from "@/lib/api-response";
 import { getBluebookAnalytics, serializeTask } from "@/lib/bluebook";
 import { createTaskSchema, taskQuerySchema } from "@/lib/validators/bluebook";
+import { validationError, handleRouteError } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { error } = await requireAuth();
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const parsed = taskQuerySchema.safeParse(Object.fromEntries(searchParams));
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid query." }, { status: 400 });
+    return validationError(parsed.error);
   }
 
   const { month, year, category, expired, clubId } = parsed.data;
@@ -63,8 +64,8 @@ export async function GET(request: Request) {
 
     const tasks = await taskQuery;
     return jsonCached(tasks.map(serializeTask), { maxAge: 120 });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch tasks." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to fetch tasks.");
   }
 }
 
@@ -76,7 +77,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsed = createTaskSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid task data." }, { status: 400 });
+      return validationError(parsed.error);
     }
 
     const d = parsed.data;
@@ -94,7 +95,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(serializeTask(task), { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Failed to create task." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to create task.");
   }
 }

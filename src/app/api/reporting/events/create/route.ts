@@ -7,6 +7,7 @@ import { reportingEventSchema } from "@/lib/validators/reporting";
 import { isClubUser } from "@/lib/roles";
 import { logActivity } from "@/lib/activity";
 import { saveUpload } from "@/lib/upload";
+import { validationError, handleRouteError, apiError } from "@/lib/api-errors";
 
 const eventInclude = {
   club: { select: { id: true, name: true } },
@@ -21,12 +22,12 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const payload = formData.get("data");
     if (!payload || typeof payload !== "string") {
-      return NextResponse.json({ error: "Invalid event data." }, { status: 400 });
+      return apiError("Invalid event data.", 400);
     }
 
     const parsed = reportingEventSchema.safeParse(JSON.parse(payload));
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid event data." }, { status: 400 });
+      return validationError(parsed.error);
     }
 
     const d = parsed.data;
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
 
     const access = assertClubEventCreateAccess(session!);
     if (!access.ok) {
-      return NextResponse.json({ error: access.error }, { status: access.status });
+      return apiError(access.error, access.status);
     }
 
     const clubId = isClubUser(session!.user.role)
@@ -42,10 +43,7 @@ export async function POST(request: Request) {
       : await resolveReportingClubId(session!, d.clubId);
 
     if (!clubId) {
-      return NextResponse.json(
-        { error: "A club must be selected to add an event." },
-        { status: 400 }
-      );
+      return apiError("A club must be selected to add an event.", 400);
     }
 
     const minutesFile = formData.get("minutes") as File | null;
@@ -89,7 +87,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(serializeEvent(event), { status: 201 });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Failed to create event.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return handleRouteError(e, "Failed to create event.");
   }
 }

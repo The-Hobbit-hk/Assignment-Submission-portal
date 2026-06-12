@@ -8,6 +8,7 @@ import {
   serializeCouncilEntry,
 } from "@/lib/council";
 import { jsonCached } from "@/lib/api-response";
+import { handleRouteError } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { error } = await requireAuth();
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
       buildPaginatedResult(entries.map(serializeCouncilEntry), total, page, limit),
       { maxAge: 120 }
     );
-  } catch {
-    return NextResponse.json({ error: "Failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed.");
   }
 }

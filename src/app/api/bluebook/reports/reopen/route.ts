@@ -6,6 +6,7 @@ import { ensureCouncilScoresSynced } from "@/lib/council";
 import { DISTRICT_COUNCIL_CLUB } from "@/lib/council-roster-data";
 import { canAssignBluebook } from "@/lib/roles";
 import { z } from "zod";
+import { apiError, forbidden } from "@/lib/api-errors";
 
 const reopenSchema = z.object({
   memberId: z.string(),
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
   const { session, error } = await requireAuth();
   if (error) return error;
   if (!canAssignBluebook(session!.user.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbidden();
   }
 
   try {
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     });
 
     if (!report || report.status === "DRAFT") {
-      return NextResponse.json({ error: "No submitted report to reopen." }, { status: 400 });
+      return apiError("No submitted report to reopen.", 400);
     }
 
     const [updated] = await prisma.$transaction([
@@ -66,6 +67,6 @@ export async function POST(request: Request) {
     return NextResponse.json(serializeReport(updated));
   } catch (e) {
     const message = e instanceof Error ? e.message : "Reopen failed.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return apiError(message, 400);
   }
 }

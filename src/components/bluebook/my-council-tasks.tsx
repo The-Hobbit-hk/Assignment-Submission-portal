@@ -23,6 +23,7 @@ import {
 } from "@/hooks/use-council-assignments";
 import { reportStatusLabel } from "@/lib/bluebook-labels";
 import { getReportingPeriodLabel } from "@/lib/reporting";
+import { toast } from "@/lib/toast";
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => ({
   value: i + 1,
@@ -71,6 +72,7 @@ export function MyCouncilTasks() {
       setNotes("");
       setPendingFiles([]);
       await refetch();
+      toast.success("Blue Book report submitted successfully");
     } finally {
       setUploading(false);
     }

@@ -10,6 +10,7 @@ import {
 import { getActiveReportPeriod } from "@/lib/reporting-window";
 import { OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { DISTRICT_ROLES } from "@/lib/roles";
+import { handleRouteError } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { error } = await requireRole(["REPORTING_SECRETARY", ...DISTRICT_ROLES]);
@@ -130,7 +131,7 @@ export async function GET(request: Request) {
         "Content-Disposition": `attachment; filename="club-monthly-reports-${month}-${year}.xlsx"`,
       },
     });
-  } catch {
-    return NextResponse.json({ error: "Export failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Export failed.");
   }
 }

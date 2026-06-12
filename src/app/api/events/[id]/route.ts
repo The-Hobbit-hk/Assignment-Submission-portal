@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { serializeEvent } from "@/lib/event";
 import { updateEventSchema } from "@/lib/validators/event";
+import { validationError, handleRouteError, notFound } from "@/lib/api-errors";
 
 interface RouteParams { params: Promise<{ id: string }> }
 
@@ -25,7 +26,7 @@ export async function GET(_req: Request, { params }: RouteParams) {
         _count: { select: { registrations: true } },
       },
     });
-    if (!event) return NextResponse.json({ error: "Not found." }, { status: 404 });
+    if (!event) return notFound("Not found.");
 
     const serialized = serializeEvent(event);
     return NextResponse.json({
@@ -37,8 +38,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
         member: r.member,
       })),
     });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch event." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to fetch event.");
   }
 }
 
@@ -51,7 +52,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const body = await request.json();
     const parsed = updateEventSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid data." }, { status: 400 });
+      return validationError(parsed.error);
     }
 
     const d = parsed.data;
@@ -69,8 +70,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
       },
     });
     return NextResponse.json(serializeEvent(event));
-  } catch {
-    return NextResponse.json({ error: "Failed to update event." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to update event.");
   }
 }
 
@@ -82,7 +83,7 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
   try {
     await prisma.event.delete({ where: { id } });
     return NextResponse.json({ message: "Deleted." });
-  } catch {
-    return NextResponse.json({ error: "Failed to delete." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to delete.");
   }
 }

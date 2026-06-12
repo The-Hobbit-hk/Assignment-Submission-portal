@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { MemberDetail } from "@/types/member";
+import { formErrorMessage, toast } from "@/lib/toast";
 
 interface MemberFormProps {
   clubs: { id: string; name: string }[];
@@ -62,8 +63,11 @@ export function MemberForm({
         bio: form.bio || undefined,
         points: Number(form.points),
       });
+      toast.success(
+        initialData?.id ? "Member updated successfully" : "Member created successfully"
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(formErrorMessage(err, "Something went wrong"));
     } finally {
       setIsLoading(false);
     }

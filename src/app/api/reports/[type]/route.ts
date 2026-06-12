@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import { getReportData, type ReportType } from "@/lib/reports";
 import { rowsToCsv, rowsToExcel, rowsToPdf, exportResponse } from "@/lib/export";
+import { handleRouteError, apiError } from "@/lib/api-errors";
 
 const VALID_TYPES = ["members", "clubs", "events", "bluebook", "council-bluebook", "performance"];
 
@@ -13,7 +14,7 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   const { type } = await params;
   if (!VALID_TYPES.includes(type)) {
-    return NextResponse.json({ error: "Invalid report type." }, { status: 400 });
+    return apiError("Invalid report type.", 400);
   }
 
   const { searchParams } = new URL(request.url);
@@ -22,7 +23,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   const year = searchParams.get("year") ? parseInt(searchParams.get("year")!) : undefined;
 
   if (!["pdf", "excel", "csv"].includes(format)) {
-    return NextResponse.json({ error: "Invalid format." }, { status: 400 });
+    return apiError("Invalid format.", 400);
   }
 
   try {
@@ -41,7 +42,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     }
     const buffer = await rowsToPdf(title, headers, rows);
     return exportResponse(buffer, `${type}-report`, "pdf");
-  } catch {
-    return NextResponse.json({ error: "Export failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Export failed.");
   }
 }

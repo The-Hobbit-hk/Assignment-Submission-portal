@@ -6,6 +6,7 @@ import {
   fetchCouncilPodium,
 } from "@/lib/council";
 import { jsonCached } from "@/lib/api-response";
+import { handleRouteError } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { error } = await requireAuth();
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
     await ensureCouncilScoresSynced(prisma, month, year);
     const podium = await fetchCouncilPodium(prisma, entityType, month, year);
     return jsonCached(podium, { maxAge: 120 });
-  } catch {
-    return NextResponse.json({ error: "Failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed.");
   }
 }

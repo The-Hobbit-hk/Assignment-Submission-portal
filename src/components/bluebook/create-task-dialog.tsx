@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { useCreateAndAssignTask } from "@/hooks/use-council-assignments";
 import { cn } from "@/lib/utils";
+import { formErrorMessage, notifyValidation, toast } from "@/lib/toast";
 
 const CATEGORIES = [
   "Reporting",
@@ -77,7 +78,11 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
     setError("");
 
     if (!title.trim() || !dueDate || selectedMembers.length === 0) {
-      setError("Title, due date, and at least one council member are required.");
+      setError(
+        notifyValidation(
+          "Title, due date, and at least one council member are required."
+        )
+      );
       return;
     }
 
@@ -95,10 +100,11 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
         assigneeIds: selectedMembers,
         notes: notes.trim() || undefined,
       });
+      toast.success("Task created and assigned");
       resetForm();
       setOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(formErrorMessage(err, "Something went wrong."));
     }
   };
 

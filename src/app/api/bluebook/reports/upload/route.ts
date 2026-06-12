@@ -5,6 +5,7 @@ import { getOrCreateCycle, serializeReport } from "@/lib/bluebook-cycle";
 import { isAllowedBluebookFile } from "@/lib/bluebook-labels";
 import { saveUpload } from "@/lib/upload";
 import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
+import { handleRouteError, apiError, forbidden } from "@/lib/api-errors";
 
 const MAX_BLUEBOOK_BYTES = 8 * 1024 * 1024;
 
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
   const month = parseInt(searchParams.get("month") ?? "0", 10);
   const year = parseInt(searchParams.get("year") ?? "0", 10);
   if (!month || !year) {
-    return NextResponse.json({ error: "month and year are required." }, { status: 400 });
+    return apiError("month and year are required.", 400);
   }
 
   try {
@@ -27,13 +28,10 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     if (!file) {
-      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+      return apiError("No file provided.", 400);
     }
     if (!isAllowedBluebookFile(file)) {
-      return NextResponse.json(
-        { error: "Allowed formats: PDF, DOCX, JPG, PNG." },
-        { status: 400 }
-      );
+      return apiError("Allowed formats: PDF, DOCX, JPG, PNG.", 400);
     }
 
     const existing = await prisma.councilBluebookReport.findUnique({
@@ -41,10 +39,7 @@ export async function POST(request: Request) {
     });
 
     if (existing && existing.status !== "DRAFT") {
-      return NextResponse.json(
-        { error: "Submission is locked. Contact the District Secretary to reopen." },
-        { status: 403 }
-      );
+      return forbidden("Submission is locked. Contact the District Secretary to reopen.");
     }
 
     const url = await saveUpload(file, "bluebook-reports", MAX_BLUEBOOK_BYTES);
@@ -65,7 +60,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json(serializeReport(report));
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Upload failed.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return handleRouteError(e, "Upload failed.");
   }
 }

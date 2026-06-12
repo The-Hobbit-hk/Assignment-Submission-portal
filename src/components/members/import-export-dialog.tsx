@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useImportMembers } from "@/hooks/use-members";
+import { formErrorMessage, notifyValidation, toast } from "@/lib/toast";
 
 interface ImportExportDialogProps {
   clubs: { id: string; name: string }[];
@@ -34,15 +35,20 @@ export function ImportExportDialog({ clubs }: ImportExportDialogProps) {
 
   async function handleImport() {
     const file = fileRef.current?.files?.[0];
-    if (!file || !clubId) return;
+    if (!file || !clubId) {
+      setResult(notifyValidation("Choose a club and CSV file to import."));
+      return;
+    }
 
     setResult(null);
     try {
       const res = await importMutation.mutateAsync({ file, clubId });
-      setResult(`Imported ${res.imported} members (${res.skipped} skipped)`);
+      const summary = `Imported ${res.imported} members (${res.skipped} skipped)`;
+      setResult(summary);
+      toast.success(summary);
       if (fileRef.current) fileRef.current.value = "";
     } catch (err) {
-      setResult(err instanceof Error ? err.message : "Import failed");
+      setResult(formErrorMessage(err, "Import failed"));
     }
   }
 

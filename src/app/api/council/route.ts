@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { jsonCached } from "@/lib/api-response";
 import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
+import { handleRouteError } from "@/lib/api-errors";
 import {
   ensureCouncilScoresSynced,
   fetchCouncilLeaderboard,
@@ -58,7 +59,7 @@ export async function GET(request: Request) {
       },
       { maxAge: 120 }
     );
-  } catch {
-    return jsonCached({ error: "Failed." }, { status: 500, maxAge: 0 });
+  } catch (err) {
+    return handleRouteError(err, "Failed.");
   }
 }

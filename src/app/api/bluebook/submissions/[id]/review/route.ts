@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { serializeSubmission } from "@/lib/bluebook";
 import { reviewSubmissionSchema } from "@/lib/validators/bluebook";
+import { validationError, handleRouteError } from "@/lib/api-errors";
 
 interface RouteParams { params: Promise<{ id: string }> }
 
@@ -15,7 +16,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     const body = await request.json();
     const parsed = reviewSubmissionSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid review data." }, { status: 400 });
+      return validationError(parsed.error);
     }
 
     const submission = await prisma.bluebookSubmission.update({
@@ -34,7 +35,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     });
 
     return NextResponse.json(serializeSubmission(submission));
-  } catch {
-    return NextResponse.json({ error: "Review failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Review failed.");
   }
 }

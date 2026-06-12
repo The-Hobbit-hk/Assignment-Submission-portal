@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { serializeSubmission } from "@/lib/bluebook";
+import { handleRouteError, apiError, notFound } from "@/lib/api-errors";
 
 export async function POST(request: Request) {
   const { error } = await requireAuth();
@@ -10,11 +11,11 @@ export async function POST(request: Request) {
   try {
     const { taskId, clubId } = await request.json();
     if (!taskId || !clubId) {
-      return NextResponse.json({ error: "taskId and clubId required." }, { status: 400 });
+      return apiError("taskId and clubId required.", 400);
     }
 
     const task = await prisma.bluebookTask.findUnique({ where: { id: taskId } });
-    if (!task) return NextResponse.json({ error: "Task not found." }, { status: 404 });
+    if (!task) return notFound("Task not found.");
 
     const status =
       new Date() > task.dueDate ? "EXPIRED" : "DRAFT";
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(serializeSubmission(submission), { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed.");
   }
 }

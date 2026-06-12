@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { serializeTask } from "@/lib/bluebook";
+import { handleRouteError, notFound } from "@/lib/api-errors";
 
 interface RouteParams { params: Promise<{ id: string }> }
 
@@ -19,9 +20,9 @@ export async function GET(_req: Request, { params }: RouteParams) {
         },
       },
     });
-    if (!task) return NextResponse.json({ error: "Not found." }, { status: 404 });
+    if (!task) return notFound("Not found.");
     return NextResponse.json(serializeTask(task));
-  } catch {
-    return NextResponse.json({ error: "Failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed.");
   }
 }

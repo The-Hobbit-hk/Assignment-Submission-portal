@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { FileUp, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { reportError, toast } from "@/lib/toast";
 
 interface ReportingFileUploadProps {
   label: string;
@@ -42,8 +43,9 @@ export function ReportingFileUpload({
     setUploading(true);
     try {
       await onUpload(file);
+      toast.success("File uploaded successfully");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      setError(reportError(err, "Upload failed"));
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";

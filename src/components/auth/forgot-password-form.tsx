@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { toast } from "@/lib/toast";
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState("");
@@ -28,6 +29,7 @@ export function ForgotPasswordForm() {
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     setIsSubmitted(true);
+    toast.success("If an account exists, reset instructions will be emailed shortly.");
     setIsLoading(false);
   }
 

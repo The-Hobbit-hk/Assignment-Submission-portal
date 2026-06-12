@@ -11,6 +11,7 @@ import { useEventsReportingPortal, useSaveEventsReport } from "@/hooks/use-repor
 import { useReportingWindow } from "@/hooks/use-reporting-window";
 import { useSession } from "next-auth/react";
 import { isClubUser } from "@/lib/roles";
+import { toast } from "@/lib/toast";
 
 export function EventsReportingForm() {
   const { month, year } = getActiveReportPeriod();
@@ -29,6 +30,7 @@ export function EventsReportingForm() {
   const handleSubmitEventsReport = async () => {
     await saveEventsReport.mutateAsync({ month, year, submit: true });
     await refetch();
+    toast.success("Events report submitted successfully");
   };
 
   return (

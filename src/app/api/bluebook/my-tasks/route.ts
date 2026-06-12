@@ -6,6 +6,7 @@ import { getOrCreateCycle, serializeCycle, serializeReport } from "@/lib/blueboo
 import { taskStatusLabel } from "@/lib/bluebook-labels";
 import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
 import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
+import { handleRouteError } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { session, error } = await requireRole([
@@ -68,7 +69,7 @@ export async function GET(request: Request) {
         submissionStatus: reportData?.status ?? "DRAFT",
       },
     });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch tasks." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to fetch tasks.");
   }
 }

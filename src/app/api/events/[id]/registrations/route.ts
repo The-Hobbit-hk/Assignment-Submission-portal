@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { serializeRegistration } from "@/lib/event";
+import { handleRouteError, apiError, notFound } from "@/lib/api-errors";
 
 interface RouteParams { params: Promise<{ id: string }> }
 
@@ -18,8 +19,8 @@ export async function GET(_req: Request, { params }: RouteParams) {
       },
     });
     return NextResponse.json(registrations.map(serializeRegistration));
-  } catch {
-    return NextResponse.json({ error: "Failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed.");
   }
 }
 
@@ -31,16 +32,16 @@ export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { memberId } = await request.json();
     if (!memberId) {
-      return NextResponse.json({ error: "memberId required." }, { status: 400 });
+      return apiError("memberId required.", 400);
     }
 
     const event = await prisma.event.findUnique({ where: { id } });
-    if (!event) return NextResponse.json({ error: "Event not found." }, { status: 404 });
+    if (!event) return notFound("Event not found.");
 
     if (event.maxAttendees) {
       const count = await prisma.eventRegistration.count({ where: { eventId: id } });
       if (count >= event.maxAttendees) {
-        return NextResponse.json({ error: "Event is full." }, { status: 409 });
+        return apiError("Event is full.", 409);
       }
     }
 
@@ -57,7 +58,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     });
 
     return NextResponse.json(serializeRegistration(registration), { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Registration failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Registration failed.");
   }
 }

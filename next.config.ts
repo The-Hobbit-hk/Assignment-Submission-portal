@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/about/message-riy-2025-26",
-        destination: "/about/message-riy-2026-27",
+        destination: "/about#message-riy-2026-27",
         permanent: true,
       },
       {

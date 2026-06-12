@@ -7,6 +7,7 @@ import { serializeCouncilAssignment } from "@/lib/council-bluebook";
 import { fetchAssignableCouncilMembers } from "@/lib/council-assignees";
 import { DISTRICT_ROLES } from "@/lib/roles";
 import { createAndAssignTaskSchema } from "@/lib/validators/bluebook";
+import { handleRouteError, validationError } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { error } = await requireRole(["DISTRICT_SECRETARY", ...DISTRICT_ROLES]);
@@ -55,8 +56,8 @@ export async function GET(request: Request) {
       },
       { maxAge: 60 }
     );
-  } catch {
-    return NextResponse.json({ error: "Failed to load assignment portal." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to load assignment portal.");
   }
 }
 
@@ -68,10 +69,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsed = createAndAssignTaskSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "Invalid task data." },
-        { status: 400 }
-      );
+      return validationError(parsed.error);
     }
 
     const { assigneeIds, notes, ...taskData } = parsed.data;
@@ -121,7 +119,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(result, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Failed to create and assign task." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to create and assign task.");
   }
 }

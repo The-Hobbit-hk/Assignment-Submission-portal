@@ -16,6 +16,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { apiJson } from "@/lib/api-client";
+import { notifyValidation, reportError, toast } from "@/lib/toast";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -31,30 +33,23 @@ export function RegisterForm() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(notifyValidation("Passwords do not match."));
       return;
     }
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(notifyValidation("Password must be at least 8 characters."));
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/register", {
+      await apiJson("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error ?? "Registration failed. Please try again.");
-        return;
-      }
 
       const result = await signIn("credentials", {
         email,
@@ -67,10 +62,11 @@ export function RegisterForm() {
         return;
       }
 
+      toast.success("Account created successfully");
       router.push("/dashboard");
       router.refresh();
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      setError(reportError(err, "Registration failed. Please try again."));
     } finally {
       setIsLoading(false);
     }

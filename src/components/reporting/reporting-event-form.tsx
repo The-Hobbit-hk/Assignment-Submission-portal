@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ReportingFileUpload } from "@/components/reporting/reporting-file-upload";
+import { formErrorMessage, notifyValidation, toast } from "@/lib/toast";
 
 const EVENT_TYPES = [
   { value: "ISD", label: "ISD" },
@@ -78,13 +79,13 @@ export function ReportingEventForm({
     setError("");
 
     if (!title.trim() || !startDate) {
-      setError("Event name and start date are required.");
+      setError(notifyValidation("Event name and start date are required."));
       return;
     }
 
     const start = new Date(startDate);
     if (Number.isNaN(start.getTime())) {
-      setError("Invalid start date.");
+      setError(notifyValidation("Invalid start date."));
       return;
     }
 
@@ -93,7 +94,9 @@ export function ReportingEventForm({
         start.getMonth() + 1 === reportingMonth && start.getFullYear() === reportingYear;
       if (!inMonth) {
         setError(
-          `Event date must fall within ${reportingMonth}/${reportingYear} to appear in this month's reporting.`
+          notifyValidation(
+            `Event date must fall within ${reportingMonth}/${reportingYear} to appear in this month's reporting.`
+          )
         );
         return;
       }
@@ -120,8 +123,9 @@ export function ReportingEventForm({
       if (imageFile) fd.append("image", imageFile);
 
       await onSubmit(fd);
+      toast.success("Event added successfully");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add event.");
+      setError(formErrorMessage(err, "Failed to add event."));
     } finally {
       setLoading(false);
     }

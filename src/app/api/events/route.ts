@@ -5,6 +5,7 @@ import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
 import { buildEventWhere, serializeEvent } from "@/lib/event";
 import { createEventSchema, eventQuerySchema } from "@/lib/validators/event";
 import { logActivity } from "@/lib/activity";
+import { validationError, handleRouteError } from "@/lib/api-errors";
 
 const eventInclude = {
   club: { select: { id: true, name: true } },
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const parsed = eventQuerySchema.safeParse(Object.fromEntries(searchParams));
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid query." }, { status: 400 });
+    return validationError(parsed.error);
   }
 
   const { search, type, status, clubId, districtOnly, month, year, page, limit } = parsed.data;
@@ -61,8 +62,8 @@ export async function GET(request: Request) {
     return NextResponse.json(
       buildPaginatedResult(events.map(serializeEvent), total, page, limit)
     );
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch events." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to fetch events.");
   }
 }
 
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const parsed = createEventSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid event data." }, { status: 400 });
+      return validationError(parsed.error);
     }
 
     const d = parsed.data;
@@ -118,7 +119,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(serializeEvent(event), { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Failed to create event." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to create event.");
   }
 }

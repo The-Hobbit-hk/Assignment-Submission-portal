@@ -5,6 +5,7 @@ import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
 import { buildMemberWhere, serializeMemberListItem } from "@/lib/member";
 import { createMemberSchema, memberQuerySchema } from "@/lib/validators/member";
 import { logActivity } from "@/lib/activity";
+import { validationError, handleRouteError, apiError } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { error } = await requireAuth();
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   const parsed = memberQuerySchema.safeParse(Object.fromEntries(searchParams));
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid query parameters." }, { status: 400 });
+    return validationError(parsed.error);
   }
 
   const { search, clubId, role, status, page, limit } = parsed.data;
@@ -42,11 +43,8 @@ export async function GET(request: Request) {
         limit
       )
     );
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to fetch members." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to fetch members.");
   }
 }
 
@@ -59,10 +57,7 @@ export async function POST(request: Request) {
     const parsed = createMemberSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid member data.", details: parsed.error.flatten() },
-        { status: 400 }
-      );
+      return validationError(parsed.error);
     }
 
     const data = parsed.data;
@@ -77,10 +72,7 @@ export async function POST(request: Request) {
     });
 
     if (existing) {
-      return NextResponse.json(
-        { error: "A member with this email already exists in this club." },
-        { status: 409 }
-      );
+      return apiError("A member with this email already exists in this club.", 409);
     }
 
     const member = await prisma.member.create({
@@ -115,10 +107,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(serializeMemberListItem(member), { status: 201 });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to create member." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to create member.");
   }
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/api-auth";
 import { getSupabaseAdmin, SUPABASE_UPLOAD_BUCKET } from "@/lib/supabase-server";
 import { DISTRICT_ROLES } from "@/lib/roles";
+import { apiError, handleRouteError } from "@/lib/api-errors";
 
 const ALLOWED_MIME = [
   "image/jpeg",
@@ -18,12 +19,9 @@ export async function POST() {
 
   const supabase = getSupabaseAdmin();
   if (!supabase) {
-    return NextResponse.json(
-      {
-        error:
-          "Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on Vercel.",
-      },
-      { status: 500 }
+    return apiError(
+      "Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on Vercel.",
+      500
     );
   }
 
@@ -31,7 +29,7 @@ export async function POST() {
 
   const { data: buckets, error: listError } = await supabase.storage.listBuckets();
   if (listError) {
-    return NextResponse.json({ error: listError.message }, { status: 500 });
+    return handleRouteError(listError, "Failed to ensure storage.");
   }
 
   const exists = buckets?.some((b) => b.name === bucket || b.id === bucket);
@@ -50,13 +48,9 @@ export async function POST() {
   });
 
   if (createError) {
-    return NextResponse.json(
-      {
-        error: createError.message,
-        hint: "If API create fails, run supabase/storage-setup.sql in Supabase SQL Editor.",
-      },
-      { status: 500 }
-    );
+    return apiError(createError.message, 500, {
+      hint: "If API create fails, run supabase/storage-setup.sql in Supabase SQL Editor.",
+    });
   }
 
   return NextResponse.json({

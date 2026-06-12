@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { PortalId } from "@/config/portals";
+import { reportError, toast } from "@/lib/toast";
 
 type PortalMeta = {
   id: PortalId;
@@ -40,14 +41,15 @@ export function LoginForm({ portal }: { portal?: PortalMeta }) {
       });
 
       if (result?.error) {
-        setError("Invalid email or password. Please try again.");
+        setError(reportError("Invalid email or password. Please try again."));
         return;
       }
 
+      toast.success("Signed in successfully");
       router.push(callbackUrl);
       router.refresh();
-    } catch {
-      setError("Something went wrong. Please try again.");
+    } catch (err) {
+      setError(reportError(err, "Something went wrong. Please try again."));
     } finally {
       setIsLoading(false);
     }

@@ -6,6 +6,7 @@ import { isCycleOpen } from "@/lib/bluebook-labels";
 import { submitCouncilReportSchema } from "@/lib/validators/bluebook-cycle";
 import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
 import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
+import { apiError, forbidden } from "@/lib/api-errors";
 
 export async function POST(request: Request) {
   const { session, error } = await requireRole([
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
       !isSubmissionWindowsBypassEnabled() &&
       (!cycle.isActive || !isCycleOpen(cycle.closesAt, cycle.opensAt))
     ) {
-      return NextResponse.json({ error: "Submission window is closed." }, { status: 403 });
+      return forbidden("Submission window is closed.");
     }
 
     const assignments = await prisma.councilBluebookAssignment.findMany({
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
         },
       });
       if (anyAssigned === 0) {
-        return NextResponse.json({ error: "No tasks assigned for this period." }, { status: 400 });
+        return apiError("No tasks assigned for this period.", 400);
       }
     }
 
@@ -50,15 +51,12 @@ export async function POST(request: Request) {
     });
 
     if (existing && existing.status !== "DRAFT") {
-      return NextResponse.json({ error: "Blue Book already submitted for this period." }, { status: 403 });
+      return forbidden("Blue Book already submitted for this period.");
     }
 
     const proofUrls = (existing?.proofUrls as string[] | null) ?? [];
     if (proofUrls.length === 0) {
-      return NextResponse.json(
-        { error: "Upload at least one supporting document (PDF) before submitting." },
-        { status: 400 }
-      );
+      return apiError("Upload at least one supporting document (PDF) before submitting.", 400);
     }
 
     const now = new Date();
@@ -94,6 +92,6 @@ export async function POST(request: Request) {
     return NextResponse.json(serializeReport(report));
   } catch (e) {
     const message = e instanceof Error ? e.message : "Submission failed.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return apiError(message, 400);
   }
 }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { clubListInclude, serializeClubDetail } from "@/lib/club";
 import { updateClubSchema } from "@/lib/validators/club";
+import { validationError, handleRouteError, notFound } from "@/lib/api-errors";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -21,15 +22,12 @@ export async function GET(_request: Request, { params }: RouteParams) {
     });
 
     if (!club) {
-      return NextResponse.json({ error: "Club not found." }, { status: 404 });
+      return notFound("Club not found.");
     }
 
     return NextResponse.json(serializeClubDetail(club));
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to fetch club." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to fetch club.");
   }
 }
 
@@ -44,7 +42,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const parsed = updateClubSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid club data." }, { status: 400 });
+      return validationError(parsed.error);
     }
 
     const data = parsed.data;
@@ -60,11 +58,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
     });
 
     return NextResponse.json(serializeClubDetail(club));
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to update club." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to update club.");
   }
 }
 
@@ -77,10 +72,7 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
   try {
     await prisma.club.delete({ where: { id } });
     return NextResponse.json({ message: "Club deleted." });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to delete club." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to delete club.");
   }
 }

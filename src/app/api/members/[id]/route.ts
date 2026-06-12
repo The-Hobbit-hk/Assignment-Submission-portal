@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { serializeMemberDetail } from "@/lib/member";
 import { updateMemberSchema } from "@/lib/validators/member";
 import { logActivity } from "@/lib/activity";
+import { validationError, handleRouteError, notFound } from "@/lib/api-errors";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -22,15 +23,12 @@ export async function GET(_request: Request, { params }: RouteParams) {
     });
 
     if (!member) {
-      return NextResponse.json({ error: "Member not found." }, { status: 404 });
+      return notFound("Member not found.");
     }
 
     return NextResponse.json(serializeMemberDetail(member));
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to fetch member." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to fetch member.");
   }
 }
 
@@ -45,15 +43,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const parsed = updateMemberSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid member data." },
-        { status: 400 }
-      );
+      return validationError(parsed.error);
     }
 
     const existing = await prisma.member.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: "Member not found." }, { status: 404 });
+      return notFound("Member not found.");
     }
 
     const member = await prisma.member.update({
@@ -71,11 +66,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
     });
 
     return NextResponse.json(serializeMemberDetail(member));
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to update member." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to update member.");
   }
 }
 
@@ -88,15 +80,12 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
   try {
     const existing = await prisma.member.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: "Member not found." }, { status: 404 });
+      return notFound("Member not found.");
     }
 
     await prisma.member.delete({ where: { id } });
     return NextResponse.json({ message: "Member deleted." });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to delete member." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to delete member.");
   }
 }

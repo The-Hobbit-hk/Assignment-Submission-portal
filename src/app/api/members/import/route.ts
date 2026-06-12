@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { logActivity } from "@/lib/activity";
+import { handleRouteError, apiError, notFound } from "@/lib/api-errors";
 
 function parseCSV(text: string): Record<string, string>[] {
   const lines = text.trim().split(/\r?\n/);
@@ -32,15 +33,12 @@ export async function POST(request: Request) {
     const clubId = formData.get("clubId") as string | null;
 
     if (!file || !clubId) {
-      return NextResponse.json(
-        { error: "File and clubId are required." },
-        { status: 400 }
-      );
+      return apiError("File and clubId are required.", 400);
     }
 
     const club = await prisma.club.findUnique({ where: { id: clubId } });
     if (!club) {
-      return NextResponse.json({ error: "Club not found." }, { status: 404 });
+      return notFound("Club not found.");
     }
 
     const text = await file.text();
@@ -91,10 +89,7 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ imported, skipped, total: rows.length });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to import members." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to import members.");
   }
 }

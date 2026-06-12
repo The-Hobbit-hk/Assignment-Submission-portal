@@ -1,6 +1,20 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiJson } from "@/lib/api-client";
+import { serializeTask } from "@/lib/bluebook";
+
+type BluebookTaskDetail = Omit<ReturnType<typeof serializeTask>, "submissions"> & {
+  submissions?: {
+    id: string;
+    proofUrl?: string | null;
+    reviewerComment?: string | null;
+    allocatedScore: number;
+    status?: string;
+    clubId?: string;
+    club?: { id: string; name: string };
+  }[];
+};
 
 export function useBluebookTasks(
   filters: {
@@ -24,9 +38,7 @@ export function useBluebookTasks(
   return useQuery({
     queryKey: ["bluebook", "tasks", filters],
     queryFn: async () => {
-      const res = await fetch(`/api/bluebook/tasks?${p}`);
-      if (!res.ok) throw new Error("Failed");
-      const data = await res.json();
+      const data = await apiJson<unknown>(`/api/bluebook/tasks?${p}`);
       if (filters.summary) return data as { tasks: unknown[]; analytics: unknown };
       return data;
     },
@@ -36,11 +48,7 @@ export function useBluebookTasks(
 export function useBluebookTask(id: string) {
   return useQuery({
     queryKey: ["bluebook", "tasks", id],
-    queryFn: async () => {
-      const res = await fetch(`/api/bluebook/tasks/${id}`);
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
+    queryFn: () => apiJson<BluebookTaskDetail>(`/api/bluebook/tasks/${id}`),
     enabled: !!id,
   });
 }
@@ -48,11 +56,7 @@ export function useBluebookTask(id: string) {
 export function useBluebookAnalytics(month: number, year: number) {
   return useQuery({
     queryKey: ["bluebook", "analytics", month, year],
-    queryFn: async () => {
-      const res = await fetch(`/api/bluebook/analytics?month=${month}&year=${year}`);
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
+    queryFn: () => apiJson(`/api/bluebook/analytics?month=${month}&year=${year}`),
     enabled: false,
   });
 }
@@ -60,15 +64,12 @@ export function useBluebookAnalytics(month: number, year: number) {
 export function useCreateSubmission() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ taskId, clubId }: { taskId: string; clubId: string }) => {
-      const res = await fetch("/api/bluebook/submissions", {
+    mutationFn: ({ taskId, clubId }: { taskId: string; clubId: string }) =>
+      apiJson<{ id: string }>("/api/bluebook/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ taskId, clubId }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error);
-      return res.json();
-    },
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bluebook"] }),
   });
 }
@@ -76,15 +77,12 @@ export function useCreateSubmission() {
 export function useSubmitBluebook(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
-      const res = await fetch(`/api/bluebook/submissions/${id}`, {
+    mutationFn: () =>
+      apiJson(`/api/bluebook/submissions/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ submit: true }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bluebook"] }),
   });
 }
@@ -92,30 +90,25 @@ export function useSubmitBluebook(id: string) {
 export async function uploadProof(submissionId: string, file: File) {
   const fd = new FormData();
   fd.append("file", file);
-  const res = await fetch(`/api/bluebook/submissions/${submissionId}/proof`, {
+  return apiJson(`/api/bluebook/submissions/${submissionId}/proof`, {
     method: "POST",
     body: fd,
   });
-  if (!res.ok) throw new Error("Upload failed");
-  return res.json();
 }
 
 export function useReviewSubmission(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (data: {
+    mutationFn: (data: {
       allocatedScore: number;
       reviewerComment?: string;
       status: "APPROVED" | "REJECTED";
-    }) => {
-      const res = await fetch(`/api/bluebook/submissions/${id}/review`, {
+    }) =>
+      apiJson(`/api/bluebook/submissions/${id}/review`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      });
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
+      }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bluebook"] }),
   });
 }

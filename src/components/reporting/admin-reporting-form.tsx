@@ -26,6 +26,7 @@ import {
 import { useReportingWindow } from "@/hooks/use-reporting-window";
 import { useSession } from "next-auth/react";
 import { isClubUser } from "@/lib/roles";
+import { notifyValidation, toast } from "@/lib/toast";
 
 export function AdminReportingForm() {
   const { month, year } = getActiveReportPeriod();
@@ -81,11 +82,11 @@ export function AdminReportingForm() {
     setFormError("");
 
     if (resolutionPassed === "yes" && !resolutionFileUrl) {
-      setFormError("Please upload proof of resolution passed.");
+      setFormError(notifyValidation("Please upload proof of resolution passed."));
       return;
     }
     if (districtDuesPaid === "yes" && !districtDuesFileUrl) {
-      setFormError("Please upload proof of district dues payment.");
+      setFormError(notifyValidation("Please upload proof of district dues payment."));
       return;
     }
 
@@ -104,6 +105,7 @@ export function AdminReportingForm() {
       newsletterEvent,
       submit: true,
     });
+    toast.success("Administration report submitted successfully");
   };
 
   if (isLoading) return <Skeleton className="h-96 max-w-3xl" />;

@@ -14,6 +14,8 @@ import {
 import { ReportingFileUpload } from "@/components/reporting/reporting-file-upload";
 import { YesNoSelect } from "@/components/reporting/yes-no-select";
 import { useCreateMember } from "@/hooks/use-members";
+import { apiJson } from "@/lib/api-client";
+import { formErrorMessage, notifyValidation, toast } from "@/lib/toast";
 
 const MEMBER_ROLES = [
   { value: "MEMBER", label: "Member" },
@@ -80,12 +82,12 @@ export function ManageReportingMemberForm({
     setError("");
 
     if (!form.firstName.trim() || !form.email.trim()) {
-      setError("Member name and email are required.");
+      setError(notifyValidation("Member name and email are required."));
       return;
     }
 
     if (duesPaid === "yes" && !duesProofFile) {
-      setError("Please upload proof of dues payment.");
+      setError(notifyValidation("Please upload proof of dues payment."));
       return;
     }
 
@@ -108,20 +110,17 @@ export function ManageReportingMemberForm({
       if (duesPaid === "yes" && duesProofFile && member?.id) {
         const fd = new FormData();
         fd.append("file", duesProofFile);
-        const res = await fetch(`/api/members/${member.id}/dues-proof`, {
+        await apiJson(`/api/members/${member.id}/dues-proof`, {
           method: "POST",
           body: fd,
         });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error ?? "Failed to upload dues proof.");
-        }
       }
 
+      toast.success("Member added successfully");
       reset();
       onAdded?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add member.");
+      setError(formErrorMessage(err, "Failed to add member."));
     }
   };
 

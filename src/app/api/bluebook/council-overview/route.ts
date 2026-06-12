@@ -10,13 +10,14 @@ import {
 } from "@/lib/council-bluebook-status";
 import { fetchAssignableCouncilMembers } from "@/lib/council-assignees";
 import { canViewCouncilBluebookOverview } from "@/lib/roles";
+import { handleRouteError, forbidden } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
   const { session, error } = await requireAuth();
   if (error) return error;
 
   if (!canViewCouncilBluebookOverview(session!.user.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbidden();
   }
 
   const { searchParams } = new URL(request.url);
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
       members: memberRows,
       submissions: serialized,
     });
-  } catch {
-    return NextResponse.json({ error: "Failed to load council bluebook overview." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to load council bluebook overview.");
   }
 }

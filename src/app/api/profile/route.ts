@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { jsonCached } from "@/lib/api-response";
 import { serializeMemberListItem } from "@/lib/member";
+import { handleRouteError } from "@/lib/api-errors";
 
 export async function GET() {
   const { session, error } = await requireAuth();
@@ -25,7 +26,7 @@ export async function GET() {
       },
       { maxAge: 300 }
     );
-  } catch {
-    return jsonCached({ error: "Failed to load profile." }, { status: 500, maxAge: 0 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to load profile.");
   }
 }

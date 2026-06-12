@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { saveUpload } from "@/lib/upload";
 import { serializeCouncilAssignment } from "@/lib/council-bluebook";
+import { handleRouteError, apiError, forbidden } from "@/lib/api-errors";
 
 export async function POST(
   request: Request,
@@ -19,13 +20,13 @@ export async function POST(
     });
 
     if (!assignment || assignment.assigneeId !== session!.user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return forbidden();
     }
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     if (!file) {
-      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+      return apiError("No file provided.", 400);
     }
 
     const url = await saveUpload(file, "bluebook-proof");
@@ -36,7 +37,7 @@ export async function POST(
     });
 
     return NextResponse.json(serializeCouncilAssignment(updated));
-  } catch {
-    return NextResponse.json({ error: "Upload failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Upload failed.");
   }
 }

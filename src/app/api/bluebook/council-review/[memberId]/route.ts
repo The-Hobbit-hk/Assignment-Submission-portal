@@ -7,6 +7,7 @@ import { reviewCouncilMemberSchema } from "@/lib/validators/bluebook-cycle";
 import { ensureCouncilScoresSynced } from "@/lib/council";
 import { DISTRICT_COUNCIL_CLUB } from "@/lib/council-roster-data";
 import { canAssignBluebook } from "@/lib/roles";
+import { handleRouteError, apiError, notFound, forbidden } from "@/lib/api-errors";
 
 async function loadReview(memberId: string, month: number, year: number) {
   const cycle = await getOrCreateCycle(prisma, month, year);
@@ -59,7 +60,7 @@ export async function GET(
   const { session, error } = await requireAuth();
   if (error) return error;
   if (!canAssignBluebook(session!.user.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbidden();
   }
 
   const { memberId } = await params;
@@ -71,11 +72,11 @@ export async function GET(
   try {
     const data = await loadReview(memberId, month, year);
     if (!data) {
-      return NextResponse.json({ error: "Member not found." }, { status: 404 });
+      return notFound("Member not found.");
     }
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json({ error: "Failed to load review." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Failed to load review.");
   }
 }
 
@@ -86,7 +87,7 @@ export async function PUT(
   const { session, error } = await requireAuth();
   if (error) return error;
   if (!canAssignBluebook(session!.user.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbidden();
   }
 
   const { memberId } = await params;
@@ -167,6 +168,6 @@ export async function PUT(
     return NextResponse.json(data);
   } catch (e) {
     const message = e instanceof Error ? e.message : "Review failed.";
-    return NextResponse.json({ error: message }, { status: 400 });
+    return apiError(message, 400);
   }
 }

@@ -201,6 +201,13 @@ export const CONTACT = {
     "3rd Floor, Pratham Elite, Office No 303, opp. Civil Court Metro Station, near Pune District & Sessions Court, Tophakhana, Shivajinagar, Pune, Maharashtra 411005",
 } as const;
 
+export const ABOUT_SECTION_ORDER = [
+  "rotaract-district-3131",
+  "rotary-international",
+  "message-riy-2026-27",
+  "from-leaders-desk",
+] as const;
+
 export const ABOUT_PAGES: Record<string, ContentPage> = {
   "rotary-international": {
     title: "Rotary International",
@@ -322,7 +329,7 @@ export const COUNCIL_PAGES: Record<string, ContentPage> = {
     paragraphs: [
       "PHF. DRR. Dr. Karishma Awari leads Rotaract District 3131 for RIY 2026-27 under the theme REIGN — Rotaract Empowering Individuals for Growth and Networking.",
       "The District Rotaract Representative represents all clubs at the district and international level, oversees council operations, and aligns district strategy with Rotary International goals.",
-      "Read the full message for the Rotary year on the Message for RIY 2026-27 page.",
+      "Read the full message for the Rotary year on the About page.",
     ],
   },
   "core-council": {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
+import { handleRouteError } from "@/lib/api-errors";
 
 export async function GET() {
   const { error } = await requireAuth();
@@ -52,10 +53,7 @@ export async function GET() {
         "Content-Disposition": `attachment; filename="members-export-${Date.now()}.csv"`,
       },
     });
-  } catch {
-    return NextResponse.json(
-      { error: "Failed to export members." },
-      { status: 500 }
-    );
+  } catch (err) {
+    return handleRouteError(err, "Failed to export members.");
   }
 }

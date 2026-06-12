@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { EventItem } from "@/hooks/use-events";
+import { formErrorMessage, toast } from "@/lib/toast";
 
 interface EventFormProps {
   clubs: { id: string; name: string }[];
@@ -65,8 +66,11 @@ export function EventForm({
           : undefined,
         serviceHours: Number(form.serviceHours),
       });
+      toast.success(
+        initial?.id ? "Event updated successfully" : "Event created successfully"
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error");
+      setError(formErrorMessage(err, "Something went wrong"));
     } finally {
       setLoading(false);
     }

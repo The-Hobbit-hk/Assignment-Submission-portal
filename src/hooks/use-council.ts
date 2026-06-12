@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { apiJson } from "@/lib/api-client";
 import type { PaginatedResult } from "@/lib/pagination";
 
 interface CouncilEntry {
@@ -39,14 +40,11 @@ export function useCouncilData(filters: CouncilFilters = {}) {
 
   return useQuery({
     queryKey: ["council", filters],
-    queryFn: async (): Promise<{
-      podium: CouncilEntry[];
-      leaderboard: PaginatedResult<CouncilEntry>;
-    }> => {
-      const res = await fetch(`/api/council?${p}`);
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
+    queryFn: () =>
+      apiJson<{
+        podium: CouncilEntry[];
+        leaderboard: PaginatedResult<CouncilEntry>;
+      }>(`/api/council?${p}`),
   });
 }
 
@@ -56,11 +54,7 @@ export function useCouncilPodium(
   const p = buildCouncilParams(filters);
   return useQuery({
     queryKey: ["council", "podium", filters],
-    queryFn: async () => {
-      const res = await fetch(`/api/council/podium?${p}`);
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
+    queryFn: () => apiJson(`/api/council/podium?${p}`),
   });
 }
 
@@ -68,10 +62,7 @@ export function useCouncilLeaderboard(filters: CouncilFilters = {}) {
   const p = buildCouncilParams(filters);
   return useQuery({
     queryKey: ["council", "leaderboard", filters],
-    queryFn: async (): Promise<PaginatedResult<CouncilEntry>> => {
-      const res = await fetch(`/api/council/leaderboard?${p}`);
-      if (!res.ok) throw new Error("Failed");
-      return res.json();
-    },
+    queryFn: () =>
+      apiJson<PaginatedResult<CouncilEntry>>(`/api/council/leaderboard?${p}`),
   });
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { apiJson } from "@/lib/api-client";
 import type { MemberListItem } from "@/types/member";
 
 interface ProfileResponse {
@@ -16,10 +17,6 @@ interface ProfileResponse {
 export function useProfile() {
   return useQuery({
     queryKey: ["profile"],
-    queryFn: async (): Promise<ProfileResponse> => {
-      const res = await fetch("/api/profile");
-      if (!res.ok) throw new Error("Failed to load profile");
-      return res.json();
-    },
+    queryFn: () => apiJson<ProfileResponse>("/api/profile"),
   });
 }

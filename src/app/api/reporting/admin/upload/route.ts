@@ -6,6 +6,7 @@ import { serializeMonthlyReport } from "@/lib/reporting";
 import { assertClubReportingAccess, requireReportingClubId } from "@/lib/reporting-access";
 import { upsertMonthlyReport } from "@/lib/reporting-store";
 import { saveUpload } from "@/lib/upload";
+import { handleRouteError, apiError } from "@/lib/api-errors";
 
 const fieldSchema = z.enum(["resolution", "districtDues", "bylaws"]);
 
@@ -28,12 +29,12 @@ export async function POST(request: Request) {
     const clubIdParam = formData.get("clubId");
 
     if (!file?.size) {
-      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+      return apiError("No file provided.", 400);
     }
 
     const access = await assertClubReportingAccess(session!, month, year);
     if (!access.ok) {
-      return NextResponse.json({ error: access.error }, { status: access.status });
+      return apiError(access.error, access.status);
     }
 
     const clubResolved = await requireReportingClubId(
@@ -41,7 +42,7 @@ export async function POST(request: Request) {
       clubIdParam ? String(clubIdParam) : null
     );
     if (!clubResolved.ok) {
-      return NextResponse.json({ error: clubResolved.error }, { status: clubResolved.status });
+      return apiError(clubResolved.error, clubResolved.status);
     }
     const clubId = clubResolved.clubId;
     const url = await saveUpload(file, "admin-reporting", MAX_BYTES[field]);
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
     );
 
     return NextResponse.json(serializeMonthlyReport(report));
-  } catch {
-    return NextResponse.json({ error: "Upload failed." }, { status: 500 });
+  } catch (err) {
+    return handleRouteError(err, "Upload failed.");
   }
 }

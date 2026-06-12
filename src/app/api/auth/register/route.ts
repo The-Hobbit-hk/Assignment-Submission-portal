@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { validationError, handleRouteError, apiError } from "@/lib/api-errors";
 
 const registerSchema = z.object({
   name: z.string().min(2).max(100),
@@ -15,10 +16,7 @@ export async function POST(request: Request) {
     const parsed = registerSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid registration data." },
-        { status: 400 }
-      );
+      return validationError(parsed.error);
     }
 
     const { name, email, password } = parsed.data;
@@ -28,10 +26,7 @@ export async function POST(request: Request) {
     });
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "An account with this email already exists." },
-        { status: 409 }
-      );
+      return apiError("An account with this email already exists.", 409);
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -49,11 +44,10 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (err) {
-    const message =
+    const fallback =
       err instanceof Error && err.message.includes("Authentication failed")
         ? "Database connection failed. Ensure PostgreSQL is running and DATABASE_URL is set."
-        : "Internal server error.";
-    console.error("[register]", err);
-    return NextResponse.json({ error: message }, { status: 500 });
+        : undefined;
+    return handleRouteError(err, fallback);
   }
 }

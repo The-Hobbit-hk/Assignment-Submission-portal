@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { serializeMemberListItem } from "@/lib/member";
 import { isClubUser } from "@/lib/roles";
 import { saveUpload } from "@/lib/upload";
+import { handleRouteError, apiError, notFound, forbidden } from "@/lib/api-errors";
 
 export async function POST(
   request: Request,
@@ -21,20 +22,20 @@ export async function POST(
     });
 
     if (!member) {
-      return NextResponse.json({ error: "Member not found." }, { status: 404 });
+      return notFound("Member not found.");
     }
 
     if (
       isClubUser(session!.user.role) &&
       session!.user.clubId !== member.clubId
     ) {
-      return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+      return forbidden();
     }
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     if (!file?.size) {
-      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+      return apiError("No file provided.", 400);
     }
 
     const url = await saveUpload(file, "member-dues", 5 * 1024 * 1024);
@@ -46,7 +47,6 @@ export async function POST(
 
     return NextResponse.json(serializeMemberListItem(updated));
   } catch (e) {
-    const message = e instanceof Error ? e.message : "Upload failed.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return handleRouteError(e, "Upload failed.");
   }
 }
