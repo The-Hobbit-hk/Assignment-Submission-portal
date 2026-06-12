@@ -10,11 +10,24 @@ import type {
 } from "@/lib/citations-shared";
 import type { CitationCadence } from "@/generated/prisma/client";
 
+export type CitationStandingsPeriodHint = {
+  cadence: CitationCadence;
+  periodKey: string;
+  periodLabel: string;
+  year: number;
+  month: number | null;
+  quarter: number | null;
+  rotaryYearLabel: string | null;
+  totalPoints: number;
+  approvedCount: number;
+};
+
 export type CitationStandingsData = {
   cadence: CitationCadence;
   periodKey: string;
   periodLabel: string;
   standings: CitationStandingEntry[];
+  approvedPeriods: CitationStandingsPeriodHint[];
 };
 
 export function useCitationDefinitions() {
@@ -87,7 +100,8 @@ export function useCitationStandings(filters?: {
     queryFn: () =>
       apiJson<CitationStandingsData>(`/api/citations/standings${qs ? `?${qs}` : ""}`),
     enabled: status === "authenticated",
-    staleTime: 60_000,
+    staleTime: 15_000,
+    refetchOnMount: "always",
   });
 }
 

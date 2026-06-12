@@ -182,6 +182,74 @@ export async function assignCitationToClubs(input: {
   };
 }
 
+export function buildStandingsWhere(filters: {
+  cadence?: CitationCadence;
+  periodKey?: string;
+  year?: number;
+  month?: number;
+  quarter?: number;
+  rotaryYearLabel?: string;
+}): Prisma.CitationAssignmentWhereInput {
+  const where: Prisma.CitationAssignmentWhereInput = {
+    status: "APPROVED",
+    awardedPoints: { gt: 0 },
+  };
+
+  if (filters.cadence) where.cadence = filters.cadence;
+
+  if (filters.periodKey) {
+    where.periodKey = filters.periodKey;
+    return where;
+  }
+
+  if (!filters.cadence) return where;
+
+  const period = validatePeriodForCadence(filters.cadence, {
+    year: filters.year,
+    month: filters.month,
+    quarter: filters.quarter,
+    rotaryYearLabel: filters.rotaryYearLabel,
+  });
+
+  where.periodKey = period.periodKey;
+  return where;
+}
+
+export type CitationStandingsPeriodHint = {
+  cadence: CitationCadence;
+  periodKey: string;
+  periodLabel: string;
+  year: number;
+  month: number | null;
+  quarter: number | null;
+  rotaryYearLabel: string | null;
+  totalPoints: number;
+  approvedCount: number;
+};
+
+export async function getApprovedCitationPeriods(): Promise<CitationStandingsPeriodHint[]> {
+  const rows = await prisma.citationAssignment.groupBy({
+    by: ["cadence", "periodKey", "year", "month", "quarter", "rotaryYearLabel"],
+    where: { status: "APPROVED", awardedPoints: { gt: 0 } },
+    _sum: { awardedPoints: true },
+    _count: { id: true },
+  });
+
+  return rows
+    .map((row) => ({
+      cadence: row.cadence,
+      periodKey: row.periodKey,
+      periodLabel: resolvePeriodLabel(row.cadence, row),
+      year: row.year,
+      month: row.month,
+      quarter: row.quarter,
+      rotaryYearLabel: row.rotaryYearLabel,
+      totalPoints: row._sum.awardedPoints ?? 0,
+      approvedCount: row._count.id,
+    }))
+    .sort((a, b) => b.totalPoints - a.totalPoints);
+}
+
 export async function getClubCitationStandings(filters: {
   cadence?: CitationCadence;
   periodKey?: string;
@@ -191,22 +259,7 @@ export async function getClubCitationStandings(filters: {
   rotaryYearLabel?: string;
   limit?: number;
 }): Promise<CitationStandingEntry[]> {
-  const where: Prisma.CitationAssignmentWhereInput = {
-    status: "APPROVED",
-  };
-
-  if (filters.cadence) where.cadence = filters.cadence;
-  if (filters.periodKey) {
-    where.periodKey = filters.periodKey;
-  } else if (filters.cadence) {
-    const period = validatePeriodForCadence(filters.cadence, {
-      year: filters.year,
-      month: filters.month,
-      quarter: filters.quarter,
-      rotaryYearLabel: filters.rotaryYearLabel,
-    });
-    where.periodKey = period.periodKey;
-  }
+  const where = buildStandingsWhere(filters);
 
   const [clubs, aggregates] = await Promise.all([
     prisma.club.findMany({

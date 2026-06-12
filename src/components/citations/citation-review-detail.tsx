@@ -32,8 +32,12 @@ export function CitationReviewDetail({ assignmentId }: { assignmentId: string })
     review.mutate(
       { status, reviewerComment: comment || undefined },
       {
-        onSuccess: () => {
-          toast.success(status === "APPROVED" ? "Citation approved" : "Citation rejected");
+        onSuccess: (updated) => {
+          toast.success(
+            status === "APPROVED"
+              ? `Citation approved — ${updated.awardedPoints} pts will show under ${updated.periodLabel} (${updated.cadence.toLowerCase()}) standings`
+              : "Citation rejected"
+          );
         },
       }
     );

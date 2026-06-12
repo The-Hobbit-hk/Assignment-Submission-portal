@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { CitationStandingsPeriodHint } from "@/hooks/use-citations";
 import { Search, Trophy } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -86,6 +87,15 @@ export function CitationStandingsTable({ limit, compact }: CitationStandingsTabl
   }, [data?.standings, search]);
 
   const podium = filtered.slice(0, 3);
+  const totalPointsInView = (data?.standings ?? []).reduce((sum, row) => sum + row.totalPoints, 0);
+
+  const applyPeriodHint = (hint: CitationStandingsPeriodHint) => {
+    setCadence(hint.cadence);
+    setYear(hint.year);
+    if (hint.month) setMonth(hint.month);
+    if (hint.quarter) setQuarter(hint.quarter);
+    if (hint.rotaryYearLabel) setRotaryYear(hint.rotaryYearLabel);
+  };
 
   return (
     <div className="space-y-4">
@@ -196,6 +206,37 @@ export function CitationStandingsTable({ limit, compact }: CitationStandingsTabl
           </div>
         )}
       </div>
+
+      {!compact && !isLoading && (data?.approvedPeriods?.length ?? 0) > 0 && (
+        <div className="space-y-2">
+          {totalPointsInView === 0 && (
+            <p className="rounded-lg border border-amber-500/30 bg-amber-50/80 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
+              No approved points for <strong>{data?.periodLabel}</strong>. Approved citations
+              may be under a different period or cadence — select one below.
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {data!.approvedPeriods.map((hint) => {
+              const active = hint.periodKey === data?.periodKey && hint.cadence === cadence;
+              return (
+                <button
+                  key={`${hint.cadence}-${hint.periodKey}`}
+                  type="button"
+                  onClick={() => applyPeriodHint(hint)}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-xs font-medium transition",
+                    active
+                      ? "border-accent bg-accent/10 text-accent"
+                      : "border-border/60 text-muted-foreground hover:border-accent/40 hover:text-foreground"
+                  )}
+                >
+                  {hint.periodLabel} · {hint.totalPoints} pts
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {!compact && podium.length > 0 && !isLoading && (
         <div className="grid gap-3 sm:grid-cols-3">

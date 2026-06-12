@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
 import {
+  getApprovedCitationPeriods,
   getClubCitationStandings,
   resolvePeriodLabel,
   validatePeriodForCadence,
@@ -37,11 +38,17 @@ export async function GET(request: Request) {
       rotaryYearLabel,
     });
 
-    const standings = await getClubCitationStandings({
-      cadence,
-      periodKey: period.periodKey,
-      limit: parsed.data.limit,
-    });
+    const [standings, approvedPeriods] = await Promise.all([
+      getClubCitationStandings({
+        cadence,
+        year,
+        month: cadence === "MONTHLY" ? month : undefined,
+        quarter: cadence === "QUARTERLY" ? quarter : undefined,
+        rotaryYearLabel: cadence === "YEARLY" ? rotaryYearLabel : undefined,
+        limit: parsed.data.limit,
+      }),
+      getApprovedCitationPeriods(),
+    ]);
 
     return NextResponse.json({
       cadence,
@@ -53,6 +60,7 @@ export async function GET(request: Request) {
         rotaryYearLabel: period.rotaryYearLabel ?? undefined,
       }),
       standings,
+      approvedPeriods,
     });
   } catch (err) {
     return handleRouteError(err, "Failed to fetch citation standings.");
