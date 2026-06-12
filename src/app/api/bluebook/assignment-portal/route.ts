@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/api-auth";
 import { jsonCached } from "@/lib/api-response";
 import { serializeTask } from "@/lib/bluebook";
 import { serializeCouncilAssignment } from "@/lib/council-bluebook";
+import { fetchAssignableCouncilMembers } from "@/lib/council-assignees";
 import { DISTRICT_ROLES } from "@/lib/roles";
 import { createAndAssignTaskSchema } from "@/lib/validators/bluebook";
 
@@ -26,11 +27,7 @@ export async function GET(request: Request) {
         },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.user.findMany({
-        where: { role: "COUNCIL_MEMBER" },
-        select: { id: true, name: true, email: true },
-        orderBy: { name: "asc" },
-      }),
+      fetchAssignableCouncilMembers(prisma),
       prisma.bluebookTask.findMany({
         where: { month, year, isActive: true },
         select: {

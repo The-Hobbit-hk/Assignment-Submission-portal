@@ -80,6 +80,19 @@ export async function upsertCouncilMember(
   });
 }
 
+/** Upsert login accounts for every official council roster entry (for Blue Book assignment, etc.). */
+export async function ensureCouncilUserAccounts(prisma: PrismaClient) {
+  const passwordHash = await bcrypt.hash(COUNCIL_PASSWORD, 12);
+  let users = 0;
+
+  for (const councilUser of COUNCIL_USERS) {
+    await upsertCouncilUser(prisma, councilUser, passwordHash);
+    users++;
+  }
+
+  return { users };
+}
+
 export async function importCouncilRoster(prisma: PrismaClient) {
   const councilClub = await ensureDistrictCouncilClub(prisma);
   const passwordHash = await bcrypt.hash(COUNCIL_PASSWORD, 12);

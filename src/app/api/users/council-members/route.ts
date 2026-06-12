@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
+import { fetchAssignableCouncilMembers } from "@/lib/council-assignees";
 import { DISTRICT_ROLES } from "@/lib/roles";
 
 export async function GET() {
@@ -8,11 +9,7 @@ export async function GET() {
   if (error) return error;
 
   try {
-    const members = await prisma.user.findMany({
-      where: { role: "COUNCIL_MEMBER" },
-      select: { id: true, name: true, email: true },
-      orderBy: { name: "asc" },
-    });
+    const members = await fetchAssignableCouncilMembers(prisma);
     return NextResponse.json(members);
   } catch {
     return NextResponse.json({ error: "Failed." }, { status: 500 });

@@ -8,6 +8,7 @@ import {
   matchesReviewStatusFilter,
   summarizeCouncilBluebook,
 } from "@/lib/council-bluebook-status";
+import { fetchAssignableCouncilMembers } from "@/lib/council-assignees";
 import { canViewCouncilBluebookOverview } from "@/lib/roles";
 
 export async function GET(request: Request) {
@@ -41,11 +42,7 @@ export async function GET(request: Request) {
     };
 
     const [members, assignments, reports] = await Promise.all([
-      prisma.user.findMany({
-        where: { role: "COUNCIL_MEMBER" },
-        select: { id: true, name: true, email: true },
-        orderBy: { name: "asc" },
-      }),
+      fetchAssignableCouncilMembers(prisma),
       prisma.councilBluebookAssignment.findMany({
         where: assignmentWhere,
         include: {
