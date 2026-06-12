@@ -127,35 +127,45 @@ export async function assignCitationToClubs(input: {
     throw new Error("Select at least one club.");
   }
 
-  const created = await prisma.$transaction(
-    clubIds.map((clubId) =>
-      prisma.citationAssignment.upsert({
-        where: {
-          definitionId_clubId_periodKey: {
-            definitionId: input.definitionId,
-            clubId,
-            periodKey: input.period.periodKey,
-          },
-        },
-        create: {
+  const upsertForClub = (clubId: string) =>
+    prisma.citationAssignment.upsert({
+      where: {
+        definitionId_clubId_periodKey: {
           definitionId: input.definitionId,
           clubId,
-          cadence: input.cadence,
           periodKey: input.period.periodKey,
-          year: input.period.year,
-          month: input.period.month,
-          quarter: input.period.quarter,
-          rotaryYearLabel: input.period.rotaryYearLabel,
-          dueDate: input.dueDate ?? null,
-          status: "ASSIGNED",
         },
-        update: {
-          dueDate: input.dueDate ?? undefined,
-        },
-        include: assignmentInclude,
-      })
-    )
-  );
+      },
+      create: {
+        definitionId: input.definitionId,
+        clubId,
+        cadence: input.cadence,
+        periodKey: input.period.periodKey,
+        year: input.period.year,
+        month: input.period.month,
+        quarter: input.period.quarter,
+        rotaryYearLabel: input.period.rotaryYearLabel,
+        dueDate: input.dueDate ?? null,
+        status: "ASSIGNED",
+      },
+      update: {
+        dueDate: input.dueDate ?? undefined,
+      },
+      include: assignmentInclude,
+    });
+
+  // Bulk assign can touch 100+ clubs; one interactive transaction exceeds the 5s default.
+  const BATCH_SIZE = 20;
+  const created: Awaited<ReturnType<typeof upsertForClub>>[] = [];
+
+  for (let i = 0; i < clubIds.length; i += BATCH_SIZE) {
+    const batch = clubIds.slice(i, i + BATCH_SIZE);
+    const batchResults = await prisma.$transaction(
+      batch.map((clubId) => upsertForClub(clubId)),
+      { timeout: 30_000 }
+    );
+    created.push(...batchResults);
+  }
 
   return created.map(serializeCitationAssignment);
 }
