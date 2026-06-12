@@ -1,14 +1,16 @@
-import { CouncilGroupNav } from "@/components/site/council-group-nav";
-import { PageHero } from "@/components/site/page-hero";
+import {
+  CouncilHierarchyIntro,
+  CouncilHierarchyView,
+} from "@/components/site/council-hierarchy-view";
 
 export default function CouncilPage() {
   return (
     <>
-      <PageHero
+      <CouncilHierarchyIntro
         title="Council 26-27"
-        subtitle="District leadership for Rotaract District 3131 under the REIGN theme, RIY 2026-27"
+        subtitle="District leadership for Rotaract District 3131 — organised by role, from the District Rotaract Representative through core teams, zonal leads, and portfolio directors."
       />
-      <CouncilGroupNav />
+      <CouncilHierarchyView />
     </>
   );
 }

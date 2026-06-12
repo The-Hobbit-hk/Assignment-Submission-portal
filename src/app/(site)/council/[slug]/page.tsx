@@ -1,10 +1,9 @@
 import { notFound } from "next/navigation";
-import { ContentPageView } from "@/components/site/content-page";
-import { CouncilRosterList } from "@/components/site/council-roster-list";
 import {
-  getCouncilByGroup,
-  type CouncilGroupSlug,
-} from "@/lib/council-roster-data";
+  CouncilHierarchyIntro,
+  CouncilHierarchyView,
+} from "@/components/site/council-hierarchy-view";
+import type { CouncilGroupSlug } from "@/lib/council-roster-data";
 import { COUNCIL_PAGES } from "@/lib/site-content";
 
 export function generateStaticParams() {
@@ -20,12 +19,14 @@ export default async function CouncilSlugPage({
   const content = COUNCIL_PAGES[slug];
   if (!content) notFound();
 
-  const members = getCouncilByGroup(slug as CouncilGroupSlug);
-
   return (
     <>
-      <ContentPageView content={content} />
-      <CouncilRosterList members={members} sectionTitle={content.title} />
+      <CouncilHierarchyIntro
+        title={content.title}
+        subtitle={content.paragraphs[0]}
+        backHref="/council"
+      />
+      <CouncilHierarchyView groups={[slug as CouncilGroupSlug]} showNav={false} />
     </>
   );
 }

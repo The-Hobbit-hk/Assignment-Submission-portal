@@ -61,6 +61,10 @@
   top: var(--site-header-height);
 }
 
+.scroll-mt-site-header {
+  scroll-margin-top: var(--site-header-height);
+}
+
 .table-scroll {
   -webkit-overflow-scrolling: touch;
   overflow-x: auto;
