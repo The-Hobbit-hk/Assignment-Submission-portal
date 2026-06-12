@@ -18,6 +18,8 @@ export default async function CalendarPage() {
     location: event.location,
     type: event.type,
     status: event.status,
+    bannerUrl: event.bannerUrl,
+    gallery: event.gallery,
     registrationOpensAt: event.registrationOpensAt?.toISOString() ?? null,
     registrationClosesAt: event.registrationClosesAt?.toISOString() ?? null,
     registrationUrl: event.registrationUrl,
@@ -28,10 +30,12 @@ export default async function CalendarPage() {
     <>
       <PageHero
         title="Calendar"
-        subtitle="Official district events calendar and club installations for RIY 2026-27"
+        subtitle="Next district dates, installations, and registrations — at a glance for RIY 2026-27."
+        backgroundImage="/home-hero-background.png"
+        large
       />
       <section className="py-8 sm:py-10">
-        <div className="mx-auto max-w-6xl px-4 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <SiteReveal>
             <DistrictCalendar events={serialized} />
           </SiteReveal>

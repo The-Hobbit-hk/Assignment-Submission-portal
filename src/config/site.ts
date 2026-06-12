@@ -4,6 +4,7 @@ export const siteConfig = {
   logo: "/logo-rotaract-3131.png",
   logoMark: "/logo-rotaract-mark.png",
   reignLogo: "/reign-theme-riy-2026-27.png",
+  favicon: "/reign-icon.png",
   homeHeroBackground: "/home-hero-background.png",
   rotaryYear: "2026-27",
   theme: "REIGN",

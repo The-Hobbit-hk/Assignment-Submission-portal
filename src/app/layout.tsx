@@ -28,6 +28,11 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.shortName}`,
   },
   description: siteConfig.description,
+  icons: {
+    icon: [{ url: siteConfig.favicon, type: "image/png" }],
+    apple: [{ url: siteConfig.favicon, type: "image/png" }],
+    shortcut: siteConfig.favicon,
+  },
 };
 
 export default function RootLayout({

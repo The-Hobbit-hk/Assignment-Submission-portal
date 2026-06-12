@@ -25,7 +25,13 @@ export async function getPublicCalendarEvents() {
       registrationOpensAt: true,
       registrationClosesAt: true,
       registrationUrl: true,
+      bannerUrl: true,
       club: { select: { name: true, zone: true, city: true } },
+      gallery: {
+        take: 1,
+        orderBy: { createdAt: "asc" },
+        select: { url: true },
+      },
     },
   });
 }
