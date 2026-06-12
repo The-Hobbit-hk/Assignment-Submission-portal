@@ -99,7 +99,6 @@ export function ClubForm({
             <SelectContent>
               <SelectItem value="ACTIVE">Active</SelectItem>
               <SelectItem value="INACTIVE">Inactive</SelectItem>
-              <SelectItem value="PROVISIONAL">Provisional</SelectItem>
             </SelectContent>
           </Select>
         </div>

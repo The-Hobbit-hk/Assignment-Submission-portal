@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/generated/prisma/client";
+import type { ClubStatus, PrismaClient } from "@/generated/prisma/client";
 import { DISTRICT_COUNCIL_CLUB } from "@/lib/council-roster-data";
 import { purgeLegacyDemoEvents } from "@/lib/legacy-demo-events";
 import {
@@ -24,7 +24,7 @@ export async function syncDistrictClubs(prisma: PrismaClient) {
       charterNumber: club.riClubId,
       zone: club.zone,
       city: club.city ?? null,
-      status: club.status ?? "ACTIVE",
+      status: (club.status === "INACTIVE" ? "INACTIVE" : "ACTIVE") as ClubStatus,
       foundedAt: parseCharterDate(club.charterDate) ?? null,
       description: clubDescription(club) ?? null,
     };

@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { serializeMonthlyReport } from "@/lib/reporting";
-import { assertClubReportingAccess, resolveReportingClubId } from "@/lib/reporting-access";
+import {
+  assertClubReportingAccess,
+  requireReportingClubId,
+  resolveReportingClubId,
+} from "@/lib/reporting-access";
 import { upsertMonthlyReport } from "@/lib/reporting-store";
 import { eventsReportSchema } from "@/lib/validators/reporting";
 import { getActiveReportPeriod } from "@/lib/reporting";
@@ -15,7 +19,7 @@ export async function GET(request: Request) {
   const active = getActiveReportPeriod();
   const month = parseInt(searchParams.get("month") ?? String(active.month));
   const year = parseInt(searchParams.get("year") ?? String(active.year));
-  const clubId = resolveReportingClubId(session!, searchParams.get("clubId"));
+  const clubId = await resolveReportingClubId(session!, searchParams.get("clubId"));
 
   try {
     const report = await prisma.monthlyReport.findFirst({
@@ -44,7 +48,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: access.error }, { status: access.status });
     }
 
-    const clubId = resolveReportingClubId(session!, d.clubId);
+    const clubResolved = await requireReportingClubId(session!, d.clubId);
+    if (!clubResolved.ok) {
+      return NextResponse.json({ error: clubResolved.error }, { status: clubResolved.status });
+    }
+    const clubId = clubResolved.clubId;
     const isSubmit = d.submit === true;
 
     const report = await upsertMonthlyReport(

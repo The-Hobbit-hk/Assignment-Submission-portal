@@ -37,10 +37,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: access.error }, { status: access.status });
     }
 
-    const clubId =
-      isClubUser(session!.user.role) && session!.user.clubId
-        ? session!.user.clubId
-        : resolveReportingClubId(session!, d.clubId);
+    const clubId = isClubUser(session!.user.role)
+      ? await resolveReportingClubId(session!)
+      : await resolveReportingClubId(session!, d.clubId);
 
     if (!clubId) {
       return NextResponse.json(

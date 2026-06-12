@@ -19,7 +19,7 @@ export async function GET(request: Request) {
   const active = getActiveReportPeriod();
   const month = parseInt(searchParams.get("month") ?? String(active.month));
   const year = parseInt(searchParams.get("year") ?? String(active.year));
-  const clubId = resolveReportingClubId(session!, searchParams.get("clubId"));
+  const clubId = await resolveReportingClubId(session!, searchParams.get("clubId"));
 
   try {
     const [report, club, clubEvents, districtEvents] = await Promise.all([

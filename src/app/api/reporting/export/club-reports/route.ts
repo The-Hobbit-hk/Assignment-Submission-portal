@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
 import { multiSheetExcel } from "@/lib/export";
@@ -7,7 +8,7 @@ import {
   summarizeClubReporting,
 } from "@/lib/reporting-club-status";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
-import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
+import { OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { DISTRICT_ROLES } from "@/lib/roles";
 
 export async function GET(request: Request) {
@@ -21,11 +22,7 @@ export async function GET(request: Request) {
   const zoneFilter = searchParams.get("zone")?.trim() || null;
 
   try {
-    const clubWhere: {
-      status: "ACTIVE";
-      zone?: string;
-      charterNumber: { in: string[] };
-    } = { ...OFFICIAL_DISTRICT_CLUB_FILTER, status: "ACTIVE" };
+    const clubWhere: Prisma.ClubWhereInput = { ...OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER };
     if (zoneFilter) clubWhere.zone = zoneFilter;
 
     const clubs = await prisma.club.findMany({

@@ -14,9 +14,13 @@ export async function upsertMonthlyReport(
   });
 
   if (existing) {
+    const { club, ...updateData } = data;
     return prisma.monthlyReport.update({
       where: { id: existing.id },
-      data,
+      data: {
+        ...updateData,
+        ...(clubId ? { club: { connect: { id: clubId } } } : club ? { club } : {}),
+      },
     });
   }
 

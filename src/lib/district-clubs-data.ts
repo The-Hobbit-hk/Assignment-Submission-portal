@@ -1,3 +1,5 @@
+import type { ClubStatus } from "@/generated/prisma/client";
+
 /**
  * Official Rotaract District 3131 club roster (Zones 1–7).
  * Source: district zone-wise club listing.
@@ -49,11 +51,11 @@ const Z2: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Pimpri", riClubId: "7295", sponsoringClub: "Pimpri (Rotary Club)", charterDate: "9 August 1980", city: "Pimpri" },
   { name: "Rotaract Club of Symbiosis Skills and Professional University", riClubId: "8825207", sponsoringClub: "Poona Downtown (Rotary Club)", charterDate: "29 September 2022", city: "Pune" },
   { name: "Rotaract Club of Nigdi-Pune", riClubId: "8825815", sponsoringClub: "Nigdi-Pune (Rotary Club)", charterDate: "28 June 2023", city: "Nigdi" },
-  { name: "Rotaract Club of Ajeenkya DY Patil Group", riClubId: "8826992", sponsoringClub: "Pune Amanora (Rotary Club)", charterDate: "7 February 2025", city: "Pune", status: "PROVISIONAL" },
+  { name: "Rotaract Club of Ajeenkya DY Patil Group", riClubId: "8826992", sponsoringClub: "Pune Amanora (Rotary Club)", charterDate: "7 February 2025", city: "Pune" },
   { name: "Rotaract Club of Ramkrishna More College", riClubId: "8824661", sponsoringClub: "Chinchwad-Pune (Rotary Club)", city: "Pune" },
-  { name: "Rotaract Club of Bavdhan Pioneers", riClubId: "8827103", sponsoringClub: "Hadapsar Central (Rotary Club)", charterDate: "26 March 2025", city: "Bavdhan", status: "PROVISIONAL" },
-  { name: "Rotaract Club of Golden Talegaon Dabhade", riClubId: "8827547", sponsoringClub: "Talegaon Dabhade City (Rotary Club)", charterDate: "13 August 2025", city: "Talegaon Dabhade", status: "PROVISIONAL" },
-  { name: "Rotaract Club of Udyognagri Drishti", riClubId: "3131-Z2-09", city: "Pune", status: "PROVISIONAL" },
+  { name: "Rotaract Club of Bavdhan Pioneers", riClubId: "8827103", sponsoringClub: "Hadapsar Central (Rotary Club)", charterDate: "26 March 2025", city: "Bavdhan" },
+  { name: "Rotaract Club of Golden Talegaon Dabhade", riClubId: "8827547", sponsoringClub: "Talegaon Dabhade City (Rotary Club)", charterDate: "13 August 2025", city: "Talegaon Dabhade" },
+  { name: "Rotaract Club of Udyognagri Drishti", riClubId: "3131-Z2-09", city: "Pune" },
   { name: "Rotaract Club of MIT Academy of Engineering", riClubId: "8824993", sponsoringClub: "Pimpri Elite (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of MU College of Commerce Pimpri", riClubId: "8825176", sponsoringClub: "Khadki (Rotary Club)", city: "Pimpri" },
   { name: "Rotaract Club of AIT", riClubId: "217438", sponsoringClub: "Poona Airport (Rotary Club)", city: "Pune" },
@@ -71,7 +73,7 @@ const Z3: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Aundh Smartcity", riClubId: "8826236", sponsoringClub: "Self sponsored", city: "Aundh" },
   { name: "Rotaract Club of Government Industrial Training Institute (Male) Mulshi", riClubId: "8826699", sponsoringClub: "Pune Parvati (Rotary Club)", city: "Mulshi" },
   { name: "Rotaract Club of Daund College", riClubId: "215158", sponsoringClub: "Daund (Rotary Club)", charterDate: "5 September 2017", city: "Daund" },
-  { name: "Rotaract Club of Anantrao Pawar College Pirangut", riClubId: "3131-Z3-08", sponsoringClub: "Pune Shaniwarwada", charterDate: "June 2025", city: "Pirangut", status: "PROVISIONAL" },
+  { name: "Rotaract Club of Anantrao Pawar College Pirangut", riClubId: "3131-Z3-08", sponsoringClub: "Pune Shaniwarwada", charterDate: "June 2025", city: "Pirangut" },
   { name: "Rotaract Club of Indira College", riClubId: "217518", sponsoringClub: "Pune Baner (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Rajarshi Shahu College of Engineering- Tathawade", riClubId: "215402", sponsoringClub: "Akurdi Pune (Rotary Club)", charterDate: "5 December 2017", city: "Tathawade" },
   { name: "Rotaract Club of Symbiosis Law Viman Nagar", riClubId: "217454", sponsoringClub: "Pune Kalyani Nagar (Rotary Club)", city: "Viman Nagar" },
@@ -103,7 +105,7 @@ const Z5: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Pune Shaniwarwada", riClubId: "45125", sponsoringClub: "Pune Shaniwarwada (Rotary Club)", charterDate: "27 September 2006", city: "Pune" },
   { name: "Rotaract Club of Pune Kalyani Nagar", riClubId: "69048", sponsoringClub: "Pune Kalyani Nagar (Rotary Club)", charterDate: "26 August 2005", city: "Kalyani Nagar" },
   { name: "Rotaract Club of Pune Sinhagad Road", riClubId: "49040", sponsoringClub: "Pune Sinhagad Road (Rotary Club)", city: "Pune" },
-  { name: "Rotaract Club of Pune Aurora", riClubId: "8827500", sponsoringClub: "Poona Downtown (Rotary Club)", charterDate: "21 July 2025", city: "Pune", status: "PROVISIONAL" },
+  { name: "Rotaract Club of Pune Aurora", riClubId: "8827500", sponsoringClub: "Poona Downtown (Rotary Club)", charterDate: "21 July 2025", city: "Pune" },
   { name: "Rotaract Club of Pune Phoenix", riClubId: "8826482", sponsoringClub: "Self sponsored", city: "Pune" },
   { name: "Rotaract Club of Brihan Maharashtra College of Commerce", riClubId: "8826632", sponsoringClub: "Poona Mid Town (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Pune Westside", riClubId: "8826885", sponsoringClub: "Pune West Side (Rotary Club)", city: "Pune" },
@@ -175,6 +177,12 @@ export function isOfficialDistrictClub(charterNumber: string | null | undefined)
 /** Use in Prisma queries to exclude legacy/demo clubs from listings. */
 export const OFFICIAL_DISTRICT_CLUB_FILTER = {
   charterNumber: { in: OFFICIAL_CLUB_CHARTER_IDS },
+};
+
+/** Official active clubs included in monthly reporting and exports. */
+export const OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER = {
+  ...OFFICIAL_DISTRICT_CLUB_FILTER,
+  status: "ACTIVE" as ClubStatus,
 };
 
 /** Limit member queries to official rotaract clubs (excludes district council roster). */

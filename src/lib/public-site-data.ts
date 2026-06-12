@@ -66,7 +66,7 @@ export async function getPublicClubsByZone(): Promise<Record<string, PublicClub[
   const clubs = await prisma.club.findMany({
     where: {
       ...OFFICIAL_DISTRICT_CLUB_FILTER,
-      status: { in: ["ACTIVE", "PROVISIONAL"] },
+      status: "ACTIVE",
     },
     orderBy: [{ zone: "asc" }, { name: "asc" }],
     include: {

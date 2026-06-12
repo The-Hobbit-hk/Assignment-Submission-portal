@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { serializeMonthlyReport } from "@/lib/reporting";
-import { assertClubReportingAccess, resolveReportingClubId } from "@/lib/reporting-access";
+import { assertClubReportingAccess, requireReportingClubId } from "@/lib/reporting-access";
 import { upsertMonthlyReport } from "@/lib/reporting-store";
 import { saveUpload } from "@/lib/upload";
 
@@ -36,10 +36,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: access.error }, { status: access.status });
     }
 
-    const clubId = resolveReportingClubId(
+    const clubResolved = await requireReportingClubId(
       session!,
       clubIdParam ? String(clubIdParam) : null
     );
+    if (!clubResolved.ok) {
+      return NextResponse.json({ error: clubResolved.error }, { status: clubResolved.status });
+    }
+    const clubId = clubResolved.clubId;
     const url = await saveUpload(file, "admin-reporting", MAX_BYTES[field]);
 
     const fileUpdate =

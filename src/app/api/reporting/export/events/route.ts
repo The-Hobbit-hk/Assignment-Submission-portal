@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
 import { rowsToExcel } from "@/lib/export";
-import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
+import { OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { DISTRICT_ROLES } from "@/lib/roles";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
 
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
   try {
     const clubs = await prisma.club.findMany({
-      where: { ...OFFICIAL_DISTRICT_CLUB_FILTER, status: "ACTIVE" },
+      where: OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER,
       orderBy: { name: "asc" },
     });
 

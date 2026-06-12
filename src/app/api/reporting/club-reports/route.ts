@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import {
@@ -6,7 +7,7 @@ import {
   summarizeClubReporting,
 } from "@/lib/reporting-club-status";
 import { canViewAllClubReports, canViewZoneClubReports } from "@/lib/roles";
-import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
+import { OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { getZonesForZonalRep } from "@/lib/zonal-reps";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
 
@@ -32,11 +33,7 @@ export async function GET(request: Request) {
   const assignedZones = getZonesForZonalRep(email);
 
   try {
-    const clubWhere: {
-      status: "ACTIVE";
-      zone?: string | { in: string[] };
-      charterNumber: { in: string[] };
-    } = { ...OFFICIAL_DISTRICT_CLUB_FILTER, status: "ACTIVE" };
+    const clubWhere: Prisma.ClubWhereInput = { ...OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER };
 
     if (districtView) {
       if (zoneFilter) {

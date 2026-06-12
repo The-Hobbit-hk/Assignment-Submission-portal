@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/prisma";
+import type { UserRole } from "@/types/auth";
 
 const credentialsSchema = z.object({
   email: z.email(),
@@ -13,6 +14,34 @@ const credentialsSchema = z.object({
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  callbacks: {
+    ...authConfig.callbacks,
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id!;
+        token.role = user.role as UserRole;
+        token.clubId = user.clubId ?? null;
+      } else if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { clubId: true, role: true },
+        });
+        if (dbUser) {
+          token.clubId = dbUser.clubId ?? null;
+          token.role = dbUser.role as UserRole;
+        }
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as UserRole;
+        session.user.clubId = (token.clubId as string | null) ?? null;
+      }
+      return session;
+    },
+  },
   adapter: PrismaAdapter(prisma),
   providers: [
     Credentials({
