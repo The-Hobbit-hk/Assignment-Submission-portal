@@ -55,9 +55,12 @@ export function EventRegistrationButton({
     <span
       className={cn(
         base,
-        state === "coming_soon"
-          ? "border border-amber-300 bg-amber-50 text-amber-800"
-          : "border border-zinc-200 bg-zinc-100 text-zinc-500"
+        state === "coming_soon" &&
+          "border border-amber-300 bg-amber-50 text-amber-800",
+        state === "completed" &&
+          "border border-emerald-300 bg-emerald-50 text-emerald-800",
+        (state === "closed" || state === "none") &&
+          "border border-zinc-200 bg-zinc-100 text-zinc-500"
       )}
     >
       {label}

@@ -39,12 +39,19 @@ export async function getPublicDistrictEvents() {
       title: true,
       description: true,
       startDate: true,
+      endDate: true,
       location: true,
       status: true,
+      bannerUrl: true,
       registrationOpensAt: true,
       registrationClosesAt: true,
       registrationUrl: true,
       type: true,
+      gallery: {
+        take: 1,
+        orderBy: { createdAt: "asc" },
+        select: { url: true },
+      },
     },
   });
 }

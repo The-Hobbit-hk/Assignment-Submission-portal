@@ -6,6 +6,7 @@
 import { config } from "dotenv";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { getDefaultEventBannerUrl } from "../src/lib/event-display";
 import {
   DISTRICT_CALENDAR_EVENTS,
   LEGACY_DISTRICT_ASSEMBLY_TITLE,
@@ -54,14 +55,27 @@ async function main() {
   let created = 0;
   let updated = 0;
 
+  const now = new Date();
+
   for (const event of DISTRICT_CALENDAR_EVENTS) {
+    const startDate = new Date(event.startDate);
+    const endDate = event.endDate ? new Date(event.endDate) : null;
+    const effectiveEnd =
+      endDate ??
+      (() => {
+        const dayEnd = new Date(startDate);
+        dayEnd.setHours(23, 59, 59, 999);
+        return dayEnd;
+      })();
+    const status = now > effectiveEnd ? ("COMPLETED" as const) : ("UPCOMING" as const);
+
     const data = {
       title: event.title,
       type: "DISTRICT" as const,
-      status: "UPCOMING" as const,
+      status,
       clubId: null,
-      startDate: new Date(event.startDate),
-      endDate: event.endDate ? new Date(event.endDate) : null,
+      startDate,
+      endDate,
       location: event.location ?? "District 3131",
       registrationUrl: event.registrationUrl ?? null,
       registrationOpensAt: event.registrationOpensAt
@@ -71,6 +85,7 @@ async function main() {
         ? new Date(event.registrationClosesAt)
         : null,
       maxAttendees: event.maxAttendees ?? null,
+      bannerUrl: getDefaultEventBannerUrl(event.key),
       description: `calendar-key:${event.key}`,
       attendees: 0,
       serviceHours: 0,

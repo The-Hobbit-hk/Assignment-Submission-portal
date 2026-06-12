@@ -45,7 +45,7 @@ export function publicCalendarEventWhere(yearStart: Date): Prisma.EventWhereInpu
 export function publicDistrictEventWhere(): Prisma.EventWhereInput {
   return {
     type: "DISTRICT",
-    status: { in: ["UPCOMING", "ONGOING"] },
+    status: { not: "CANCELLED" },
     ...legacyDemoEventTitleFilter(),
   };
 }

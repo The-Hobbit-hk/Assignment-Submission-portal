@@ -269,6 +269,8 @@ export function DistrictCalendar({ events }: { events: SerializedCalendarEvent[]
                         id: event.id,
                         type: event.type,
                         status: event.status,
+                        startDate: event.startDate,
+                        endDate: event.endDate,
                         registrationUrl: event.registrationUrl,
                         registrationOpensAt: event.registrationOpensAt
                           ? new Date(event.registrationOpensAt)
