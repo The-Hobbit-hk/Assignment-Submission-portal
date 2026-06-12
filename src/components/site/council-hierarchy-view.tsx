@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CouncilPortrait } from "@/components/site/council-portrait";
+import { CouncilHierarchyMembers } from "@/components/site/council-hierarchy-members";
 import {
   getCouncilByGroup,
   type CouncilGroupSlug,
@@ -53,17 +53,7 @@ function CouncilHierarchySection({
           {page.title.replace(/\s*\(DRR\)\s*/i, "")}
         </h2>
 
-        {layout === "hero" ? (
-          <div className="mt-10 flex justify-center sm:mt-12">
-            <CouncilPortrait member={members[0]} size="hero" />
-          </div>
-        ) : (
-          <div className="mt-10 flex flex-wrap justify-center gap-x-5 gap-y-10 sm:mt-12 sm:gap-x-7 sm:gap-y-12">
-            {members.map((member) => (
-              <CouncilPortrait key={member.email} member={member} />
-            ))}
-          </div>
-        )}
+        <CouncilHierarchyMembers members={members} layout={layout} />
       </div>
     </section>
   );
