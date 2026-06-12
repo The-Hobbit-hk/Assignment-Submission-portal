@@ -13,8 +13,10 @@ export function EventRegistrationButton({
   event: EventRegistrationFields & { id: string };
   className?: string;
 }) {
-  const state = getRegistrationState(event);
-  const label = registrationLabel(state);
+  const isInstallationMeet =
+    event.type === "INSTALLATION" && Boolean(event.registrationUrl?.includes("meet.google.com"));
+  const state = isInstallationMeet ? "open" : getRegistrationState(event);
+  const label = isInstallationMeet ? "Join Google Meet" : registrationLabel(state);
 
   if (!label) {
     return null;

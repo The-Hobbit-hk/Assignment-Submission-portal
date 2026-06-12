@@ -6,6 +6,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { COUNCIL_PASSWORD, COUNCIL_USERS } from "../src/lib/council-roster-data";
 import { importCouncilRoster } from "../src/lib/council-seed";
+import { DISTRICT_INSTALLATION_EVENTS } from "../src/lib/district-installation-events";
 import { OFFICIAL_DISTRICT_CLUB_FILTER } from "../src/lib/district-clubs-data";
 import { syncDistrictClubs } from "../src/lib/sync-district-clubs";
 import { CLUB_LOGIN, SEED_ADMIN } from "./data/seed-constants";
@@ -74,6 +75,30 @@ async function main() {
       maxAttendees: 300,
     },
   });
+
+  for (const installation of DISTRICT_INSTALLATION_EVENTS) {
+    const club = await prisma.club.findUnique({
+      where: { charterNumber: installation.clubCharterId },
+      select: { id: true },
+    });
+    if (!club) continue;
+
+    await prisma.event.create({
+      data: {
+        title: installation.title,
+        clubId: club.id,
+        type: "INSTALLATION",
+        status: "UPCOMING",
+        startDate: new Date(installation.startDate),
+        endDate: new Date(installation.endDate),
+        location: installation.location,
+        registrationUrl: installation.meetUrl,
+        description: `Join online: ${installation.meetUrl}`,
+        attendees: 0,
+        serviceHours: 2,
+      },
+    });
+  }
 
   const month = now.getMonth() + 1;
   const year = now.getFullYear();

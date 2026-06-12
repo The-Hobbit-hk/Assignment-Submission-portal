@@ -1,12 +1,12 @@
 /**
- * Sync official District 3131 clubs and remove legacy/demo clubs.
+ * Remove demo/seed calendar events (fake club installations, PDI Summit, etc.).
  *
- *   npm run db:import-clubs
+ *   npm run db:purge-legacy-events
  */
 import { config } from "dotenv";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
-import { syncDistrictClubs } from "../src/lib/sync-district-clubs";
+import { purgeLegacyDemoEvents } from "../src/lib/legacy-demo-events";
 
 config({ path: ".env.local" });
 config();
@@ -23,13 +23,8 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  const result = await syncDistrictClubs(prisma);
-  console.log(
-    `District clubs sync complete: ${result.total} official (${result.created} created, ${result.updated} updated, ${result.removed} removed).`
-  );
-  if (result.purgedEvents) {
-    console.log("Legacy demo events removed:", result.purgedEvents);
-  }
+  const result = await purgeLegacyDemoEvents(prisma);
+  console.log("Legacy demo events removed:", result);
 }
 
 main()

@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@/generated/prisma/client";
 import { DISTRICT_COUNCIL_CLUB } from "@/lib/council-roster-data";
+import { purgeLegacyDemoEvents } from "@/lib/legacy-demo-events";
 import {
   DISTRICT_CLUBS,
   OFFICIAL_CLUB_CHARTER_IDS,
@@ -82,6 +83,8 @@ export async function syncDistrictClubs(prisma: PrismaClient) {
     },
   });
 
+  const purgedEvents = await purgeLegacyDemoEvents(prisma);
+
   return {
     total: DISTRICT_CLUBS.length,
     created,
@@ -89,5 +92,6 @@ export async function syncDistrictClubs(prisma: PrismaClient) {
     removed,
     prunedMembers: prunedMembers.count,
     resetCouncilPoints: resetCouncilPoints.count,
+    purgedEvents,
   };
 }

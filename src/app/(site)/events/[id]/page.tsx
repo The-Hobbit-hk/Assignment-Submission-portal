@@ -34,8 +34,21 @@ export default async function PublicEventPage({
               month: "long",
               year: "numeric",
             })}
-            {event.location ? ` · ${event.location}` : ""}
+            {" · "}
+            {event.startDate.toLocaleTimeString("en-IN", {
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+            {event.endDate
+              ? ` – ${event.endDate.toLocaleTimeString("en-IN", {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}`
+              : ""}
           </p>
+          {event.location && (
+            <p className="text-sm text-zinc-600">{event.location}</p>
+          )}
           {event.club && (
             <p className="text-sm text-zinc-500">
               {event.club.name}

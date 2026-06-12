@@ -1,4 +1,8 @@
 import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
+import {
+  publicCalendarEventWhere,
+  publicDistrictEventWhere,
+} from "@/lib/legacy-demo-events";
 import { prisma } from "@/lib/prisma";
 
 export async function getPublicCalendarEvents() {
@@ -7,11 +11,7 @@ export async function getPublicCalendarEvents() {
   yearStart.setHours(0, 0, 0, 0);
 
   return prisma.event.findMany({
-    where: {
-      type: { in: ["DISTRICT", "INSTALLATION"] },
-      startDate: { gte: yearStart },
-      status: { not: "CANCELLED" },
-    },
+    where: publicCalendarEventWhere(yearStart),
     orderBy: { startDate: "asc" },
     select: {
       id: true,
@@ -32,10 +32,7 @@ export async function getPublicCalendarEvents() {
 
 export async function getPublicDistrictEvents() {
   return prisma.event.findMany({
-    where: {
-      type: "DISTRICT",
-      status: { in: ["UPCOMING", "ONGOING"] },
-    },
+    where: publicDistrictEventWhere(),
     orderBy: { startDate: "asc" },
     select: {
       id: true,
