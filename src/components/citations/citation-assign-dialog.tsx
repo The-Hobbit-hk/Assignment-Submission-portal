@@ -39,7 +39,7 @@ interface CitationAssignDialogProps {
 
 export function CitationAssignDialog({ definition }: CitationAssignDialogProps) {
   const assign = useAssignCitations();
-  const { data: clubsData } = useClubsList({ limit: 200, status: "ACTIVE" });
+  const { data: clubsData } = useClubsList({ limit: 150, status: "ACTIVE" });
   const clubs = clubsData?.data ?? [];
 
   const now = new Date();
