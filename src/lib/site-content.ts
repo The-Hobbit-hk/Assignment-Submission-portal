@@ -73,6 +73,8 @@ export const ANNUAL_SPONSORS: AnnualSponsor[] = [
 
 export const SPONSORSHIP = {
   title: "Partner with Rotaract District 3131",
+  homeTeaser:
+    "Reach 2,700+ Rotaractors across 101 clubs — CSR-ready visibility at district flagship events.",
   intro:
     "Support youth leadership, community service, and professional development across Pune and Raigad. Our district events reach 2700+ Rotaractors and 101 official clubs.",
   thankYou:

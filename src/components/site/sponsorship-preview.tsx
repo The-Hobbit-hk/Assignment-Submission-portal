@@ -1,51 +1,55 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { AnnualSponsorsSection } from "@/components/site/annual-sponsors-section";
-import { SponsorshipTierCards } from "@/components/site/sponsorship-tier-cards";
-import { SponsorshipValueStrip } from "@/components/site/sponsorship-value-strip";
-import { SPONSORSHIP } from "@/lib/site-content";
+import { ANNUAL_SPONSORS, SPONSORSHIP } from "@/lib/site-content";
+
+const GOLD_PARTNERS = ANNUAL_SPONSORS.filter((s) => s.tier === "Gold Partner").slice(0, 2);
 
 export function SponsorshipPreview() {
   return (
-    <section id="sponsorship" className="py-12 sm:py-14">
+    <section id="sponsorship" className="py-8 sm:py-10">
       <div className="mx-auto max-w-6xl px-4 lg:px-8">
-        <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-white to-zinc-50 p-8 shadow-sm md:p-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-            Sponsorship
-          </p>
-          <h2 className="mt-2 font-display text-3xl font-bold text-zinc-900 md:text-4xl">
-            {SPONSORSHIP.title}
-          </h2>
-          <p className="mt-4 max-w-2xl leading-relaxed text-zinc-600">{SPONSORSHIP.intro}</p>
-
-          <div className="mt-8">
-            <SponsorshipValueStrip />
-          </div>
-
-          <div className="mt-10">
-            <AnnualSponsorsSection compact />
-          </div>
-
-          <div className="mt-10 border-t border-zinc-200 pt-10">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
-              Partnership packages
-            </p>
-            <p className="mt-2 max-w-xl text-sm text-zinc-600">
-              From premier Gold visibility to Community recognition — find the slab that fits your
-              brand.
-            </p>
-            <div className="mt-6">
-              <SponsorshipTierCards compact />
+        <div className="rounded-2xl border border-zinc-200 bg-gradient-to-br from-white to-zinc-50 p-6 shadow-sm sm:p-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+                Sponsorship
+              </p>
+              <h2 className="mt-1.5 font-display text-2xl font-bold text-zinc-900 sm:text-3xl">
+                {SPONSORSHIP.title}
+              </h2>
+              <p className="mt-2 max-w-lg text-sm text-zinc-600">{SPONSORSHIP.homeTeaser}</p>
             </div>
+
+            <Link
+              href="/sponsorship"
+              className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 sm:self-center"
+            >
+              View packages
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
           </div>
 
-          <Link
-            href="/sponsorship"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800"
-          >
-            Explore sponsorship opportunities
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
+          {GOLD_PARTNERS.length > 0 && (
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-zinc-200 pt-5">
+              <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+                Proud partners
+              </span>
+              {GOLD_PARTNERS.map((sponsor) => (
+                <span
+                  key={sponsor.name}
+                  className="rounded-full border border-amber-200/80 bg-amber-50/60 px-3 py-1 text-xs font-semibold text-amber-900"
+                >
+                  {sponsor.name}
+                </span>
+              ))}
+              <Link
+                href="/sponsorship"
+                className="text-xs font-medium text-accent hover:underline"
+              >
+                See all partners
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </section>
