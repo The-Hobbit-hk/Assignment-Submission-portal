@@ -21,6 +21,7 @@
     "db:ensure-district-assembly": "npx tsx scripts/ensure-district-assembly.ts",
     "db:purge-legacy-events": "npx tsx scripts/purge-legacy-events.ts",
     "db:ensure-installations": "npx tsx scripts/ensure-installations.ts",
+    "db:ensure-district-calendar": "npx tsx scripts/ensure-district-calendar.ts",
     "db:dev": "npx prisma dev --detach --name rac3131",
     "db:setup": "npm run db:dev && npm run db:push && npm run db:seed",
     "postinstall": "prisma generate"

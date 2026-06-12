@@ -6,6 +6,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { COUNCIL_PASSWORD, COUNCIL_USERS } from "../src/lib/council-roster-data";
 import { importCouncilRoster } from "../src/lib/council-seed";
+import { DISTRICT_CALENDAR_EVENTS } from "../src/lib/district-calendar-events";
 import { DISTRICT_INSTALLATION_EVENTS } from "../src/lib/district-installation-events";
 import { OFFICIAL_DISTRICT_CLUB_FILTER } from "../src/lib/district-clubs-data";
 import { syncDistrictClubs } from "../src/lib/sync-district-clubs";
@@ -59,22 +60,30 @@ async function main() {
 
   const now = new Date();
 
-  await prisma.event.create({
-    data: {
-      title: "District Assembly",
-      clubId: null,
-      type: "DISTRICT",
-      status: "UPCOMING",
-      startDate: new Date("2026-07-04T10:00:00+05:30"),
-      location: "District 3131",
-      attendees: 0,
-      serviceHours: 10,
-      registrationOpensAt: new Date("2026-06-01T00:00:00+05:30"),
-      registrationClosesAt: new Date("2026-07-04T23:59:59+05:30"),
-      registrationUrl: "https://forms.gle/bgaP8kYZup8V3VmT9",
-      maxAttendees: 300,
-    },
-  });
+  for (const districtEvent of DISTRICT_CALENDAR_EVENTS) {
+    await prisma.event.create({
+      data: {
+        title: districtEvent.title,
+        clubId: null,
+        type: "DISTRICT",
+        status: "UPCOMING",
+        startDate: new Date(districtEvent.startDate),
+        endDate: districtEvent.endDate ? new Date(districtEvent.endDate) : null,
+        location: districtEvent.location ?? "District 3131",
+        registrationUrl: districtEvent.registrationUrl ?? null,
+        registrationOpensAt: districtEvent.registrationOpensAt
+          ? new Date(districtEvent.registrationOpensAt)
+          : null,
+        registrationClosesAt: districtEvent.registrationClosesAt
+          ? new Date(districtEvent.registrationClosesAt)
+          : null,
+        maxAttendees: districtEvent.maxAttendees ?? null,
+        description: `calendar-key:${districtEvent.key}`,
+        attendees: 0,
+        serviceHours: 0,
+      },
+    });
+  }
 
   for (const installation of DISTRICT_INSTALLATION_EVENTS) {
     const club = await prisma.club.findUnique({
