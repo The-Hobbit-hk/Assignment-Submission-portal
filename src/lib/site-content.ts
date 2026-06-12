@@ -194,7 +194,7 @@ export const DISTRICT_TESTIMONIALS = [
 ] as const;
 
 export const CONTACT = {
-  phone: "+91-9657870768",
+  phone: "+91-99999-99999",
   email: "rotaractdistrict3131@gmail.com",
   drrEmail: "rtr.dr.karishmaawari@gmail.com",
   address:
