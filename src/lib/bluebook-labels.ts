@@ -1,4 +1,5 @@
 import type { BluebookSubmissionStatus } from "@/generated/prisma/client";
+import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 
 /** User-facing task status labels aligned with the Blue Book spec. */
 export function taskStatusLabel(status: BluebookSubmissionStatus | string): string {
@@ -41,6 +42,7 @@ export function reportStatusLabel(
 }
 
 export function isCycleOpen(closesAt: Date, opensAt?: Date, now = new Date()) {
+  if (isSubmissionWindowsBypassEnabled()) return true;
   if (opensAt && now < opensAt) return false;
   return now <= closesAt;
 }

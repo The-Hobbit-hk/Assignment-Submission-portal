@@ -5,6 +5,7 @@ import { getOrCreateCycle, serializeReport } from "@/lib/bluebook-cycle";
 import { isCycleOpen } from "@/lib/bluebook-labels";
 import { submitCouncilReportSchema } from "@/lib/validators/bluebook-cycle";
 import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
+import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 
 export async function POST(request: Request) {
   const { session, error } = await requireRole([
@@ -17,7 +18,10 @@ export async function POST(request: Request) {
     const body = submitCouncilReportSchema.parse(await request.json());
     const cycle = await getOrCreateCycle(prisma, body.month, body.year);
 
-    if (!cycle.isActive || !isCycleOpen(cycle.closesAt, cycle.opensAt)) {
+    if (
+      !isSubmissionWindowsBypassEnabled() &&
+      (!cycle.isActive || !isCycleOpen(cycle.closesAt, cycle.opensAt))
+    ) {
       return NextResponse.json({ error: "Submission window is closed." }, { status: 403 });
     }
 

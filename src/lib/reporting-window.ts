@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 import {
   getActiveReportPeriod,
   getSubmissionWindowForReportPeriod,
@@ -59,6 +60,16 @@ export async function isReportingWindowOpen(reportMonth?: number, reportYear?: n
   const y = reportYear ?? active.year;
   const period = await ensureReportingPeriod(m, y);
   const labels = getSubmissionWindowLabel(m, y);
+
+  if (isSubmissionWindowsBypassEnabled()) {
+    return {
+      open: true,
+      period,
+      reportMonth: m,
+      reportYear: y,
+      message: null,
+    };
+  }
 
   if (!period.isActive) {
     return {
