@@ -50,6 +50,11 @@ async function saveUploadToSupabase(file: File, subfolder: string): Promise<stri
     });
 
   if (error) {
+    if (error.message.toLowerCase().includes("bucket not found")) {
+      throw new Error(
+        'Storage bucket not found. Run "npm run db:ensure-storage" or supabase/storage-setup.sql in Supabase.'
+      );
+    }
     throw new Error(error.message);
   }
 

@@ -6,12 +6,13 @@ values (
   'uploads',
   'uploads',
   true,
-  5242880,
+  8388608,
   array[
     'image/jpeg',
     'image/png',
     'image/webp',
-    'application/pdf'
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   ]
 )
 on conflict (id) do update set
