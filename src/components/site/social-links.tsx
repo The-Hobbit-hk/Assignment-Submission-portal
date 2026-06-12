@@ -45,22 +45,34 @@ function SocialIcon({ label, className }: { label: string; className?: string })
 export function SocialLinks({
   className,
   iconClassName,
+  variant = "default",
 }: {
   className?: string;
   iconClassName?: string;
+  variant?: "default" | "compact";
 }) {
+  const compact = variant === "compact";
+
   return (
-    <div className={cn("flex items-center gap-1.5", className)}>
+    <div className={cn("flex items-center", compact ? "gap-0.5" : "gap-1.5", className)}>
       {SOCIAL_LINKS.map((social) => (
         <a
           key={social.label}
           href={social.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex h-8 w-8 items-center justify-center rounded-full border border-zinc-300/80 text-zinc-600 transition hover:border-accent hover:bg-accent/5 hover:text-accent"
+          className={cn(
+            "flex items-center justify-center transition",
+            compact
+              ? "h-7 w-7 rounded-md text-zinc-400 hover:bg-zinc-100 hover:text-accent"
+              : "h-8 w-8 rounded-full border border-zinc-300/80 text-zinc-600 hover:border-accent hover:bg-accent/5 hover:text-accent"
+          )}
           aria-label={social.label}
         >
-          <SocialIcon label={social.label} className={cn("h-4 w-4", iconClassName)} />
+          <SocialIcon
+            label={social.label}
+            className={cn(compact ? "h-3.5 w-3.5" : "h-4 w-4", iconClassName)}
+          />
         </a>
       ))}
     </div>

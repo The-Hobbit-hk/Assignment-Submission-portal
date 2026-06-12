@@ -129,7 +129,7 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
       <div className="mx-auto flex h-[var(--site-header-height)] max-w-7xl items-center justify-between gap-3 px-4 sm:gap-4 lg:px-8">
         <BrandLogo variant="full" size="nav" priority />
 
-        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-2 lg:flex xl:gap-4">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex xl:gap-3 2xl:gap-4">
           {SITE_NAV.map((item) =>
             item.children?.length ? (
               <NavDropdown key={item.label} item={item} />
@@ -148,14 +148,14 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
           )}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-2 lg:border-l lg:border-zinc-200/80 lg:pl-3 xl:gap-2.5 xl:pl-4">
           <Link
             href="/login"
-            className="depth-btn-accent hidden rounded-full px-4 py-2 text-sm font-medium text-white sm:inline-flex lg:px-5"
+            className="depth-btn-accent hidden rounded-full px-3.5 py-1.5 text-sm font-medium text-white sm:inline-flex lg:px-4 xl:px-5 xl:py-2"
           >
             Login
           </Link>
-          <SocialLinks className="hidden sm:flex" />
+          <SocialLinks variant="compact" className="hidden lg:flex" />
           <button
             type="button"
             className="rounded-lg p-2.5 text-zinc-700 hover:bg-zinc-100 lg:hidden"
