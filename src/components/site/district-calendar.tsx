@@ -133,6 +133,9 @@ function SpotlightCard({ event }: { event: SerializedCalendarEvent }) {
           <EventRegistrationButton
             event={{
               id: event.id,
+              title: event.title,
+              description: event.description,
+              location: event.location,
               type: event.type,
               status: event.status,
               startDate: event.startDate,
@@ -201,6 +204,9 @@ function AgendaRow({ event }: { event: SerializedCalendarEvent }) {
         <EventRegistrationButton
           event={{
             id: event.id,
+            title: event.title,
+            description: event.description,
+            location: event.location,
             type: event.type,
             status: event.status,
             startDate: event.startDate,

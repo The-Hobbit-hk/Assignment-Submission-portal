@@ -1,22 +1,51 @@
 import Link from "next/link";
+import { eventHasEnded } from "@/lib/event-display";
 import {
   getRegistrationState,
   registrationLabel,
   type EventRegistrationFields,
 } from "@/lib/event-registration";
+import { buildGoogleCalendarUrl } from "@/lib/google-calendar";
 import { cn } from "@/lib/utils";
+
+function coerceDate(value: Date | string | null | undefined): Date | null {
+  if (!value) return null;
+  return value instanceof Date ? value : new Date(value);
+}
 
 export function EventRegistrationButton({
   event,
   className,
 }: {
-  event: EventRegistrationFields & { id: string };
+  event: EventRegistrationFields & {
+    id: string;
+    title?: string;
+    location?: string | null;
+    description?: string | null;
+  };
   className?: string;
 }) {
-  const isInstallationMeet =
-    event.type === "INSTALLATION" && Boolean(event.registrationUrl?.includes("meet.google.com"));
-  const state = isInstallationMeet ? "open" : getRegistrationState(event);
-  const label = isInstallationMeet ? "Join Google Meet" : registrationLabel(state);
+  const startDate = coerceDate(event.startDate);
+  const endDate = coerceDate(event.endDate);
+  const isInstallation = event.type === "INSTALLATION";
+  const installationEnded =
+    isInstallation &&
+    startDate &&
+    eventHasEnded(
+      { status: event.status, startDate, endDate },
+      new Date()
+    );
+
+  const state = isInstallation
+    ? installationEnded
+      ? "completed"
+      : "open"
+    : getRegistrationState(event);
+  const label = isInstallation
+    ? installationEnded
+      ? "Completed"
+      : "Add to Google Calendar"
+    : registrationLabel(state);
 
   if (!label) {
     return null;
@@ -28,6 +57,30 @@ export function EventRegistrationButton({
   );
 
   if (state === "open") {
+    if (isInstallation && startDate) {
+      const meetUrl = event.registrationUrl?.includes("meet.google.com")
+        ? event.registrationUrl
+        : null;
+
+      return (
+        <a
+          href={buildGoogleCalendarUrl({
+            title: event.title ?? "Club Installation",
+            startDate,
+            endDate,
+            location: event.location,
+            description: event.description,
+            meetUrl,
+          })}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(base, "depth-btn-accent text-white")}
+        >
+          {label}
+        </a>
+      );
+    }
+
     if (event.registrationUrl) {
       return (
         <a

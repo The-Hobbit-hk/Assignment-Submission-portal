@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { SocialLinks } from "@/components/site/social-links";
 import { SITE_NAV, type SiteNavItem } from "@/config/site-navigation";
 import { cn } from "@/lib/utils";
 
@@ -147,13 +148,14 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
           )}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-2.5">
           <Link
             href="/login"
             className="depth-btn-accent hidden rounded-full px-4 py-2 text-sm font-medium text-white sm:inline-flex lg:px-5"
           >
             Login
           </Link>
+          <SocialLinks className="hidden sm:flex" />
           <button
             type="button"
             className="rounded-lg p-2.5 text-zinc-700 hover:bg-zinc-100 lg:hidden"
@@ -180,13 +182,16 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
               onClose={() => setMobileOpen(false)}
             />
           ))}
-          <Link
-            href="/login"
-            onClick={() => setMobileOpen(false)}
-            className="depth-btn-accent mt-2 rounded-full px-5 py-3 text-center text-sm font-medium text-white sm:hidden"
-          >
-            Login
-          </Link>
+          <div className="mt-2 flex flex-col gap-3 sm:hidden">
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="depth-btn-accent rounded-full px-5 py-3 text-center text-sm font-medium text-white"
+            >
+              Login
+            </Link>
+            <SocialLinks className="justify-center" />
+          </div>
         </nav>
       </div>
     </header>
