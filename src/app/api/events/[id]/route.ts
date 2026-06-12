@@ -69,6 +69,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
         _count: { select: { registrations: true } },
       },
     });
+    const { revalidatePublicEvents } = await import("@/lib/revalidate-public-site");
+    revalidatePublicEvents();
+
     return NextResponse.json(serializeEvent(event));
   } catch (err) {
     return handleRouteError(err, "Failed to update event.");
@@ -82,6 +85,10 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
 
   try {
     await prisma.event.delete({ where: { id } });
+
+    const { revalidatePublicEvents } = await import("@/lib/revalidate-public-site");
+    revalidatePublicEvents();
+
     return NextResponse.json({ message: "Deleted." });
   } catch (err) {
     return handleRouteError(err, "Failed to delete.");

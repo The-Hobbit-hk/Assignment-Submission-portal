@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { LoginForm } from "@/components/auth/login-form";
-import { PORTAL_OPTIONS, getPortalMeta } from "@/config/portals";
+import { getPortalMeta } from "@/config/portals";
 
 export function LoginPageContent() {
   const searchParams = useSearchParams();
@@ -23,25 +23,12 @@ export function LoginPageContent() {
 
       <LoginForm portal={portal} />
 
-      <div className="mt-8 space-y-3 border-t border-zinc-200 pt-6">
-        <p className="text-xs font-medium uppercase tracking-wider text-zinc-400">
-          Other portals
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {PORTAL_OPTIONS.filter((p) => p.id !== portalId).map((p) => (
-            <Link
-              key={p.id}
-              href={`/login?portal=${p.id}`}
-              className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs text-zinc-600 transition hover:border-accent/40 hover:text-accent"
-            >
-              {p.title}
-            </Link>
-          ))}
-        </div>
-        <Link href="/" className="inline-block pt-1 text-xs text-zinc-500 hover:text-accent">
-          ← Back to home
-        </Link>
-      </div>
+      <Link
+        href="/"
+        className="mt-6 inline-block text-xs text-zinc-500 hover:text-accent"
+      >
+        ← Back to home
+      </Link>
     </div>
   );
 }

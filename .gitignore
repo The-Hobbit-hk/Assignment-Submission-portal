@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/load-test/.venv/
+/load-test/report.html
 
 # next.js
 /.next/

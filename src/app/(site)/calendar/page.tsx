@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 import Link from "next/link";
 import { DistrictCalendar } from "@/components/site/district-calendar";
@@ -19,7 +19,6 @@ export default async function CalendarPage() {
     type: event.type,
     status: event.status,
     bannerUrl: event.bannerUrl,
-    gallery: event.gallery,
     registrationOpensAt: event.registrationOpensAt?.toISOString() ?? null,
     registrationClosesAt: event.registrationClosesAt?.toISOString() ?? null,
     registrationUrl: event.registrationUrl,

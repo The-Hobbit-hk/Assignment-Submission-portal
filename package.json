@@ -28,6 +28,9 @@
     "db:ensure-district-calendar": "npx tsx scripts/ensure-district-calendar.ts",
     "db:dev": "npx prisma dev --detach --name rac3131",
     "db:setup": "npm run db:dev && npm run db:push && npm run db:seed",
+    "load-test": "node scripts/load-test.mjs",
+    "load-test:locust": "node scripts/run-locust.mjs",
+    "load-test:locust:headless": "node scripts/run-locust.mjs --headless",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -71,6 +74,7 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autocannon": "^8.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.19",
     "prisma": "^7.8.0",

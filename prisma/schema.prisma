@@ -199,6 +199,8 @@ model Club {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([status, zone])
 }
 
 model CitationDefinition {
@@ -362,6 +364,7 @@ model Event {
   @@index([clubId])
   @@index([startDate])
   @@index([status])
+  @@index([type, startDate, status])
 }
 
 model EventGallery {

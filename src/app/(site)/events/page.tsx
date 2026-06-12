@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 import { PublicEventsList } from "@/components/site/public-events-list";
 import { PageHero } from "@/components/site/page-hero";

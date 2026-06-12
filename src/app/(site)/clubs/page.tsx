@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 import { ClubsByZone } from "@/components/site/clubs-by-zone";
 import { PageHero } from "@/components/site/page-hero";

@@ -57,6 +57,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
       include: clubListInclude,
     });
 
+    const { revalidatePublicClubs } = await import("@/lib/revalidate-public-site");
+    revalidatePublicClubs();
+
     return NextResponse.json(serializeClubDetail(club));
   } catch (err) {
     return handleRouteError(err, "Failed to update club.");

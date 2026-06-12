@@ -85,6 +85,9 @@ export async function POST(request: Request) {
       userId: session!.user.id,
     });
 
+    const { revalidatePublicEvents } = await import("@/lib/revalidate-public-site");
+    revalidatePublicEvents();
+
     return NextResponse.json(serializeEvent(event), { status: 201 });
   } catch (e) {
     return handleRouteError(e, "Failed to create event.");
