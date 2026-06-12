@@ -55,6 +55,7 @@ export type MyCouncilTasksData = {
     submissionOpen: boolean;
     submissionClosed: boolean;
     submissionStatus: string;
+    testingMode?: boolean;
   };
 };
 

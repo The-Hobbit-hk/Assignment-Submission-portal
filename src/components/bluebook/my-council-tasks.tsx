@@ -131,8 +131,11 @@ export function MyCouncilTasks() {
           <strong className="text-foreground">
             {new Date(data.cycle.closesAt).toLocaleString("en-IN")}
           </strong>
-          {stats?.submissionClosed && (
+          {stats?.submissionClosed && !stats?.testingMode && (
             <span className="ml-2 font-medium text-destructive">· Submission Closed</span>
+          )}
+          {stats?.testingMode && (
+            <span className="ml-2 font-medium text-amber-600">· Testing mode (window open)</span>
           )}
         </p>
       )}
@@ -214,7 +217,7 @@ export function MyCouncilTasks() {
             Submitted on {new Date(report.submittedAt).toLocaleString("en-IN")}
           </p>
         )}
-        {!canSubmit && assignments.length > 0 && !alreadySubmitted && (
+        {!canSubmit && assignments.length > 0 && !alreadySubmitted && !stats?.testingMode && (
           <p className="text-sm text-muted-foreground">Submission window is closed.</p>
         )}
       </div>

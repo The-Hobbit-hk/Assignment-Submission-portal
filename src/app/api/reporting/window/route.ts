@@ -5,6 +5,7 @@ import {
   getSubmissionWindowLabel,
   isReportingWindowOpen,
 } from "@/lib/reporting-window";
+import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 
 export async function GET(request: Request) {
   const { error } = await requireAuth();
@@ -20,6 +21,7 @@ export async function GET(request: Request) {
 
   return NextResponse.json({
     open: result.open,
+    testingMode: isSubmissionWindowsBypassEnabled(),
     message: result.message,
     reportMonth: month,
     reportYear: year,

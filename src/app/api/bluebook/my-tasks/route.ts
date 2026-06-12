@@ -5,6 +5,7 @@ import { serializeCouncilAssignment } from "@/lib/council-bluebook";
 import { getOrCreateCycle, serializeCycle, serializeReport } from "@/lib/bluebook-cycle";
 import { taskStatusLabel } from "@/lib/bluebook-labels";
 import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
+import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 
 export async function GET(request: Request) {
   const { session, error } = await requireRole([
@@ -44,6 +45,8 @@ export async function GET(request: Request) {
     const cycleData = serializeCycle(cycle);
     const reportData = report ? serializeReport(report) : null;
     const isLocked = reportData != null && reportData.status !== "DRAFT";
+    const windowOpen =
+      isSubmissionWindowsBypassEnabled() || cycleData.isOpen;
 
     return NextResponse.json({
       month,
@@ -59,8 +62,9 @@ export async function GET(request: Request) {
         totalPossiblePoints,
         totalAwardedPoints,
         submissionDeadline: cycleData.closesAt,
-        submissionOpen: cycleData.isOpen && !isLocked,
-        submissionClosed: !cycleData.isOpen || isLocked,
+        submissionOpen: windowOpen && !isLocked,
+        submissionClosed: !windowOpen || isLocked,
+        testingMode: isSubmissionWindowsBypassEnabled(),
         submissionStatus: reportData?.status ?? "DRAFT",
       },
     });
