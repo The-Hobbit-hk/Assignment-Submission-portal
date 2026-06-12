@@ -69,6 +69,7 @@ export type CouncilReviewData = {
     proofUrls: string[];
     status: string;
     submittedAt: string | null;
+    reviewedAt: string | null;
     reviewerComment: string | null;
   } | null;
   assignments: SerializedCouncilAssignment[];
@@ -163,6 +164,7 @@ export function useReviewCouncilMember(memberId: string) {
         queryKey: ["bluebook", "council-review", memberId, variables.month, variables.year],
       });
       qc.invalidateQueries({ queryKey: ["bluebook", "council-overview"] });
+      qc.invalidateQueries({ queryKey: ["council"] });
     },
   });
 }
@@ -226,6 +228,7 @@ export function useReopenCouncilReport() {
       qc.invalidateQueries({
         queryKey: ["bluebook", "my-tasks", variables.month, variables.year],
       });
+      qc.invalidateQueries({ queryKey: ["council"] });
     },
   });
 }

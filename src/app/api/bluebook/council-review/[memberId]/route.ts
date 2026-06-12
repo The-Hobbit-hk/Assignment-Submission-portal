@@ -4,6 +4,8 @@ import { requireAuth } from "@/lib/api-auth";
 import { serializeCouncilAssignment } from "@/lib/council-bluebook";
 import { getOrCreateCycle, serializeCycle, serializeReport } from "@/lib/bluebook-cycle";
 import { reviewCouncilMemberSchema } from "@/lib/validators/bluebook-cycle";
+import { ensureCouncilScoresSynced } from "@/lib/council";
+import { DISTRICT_COUNCIL_CLUB } from "@/lib/council-roster-data";
 import { canAssignBluebook } from "@/lib/roles";
 
 async function loadReview(memberId: string, month: number, year: number) {
@@ -145,6 +147,21 @@ export async function PUT(
         data: { status: "APPROVED", reviewedAt: now },
       });
     }
+
+    const updatedAssignments = await prisma.councilBluebookAssignment.findMany({
+      where: { assigneeId: memberId, task: { month: body.month, year: body.year } },
+      select: { allocatedScore: true },
+    });
+    const totalAwarded = updatedAssignments.reduce((sum, a) => sum + a.allocatedScore, 0);
+    await prisma.member.updateMany({
+      where: {
+        userId: memberId,
+        club: { charterNumber: DISTRICT_COUNCIL_CLUB.riClubId },
+      },
+      data: { points: totalAwarded },
+    });
+
+    await ensureCouncilScoresSynced(prisma, body.month, body.year, true);
 
     const data = await loadReview(memberId, body.month, body.year);
     return NextResponse.json(data);

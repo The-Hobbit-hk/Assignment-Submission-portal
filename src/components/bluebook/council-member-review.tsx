@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink, Save } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ExternalLink, Save } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { BluebookStatusBadge } from "@/components/bluebook/bluebook-status-badge";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,8 @@ export function CouncilMemberReview({
   }
 
   const { member, assignments, report, totals } = data;
+  const isReviewed = report?.status === "APPROVED";
+  const canEdit = !isReviewed && Boolean(report?.submittedAt);
   const liveAwarded = assignments.reduce((s, a) => s + (scores[a.id] ?? 0), 0);
   const livePct =
     totals.pointsPossible > 0
@@ -79,6 +81,21 @@ export function CouncilMemberReview({
         title={member.name ?? member.email}
         subtitle={`Blue Book review — ${member.email}`}
       />
+
+      {isReviewed && (
+        <div className="flex items-start gap-3 rounded-xl border border-green-500/25 bg-green-50/80 p-4 dark:bg-green-950/20">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+          <div>
+            <p className="font-semibold text-green-800 dark:text-green-400">Review completed</p>
+            <p className="mt-1 text-sm text-green-700/90 dark:text-green-500/90">
+              Final score: {totals.pointsAwarded} / {totals.pointsPossible}
+              {totals.percentageScore != null && ` (${totals.percentageScore}%)`}
+              {report?.reviewedAt &&
+                ` · Reviewed on ${new Date(report.reviewedAt).toLocaleString("en-IN")}`}
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="depth-card rounded-xl p-4">
@@ -153,19 +170,24 @@ export function CouncilMemberReview({
                   <BluebookStatusBadge status={a.status} />
                 </TableCell>
                 <TableCell>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={a.task?.maxScore ?? 100}
-                    value={scores[a.id] ?? 0}
-                    onChange={(e) =>
-                      setScores((prev) => ({
-                        ...prev,
-                        [a.id]: parseInt(e.target.value, 10) || 0,
-                      }))
-                    }
-                    className="w-24"
-                  />
+                  {isReviewed ? (
+                    <span className="font-medium">{scores[a.id] ?? 0}</span>
+                  ) : (
+                    <Input
+                      type="number"
+                      min={0}
+                      max={a.task?.maxScore ?? 100}
+                      value={scores[a.id] ?? 0}
+                      disabled={!canEdit}
+                      onChange={(e) =>
+                        setScores((prev) => ({
+                          ...prev,
+                          [a.id]: parseInt(e.target.value, 10) || 0,
+                        }))
+                      }
+                      className="w-24"
+                    />
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -180,32 +202,43 @@ export function CouncilMemberReview({
           onChange={(e) => setComment(e.target.value)}
           placeholder="Optional feedback for the council member…"
           rows={3}
+          disabled={!canEdit}
+          readOnly={isReviewed}
         />
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          disabled={review.isPending}
-          onClick={() => saveReview(false)}
-        >
-          <Save className="h-4 w-4" />
-          Save scores
-        </Button>
-        <Button
-          className="bg-accent text-accent-foreground"
-          disabled={review.isPending || !report?.submittedAt}
-          onClick={() => saveReview(true)}
-        >
-          Mark as reviewed
-        </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        {!isReviewed ? (
+          <>
+            <Button
+              variant="outline"
+              disabled={review.isPending || !canEdit}
+              onClick={() => saveReview(false)}
+            >
+              <Save className="h-4 w-4" />
+              {review.isPending ? "Saving…" : "Save scores"}
+            </Button>
+            <Button
+              className="bg-accent text-accent-foreground"
+              disabled={review.isPending || !report?.submittedAt}
+              onClick={() => saveReview(true)}
+            >
+              {review.isPending ? "Saving…" : "Mark as reviewed"}
+            </Button>
+          </>
+        ) : (
+          <Button variant="outline" disabled className="border-green-500/30 text-green-700">
+            <CheckCircle2 className="h-4 w-4" />
+            Reviewed
+          </Button>
+        )}
         {report && report.status !== "DRAFT" && (
           <Button
             variant="destructive"
             disabled={reopen.isPending}
             onClick={() => reopen.mutate({ memberId, month, year })}
           >
-            Reopen submission
+            {reopen.isPending ? "Reopening…" : "Reopen submission"}
           </Button>
         )}
       </div>

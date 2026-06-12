@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { getOrCreateCycle, serializeReport } from "@/lib/bluebook-cycle";
+import { ensureCouncilScoresSynced } from "@/lib/council";
+import { DISTRICT_COUNCIL_CLUB } from "@/lib/council-roster-data";
 import { canAssignBluebook } from "@/lib/roles";
 import { z } from "zod";
 
@@ -51,6 +53,15 @@ export async function POST(request: Request) {
         data: { status: "DRAFT", submittedAt: null, reviewedAt: null, allocatedScore: 0 },
       }),
     ]);
+
+    await prisma.member.updateMany({
+      where: {
+        userId: body.memberId,
+        club: { charterNumber: DISTRICT_COUNCIL_CLUB.riClubId },
+      },
+      data: { points: 0 },
+    });
+    await ensureCouncilScoresSynced(prisma, body.month, body.year, true);
 
     return NextResponse.json(serializeReport(updated));
   } catch (e) {

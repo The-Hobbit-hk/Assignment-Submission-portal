@@ -41,7 +41,7 @@ export async function syncCouncilScores(
   const prevMonth = month === 1 ? 12 : month - 1;
   const prevYear = month === 1 ? year - 1 : year;
 
-  const [clubs, bluebookByClub, memberPointsByClub, members, prevScores] =
+  const [clubs, bluebookByClub, memberPointsByClub, members, councilBluebookByUser, prevScores] =
     await Promise.all([
       prisma.club.findMany({
         where: { ...OFFICIAL_DISTRICT_CLUB_FILTER, status: "ACTIVE" },
@@ -59,8 +59,12 @@ export async function syncCouncilScores(
       }),
       prisma.member.findMany({
         where: { ...COUNCIL_MEMBER_FILTER },
-        select: { id: true, points: true },
-        orderBy: { points: "desc" },
+        select: { id: true, userId: true, points: true },
+      }),
+      prisma.councilBluebookAssignment.groupBy({
+        by: ["assigneeId"],
+        where: { task: { month, year } },
+        _sum: { allocatedScore: true },
       }),
       prisma.councilScore.findMany({
         where: { month: prevMonth, year: prevYear },
@@ -76,6 +80,9 @@ export async function syncCouncilScores(
   );
   const prevMap = new Map(
     prevScores.map((p) => [`${p.entityType}:${p.entityId}`, p.score])
+  );
+  const councilBluebookMap = new Map(
+    councilBluebookByUser.map((row) => [row.assigneeId, row._sum.allocatedScore ?? 0])
   );
 
   const clubScores = clubs
@@ -104,17 +111,24 @@ export async function syncCouncilScores(
     })
   );
 
-  const memberRecords: Prisma.CouncilScoreCreateManyInput[] = members.map(
+  const scoredMembers = members
+    .map((m) => ({
+      id: m.id,
+      score: m.userId ? (councilBluebookMap.get(m.userId) ?? 0) : 0,
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  const memberRecords: Prisma.CouncilScoreCreateManyInput[] = scoredMembers.map(
     (m, i) => ({
       entityType: "MEMBER",
       entityId: m.id,
       memberId: m.id,
       month,
       year,
-      score: m.points,
+      score: m.score,
       rank: i + 1,
-      badge: getBadge(m.points),
-      trend: m.points - (prevMap.get(`MEMBER:${m.id}`) ?? 0),
+      badge: getBadge(m.score),
+      trend: m.score - (prevMap.get(`MEMBER:${m.id}`) ?? 0),
     })
   );
 
