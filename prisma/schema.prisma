@@ -93,6 +93,21 @@ enum MonthlyReportStatus {
   SUBMITTED
 }
 
+enum CitationCadence {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum CitationAssignmentStatus {
+  ASSIGNED
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -118,6 +133,8 @@ model User {
   councilAssignmentsMade   CouncilBluebookAssignment[] @relation("CouncilAssignedBy")
   councilBluebookReports   CouncilBluebookReport[]     @relation("CouncilReportAssignee")
   councilReportsReviewed   CouncilBluebookReport[]     @relation("CouncilReportReviewer")
+  citationsCreated         CitationDefinition[]        @relation("CitationCreator")
+  citationsReviewed        CitationAssignment[]        @relation("CitationReviewer")
 }
 
 model Account {
@@ -177,10 +194,60 @@ model Club {
   bluebookSubmissions BluebookSubmission[]
   councilScores       CouncilScore[]
   monthlyReports      MonthlyReport[]
-  clubLogins          User[]           @relation("ClubLogin")
+  clubLogins          User[]               @relation("ClubLogin")
+  citationAssignments CitationAssignment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model CitationDefinition {
+  id          String          @id @default(cuid())
+  title       String
+  description String?         @db.Text
+  points      Int
+  cadence     CitationCadence
+  createdById String
+  createdBy   User            @relation("CitationCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  isActive    Boolean         @default(true)
+  assignments CitationAssignment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([cadence, isActive])
+}
+
+model CitationAssignment {
+  id              String                   @id @default(cuid())
+  definitionId    String
+  definition      CitationDefinition       @relation(fields: [definitionId], references: [id], onDelete: Cascade)
+  clubId          String
+  club            Club                     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  cadence         CitationCadence
+  periodKey       String
+  year            Int
+  month           Int?
+  quarter         Int?
+  rotaryYearLabel String?
+  dueDate         DateTime?
+  status          CitationAssignmentStatus @default(ASSIGNED)
+  proofUrl        String?
+  clubNotes       String?                  @db.Text
+  submittedAt     DateTime?
+  reviewedById    String?
+  reviewedBy      User?                    @relation("CitationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt      DateTime?
+  reviewerComment String?                  @db.Text
+  awardedPoints   Int                      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([definitionId, clubId, periodKey])
+  @@index([clubId, status])
+  @@index([status])
+  @@index([cadence, periodKey])
 }
 
 model ReportingPeriod {

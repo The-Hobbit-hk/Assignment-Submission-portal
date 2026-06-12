@@ -1,12 +1,21 @@
 "use client";
 
 import { CalendarDays, Trophy, Users } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { CalendarWidget } from "@/components/dashboard/calendar-widget";
+import { CitationStandingsWidget } from "@/components/dashboard/citation-standings-widget";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
+import { DISTRICT_ROLES, isClubUser } from "@/lib/roles";
+import type { UserRole } from "@/types/auth";
 
 export function DashboardContent() {
+  const { data: session } = useSession();
+  const role = (session?.user?.role ?? "MEMBER") as UserRole;
+  const clubUser = isClubUser(role);
+  const showMemberLeaderboard = DISTRICT_ROLES.includes(role);
+
   const { data, isLoading, error } = useDashboard();
 
   if (isLoading) return <DashboardSkeleton />;
@@ -22,7 +31,7 @@ export function DashboardContent() {
   const now = new Date();
   const monthLabel = now.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
   const eventCount = data.calendarEvents.length;
-  const leaderCount = data.leaderboard.length;
+  const leaderCount = clubUser ? 0 : data.leaderboard.length;
 
   return (
     <div className="space-y-5">
@@ -46,12 +55,14 @@ export function DashboardContent() {
                 <span className="font-semibold text-foreground">{eventCount}</span> events this month
               </span>
             </div>
-            <div className="depth-btn-surface flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
-              <Trophy className="h-4 w-4 text-amber-500" />
-              <span>
-                <span className="font-semibold text-foreground">{leaderCount}</span> top scorers
-              </span>
-            </div>
+            {!clubUser && (
+              <div className="depth-btn-surface flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
+                <Trophy className="h-4 w-4 text-amber-500" />
+                <span>
+                  <span className="font-semibold text-foreground">{leaderCount}</span> top scorers
+                </span>
+              </div>
+            )}
             <div className="depth-btn-surface hidden items-center gap-2 rounded-lg px-3 py-2 text-xs sm:flex">
               <Users className="h-4 w-4 text-indigo-500" />
               <span className="text-muted-foreground">RID 3131</span>
@@ -65,7 +76,16 @@ export function DashboardContent() {
           <CalendarWidget events={data.calendarEvents} />
         </div>
         <div className="lg:col-span-2">
-          <Leaderboard entries={data.leaderboard} />
+          {clubUser ? (
+            <CitationStandingsWidget limit={5} />
+          ) : showMemberLeaderboard ? (
+            <div className="space-y-5">
+              <Leaderboard entries={data.leaderboard} />
+              <CitationStandingsWidget limit={5} />
+            </div>
+          ) : (
+            <CitationStandingsWidget limit={5} />
+          )}
         </div>
       </div>
     </div>

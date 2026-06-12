@@ -2,6 +2,7 @@ import type { UserRole } from "@/types/auth";
 import type { NavItem } from "@/types/navigation";
 import { isZonalRepresentative } from "@/lib/zonal-reps";
 import {
+  Award,
   BarChart3,
   BookOpen,
   Briefcase,
@@ -78,6 +79,19 @@ export function canViewClubReportingOverview(role: UserRole, email?: string | nu
   return canViewAllClubReports(role) || canViewZoneClubReports(email);
 }
 
+/** DRR (district admin) — create definitions, assign, and approve citations. */
+export function canManageCitations(role: UserRole) {
+  return DISTRICT_ROLES.includes(role);
+}
+
+export function canSubmitCitations(role: UserRole) {
+  return isClubUser(role);
+}
+
+export function canViewCitationStandings(role: UserRole) {
+  return role !== "MEMBER";
+}
+
 export function getNavigationForRole(role: UserRole, email?: string | null): NavItem[] {
   const reportingChildren: NavItem[] = [];
 
@@ -142,6 +156,29 @@ export function getNavigationForRole(role: UserRole, email?: string | null): Nav
     nav.push({ title: "My Bluebook", href: "/dashboard/bluebook/my-tasks", icon: BookOpen });
   } else if (isClubUser(role)) {
     nav.push({ title: "Bluebook", href: "/dashboard/bluebook", icon: BookOpen });
+  }
+
+  if (canManageCitations(role)) {
+    nav.push({
+      title: "DRR Citations",
+      href: "/dashboard/citations",
+      icon: Award,
+      children: [
+        { title: "Manage Citations", href: "/dashboard/citations", icon: Award },
+        { title: "Citation Review", href: "/dashboard/citations/review", icon: ClipboardList },
+      ],
+    });
+  } else if (canSubmitCitations(role)) {
+    nav.push(
+      { title: "My Citations", href: "/dashboard/citations/my", icon: Award },
+      { title: "Club Standings", href: "/dashboard/citations/standings", icon: BarChart3 }
+    );
+  } else if (canViewCitationStandings(role)) {
+    nav.push({
+      title: "Citation Standings",
+      href: "/dashboard/citations/standings",
+      icon: BarChart3,
+    });
   }
 
   if (reportingChildren.length > 0) {
