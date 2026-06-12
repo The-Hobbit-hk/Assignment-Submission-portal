@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Calendar, Clock, Users } from "lucide-react";
+import { Award, BarChart3, Calendar, Clock, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useClubAnalytics } from "@/hooks/use-clubs";
@@ -14,8 +14,8 @@ export function ClubAnalyticsPanel({ clubId }: ClubAnalyticsPanelProps) {
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-28" />
         ))}
       </div>
@@ -49,13 +49,19 @@ export function ClubAnalyticsPanel({ clubId }: ClubAnalyticsPanelProps) {
       sub: "per event",
       icon: BarChart3,
     },
+    {
+      label: "Citations Completed",
+      value: data.citationsApproved,
+      sub: `${data.citationPoints} pts · ${data.citationsSubmitted} pending review`,
+      icon: Award,
+    },
   ];
 
   const maxGrowth = Math.max(...data.memberGrowth.map((g) => g.count), 1);
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (

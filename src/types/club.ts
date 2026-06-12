@@ -38,6 +38,10 @@ export interface ClubAnalytics {
   completedEvents: number;
   totalServiceHours: number;
   averageAttendance: number;
+  citationsApproved: number;
+  citationPoints: number;
+  citationsSubmitted: number;
+  citationsInProgress: number;
   memberGrowth: { month: string; count: number }[];
 }
 

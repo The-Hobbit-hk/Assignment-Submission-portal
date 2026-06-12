@@ -138,6 +138,10 @@ export async function computeClubAnalytics(
     club,
     events,
     membersByMonth,
+    citationsApproved,
+    citationPointsAgg,
+    citationsSubmitted,
+    citationsInProgress,
   ] = await Promise.all([
     prisma.member.count({ where: { clubId } }),
     prisma.member.count({ where: { clubId, status: "ACTIVE" } }),
@@ -153,6 +157,19 @@ export async function computeClubAnalytics(
       where: { clubId, joinedAt: { gte: sixMonthsAgo } },
       select: { joinedAt: true },
       orderBy: { joinedAt: "asc" },
+    }),
+    prisma.citationAssignment.count({
+      where: { clubId, status: "APPROVED" },
+    }),
+    prisma.citationAssignment.aggregate({
+      where: { clubId, status: "APPROVED" },
+      _sum: { awardedPoints: true },
+    }),
+    prisma.citationAssignment.count({
+      where: { clubId, status: "SUBMITTED" },
+    }),
+    prisma.citationAssignment.count({
+      where: { clubId, status: { in: ["ASSIGNED", "DRAFT", "REJECTED"] } },
     }),
   ]);
 
@@ -193,6 +210,10 @@ export async function computeClubAnalytics(
     completedEvents,
     totalServiceHours,
     averageAttendance,
+    citationsApproved,
+    citationPoints: citationPointsAgg._sum.awardedPoints ?? 0,
+    citationsSubmitted,
+    citationsInProgress,
     memberGrowth: Array.from(monthMap.entries()).map(([month, count]) => ({
       month,
       count,
