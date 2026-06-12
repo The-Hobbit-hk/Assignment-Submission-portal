@@ -20,7 +20,7 @@ export function PublicEventsList({ events }: { events: PublicEventCardData[] }) 
               Mark your calendar for what&apos;s next across District 3131.
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
             {upcoming.map((event) => (
               <PublicEventCard key={event.id} event={event} />
             ))}
@@ -36,7 +36,7 @@ export function PublicEventsList({ events }: { events: PublicEventCardData[] }) 
               Events that have already taken place this Rotaract year.
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
             {completed.map((event) => (
               <PublicEventCard key={event.id} event={event} />
             ))}

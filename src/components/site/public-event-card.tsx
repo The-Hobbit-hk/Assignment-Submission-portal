@@ -83,14 +83,14 @@ export function PublicEventCard({ event }: { event: PublicEventCardData }) {
             </span>
           )}
         </div>
-        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5">
-          <h2 className="font-display text-xl font-bold text-white drop-shadow-sm sm:text-2xl">
+        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
+          <h2 className="font-display text-lg font-bold leading-tight text-white drop-shadow-sm lg:text-xl">
             {event.title}
           </h2>
         </div>
       </Link>
 
-      <div className="flex flex-col gap-4 p-4 sm:p-5">
+      <div className="flex flex-col gap-3 p-3 sm:p-4">
         <div className="space-y-2 text-sm text-zinc-600">
           <p className="flex items-center gap-2">
             <CalendarDays className="h-4 w-4 shrink-0 text-accent" />
@@ -108,7 +108,7 @@ export function PublicEventCard({ event }: { event: PublicEventCardData }) {
           <p className="line-clamp-2 text-sm leading-relaxed text-zinc-500">{blurb}</p>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-4">
+        <div className="flex flex-col gap-2 border-t border-zinc-100 pt-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <EventRegistrationButton event={event} />
           <Link
             href={`/events/${event.id}`}

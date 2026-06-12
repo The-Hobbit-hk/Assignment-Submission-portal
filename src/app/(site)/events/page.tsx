@@ -16,7 +16,7 @@ export default async function EventsPage() {
         large
       />
       <section className="py-10 sm:py-14">
-        <div className="mx-auto max-w-6xl px-4 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 lg:px-8">
           <PublicEventsList events={events} />
         </div>
       </section>
