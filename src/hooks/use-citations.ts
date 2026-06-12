@@ -130,6 +130,12 @@ export function useUpdateCitationDefinition() {
   });
 }
 
+export type AssignCitationsResult = {
+  assignedCount: number;
+  createdCount: number;
+  alreadyAssignedCount: number;
+};
+
 export function useAssignCitations() {
   const qc = useQueryClient();
   return useMutation({
@@ -143,7 +149,7 @@ export function useAssignCitations() {
       quarter?: number;
       rotaryYearLabel?: string;
     }) =>
-      apiJson<SerializedCitationAssignment[]>("/api/citations/assignments", {
+      apiJson<AssignCitationsResult>("/api/citations/assignments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),

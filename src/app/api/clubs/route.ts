@@ -18,30 +18,49 @@ export async function GET(request: Request) {
     return validationError(parsed.error);
   }
 
-  const { search, status, zone, page, limit } = parsed.data;
+  const { search, status, zone, page, limit, minimal } = parsed.data;
   const { skip } = getPaginationParams(searchParams, limit);
 
   try {
     const where = buildClubWhere({ search, status, zone });
 
-    const [clubs, total] = await Promise.all([
-      prisma.club.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { name: "asc" },
-        include: clubListInclude,
-      }),
-      prisma.club.count({ where }),
-    ]);
+    const total = await prisma.club.count({ where });
+
+    const items = minimal
+      ? (
+          await prisma.club.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: { name: "asc" },
+            select: { id: true, name: true, zone: true },
+          })
+        ).map((club) => ({
+          id: club.id,
+          name: club.name,
+          zone: club.zone,
+          charterNumber: null,
+          city: null,
+          status: "ACTIVE" as const,
+          foundedAt: null,
+          serviceHours: 0,
+          memberCount: 0,
+          eventCount: 0,
+          president: null,
+          secretary: null,
+        }))
+      : (
+          await prisma.club.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: { name: "asc" },
+            include: clubListInclude,
+          })
+        ).map((club) => serializeClubListItem(club));
 
     return NextResponse.json(
-      buildPaginatedResult(
-        clubs.map(serializeClubListItem),
-        total,
-        page,
-        limit
-      )
+      buildPaginatedResult(items, total, page, limit)
     );
   } catch (err) {
     return handleRouteError(err, "Failed to fetch clubs.");

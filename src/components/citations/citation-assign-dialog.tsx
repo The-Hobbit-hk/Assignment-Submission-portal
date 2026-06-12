@@ -39,12 +39,14 @@ interface CitationAssignDialogProps {
 
 export function CitationAssignDialog({ definition }: CitationAssignDialogProps) {
   const assign = useAssignCitations();
-  const { data: clubsData } = useClubsList({ limit: 150, status: "ACTIVE" });
-  const clubs = clubsData?.data ?? [];
-
   const now = new Date();
   const [open, setOpen] = useState(false);
   const [assignAll, setAssignAll] = useState(true);
+  const { data: clubsData } = useClubsList(
+    { limit: 150, status: "ACTIVE", minimal: true },
+    { enabled: open && !assignAll }
+  );
+  const clubs = clubsData?.data ?? [];
   const [selectedClubIds, setSelectedClubIds] = useState<string[]>([]);
   const [year, setYear] = useState(String(now.getFullYear()));
   const [month, setMonth] = useState(String(now.getMonth() + 1));
@@ -90,8 +92,13 @@ export function CitationAssignDialog({ definition }: CitationAssignDialogProps) 
         rotaryYearLabel: cadence === "YEARLY" ? rotaryYear : undefined,
       },
       {
-        onSuccess: (rows) => {
-          toast.success(`Assigned to ${rows.length} club(s) for ${periodPreview}`);
+        onSuccess: (result) => {
+          toast.success(
+            `Assigned to ${result.assignedCount} club(s) for ${periodPreview}` +
+              (result.createdCount < result.assignedCount
+                ? ` (${result.createdCount} new)`
+                : "")
+          );
           setOpen(false);
         },
         onError: (err) => setError(formErrorMessage(err, "Assignment failed.")),

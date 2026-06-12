@@ -93,6 +93,12 @@ export const assignmentInclude = {
   reviewedBy: { select: { id: true, name: true } },
 } satisfies Prisma.CitationAssignmentInclude;
 
+export type AssignCitationResult = {
+  assignedCount: number;
+  createdCount: number;
+  alreadyAssignedCount: number;
+};
+
 export async function assignCitationToClubs(input: {
   definitionId: string;
   clubIds?: string[];
@@ -100,7 +106,7 @@ export async function assignCitationToClubs(input: {
   dueDate?: Date | null;
   period: ReturnType<typeof validatePeriodForCadence>;
   cadence: CitationCadence;
-}) {
+}): Promise<AssignCitationResult> {
   const definition = await prisma.citationDefinition.findUnique({
     where: { id: input.definitionId },
   });
@@ -127,47 +133,53 @@ export async function assignCitationToClubs(input: {
     throw new Error("Select at least one club.");
   }
 
-  const upsertForClub = (clubId: string) =>
-    prisma.citationAssignment.upsert({
-      where: {
-        definitionId_clubId_periodKey: {
-          definitionId: input.definitionId,
-          clubId,
-          periodKey: input.period.periodKey,
-        },
-      },
-      create: {
-        definitionId: input.definitionId,
+  const { definitionId, period, cadence } = input;
+  const periodKey = period.periodKey;
+
+  const existing = await prisma.citationAssignment.findMany({
+    where: { definitionId, periodKey, clubId: { in: clubIds } },
+    select: { clubId: true },
+  });
+  const existingIds = new Set(existing.map((row) => row.clubId));
+  const newClubIds = clubIds.filter((id) => !existingIds.has(id));
+  const alreadyAssignedCount = clubIds.length - newClubIds.length;
+
+  let createdCount = 0;
+  if (newClubIds.length > 0) {
+    const created = await prisma.citationAssignment.createMany({
+      data: newClubIds.map((clubId) => ({
+        definitionId,
         clubId,
-        cadence: input.cadence,
-        periodKey: input.period.periodKey,
-        year: input.period.year,
-        month: input.period.month,
-        quarter: input.period.quarter,
-        rotaryYearLabel: input.period.rotaryYearLabel,
+        cadence,
+        periodKey,
+        year: period.year,
+        month: period.month,
+        quarter: period.quarter,
+        rotaryYearLabel: period.rotaryYearLabel,
         dueDate: input.dueDate ?? null,
-        status: "ASSIGNED",
-      },
-      update: {
-        dueDate: input.dueDate ?? undefined,
-      },
-      include: assignmentInclude,
+        status: "ASSIGNED" as const,
+      })),
+      skipDuplicates: true,
     });
-
-  // Bulk assign can touch 100+ clubs; one interactive transaction exceeds the 5s default.
-  const BATCH_SIZE = 20;
-  const created: Awaited<ReturnType<typeof upsertForClub>>[] = [];
-
-  for (let i = 0; i < clubIds.length; i += BATCH_SIZE) {
-    const batch = clubIds.slice(i, i + BATCH_SIZE);
-    const batchResults = await prisma.$transaction(
-      batch.map((clubId) => upsertForClub(clubId)),
-      { timeout: 30_000 }
-    );
-    created.push(...batchResults);
+    createdCount = created.count;
   }
 
-  return created.map(serializeCitationAssignment);
+  if (alreadyAssignedCount > 0 && input.dueDate != null) {
+    await prisma.citationAssignment.updateMany({
+      where: {
+        definitionId,
+        periodKey,
+        clubId: { in: clubIds.filter((id) => existingIds.has(id)) },
+      },
+      data: { dueDate: input.dueDate },
+    });
+  }
+
+  return {
+    assignedCount: clubIds.length,
+    createdCount,
+    alreadyAssignedCount,
+  };
 }
 
 export async function getClubCitationStandings(filters: {

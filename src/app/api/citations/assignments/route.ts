@@ -16,6 +16,8 @@ import {
 import { apiError, validationError, handleRouteError } from "@/lib/api-errors";
 import type { UserRole } from "@/types/auth";
 
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   const { session, error } = await requireAuth();
   if (error) return error;
@@ -84,7 +86,7 @@ export async function POST(request: Request) {
       rotaryYearLabel: parsed.data.rotaryYearLabel,
     });
 
-    const created = await assignCitationToClubs({
+    const result = await assignCitationToClubs({
       definitionId: parsed.data.definitionId,
       clubIds: parsed.data.clubIds,
       assignAllClubs: parsed.data.assignAllClubs,
@@ -93,7 +95,7 @@ export async function POST(request: Request) {
       cadence: definition.cadence,
     });
 
-    return NextResponse.json(created, { status: 201 });
+    return NextResponse.json(result, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to assign citations.";
     return handleRouteError(err, message);

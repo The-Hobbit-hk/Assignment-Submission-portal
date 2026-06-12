@@ -18,6 +18,7 @@ interface ClubFilters {
   zone?: string;
   page?: number;
   limit?: number;
+  minimal?: boolean;
 }
 
 function buildQueryString(filters: ClubFilters) {
@@ -27,14 +28,19 @@ function buildQueryString(filters: ClubFilters) {
   if (filters.zone) params.set("zone", filters.zone);
   if (filters.page) params.set("page", String(filters.page));
   if (filters.limit) params.set("limit", String(filters.limit));
+  if (filters.minimal) params.set("minimal", "true");
   return params.toString();
 }
 
-export function useClubsList(filters: ClubFilters = { limit: 100 }) {
+export function useClubsList(
+  filters: ClubFilters = { limit: 100 },
+  options?: { enabled?: boolean }
+) {
   return useQuery({
     queryKey: ["clubs", filters],
     queryFn: () =>
       apiJson<PaginatedResult<ClubListItem>>(`/api/clubs?${buildQueryString(filters)}`),
+    enabled: options?.enabled ?? true,
   });
 }
 
