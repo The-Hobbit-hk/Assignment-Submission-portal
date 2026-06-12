@@ -1,7 +1,18 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
 import { BluebookContent } from "@/components/bluebook/bluebook-content";
+import { canViewMyCouncilBluebook } from "@/lib/roles";
+import type { UserRole } from "@/types/auth";
 
 export const metadata = { title: "Bluebook" };
 
-export default function BluebookPage() {
+export default async function BluebookPage() {
+  const session = await auth();
+  const role = (session?.user?.role ?? "MEMBER") as UserRole;
+
+  if (canViewMyCouncilBluebook(role)) {
+    redirect("/dashboard/bluebook/my-tasks");
+  }
+
   return <BluebookContent />;
 }

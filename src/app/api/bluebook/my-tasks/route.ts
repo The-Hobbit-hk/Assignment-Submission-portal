@@ -4,10 +4,13 @@ import { requireRole } from "@/lib/api-auth";
 import { serializeCouncilAssignment } from "@/lib/council-bluebook";
 import { getOrCreateCycle, serializeCycle, serializeReport } from "@/lib/bluebook-cycle";
 import { taskStatusLabel } from "@/lib/bluebook-labels";
-import { DISTRICT_ROLES } from "@/lib/roles";
+import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
 
 export async function GET(request: Request) {
-  const { session, error } = await requireRole(["COUNCIL_MEMBER", ...DISTRICT_ROLES]);
+  const { session, error } = await requireRole([
+    ...COUNCIL_BLUEBOOK_PARTICIPANT_ROLES,
+    ...DISTRICT_ROLES,
+  ]);
   if (error) return error;
 
   const { searchParams } = new URL(request.url);

@@ -47,8 +47,19 @@ export function canViewCouncilBluebookOverview(role: UserRole) {
   return canAssignBluebook(role);
 }
 
+/** Council roster roles that submit their own Blue Book (not the club track). */
+export const COUNCIL_BLUEBOOK_PARTICIPANT_ROLES: UserRole[] = [
+  "COUNCIL_MEMBER",
+  "DISTRICT_SECRETARY",
+  "REPORTING_SECRETARY",
+];
+
+export function canViewMyCouncilBluebook(role: UserRole) {
+  return COUNCIL_BLUEBOOK_PARTICIPANT_ROLES.includes(role) || DISTRICT_ROLES.includes(role);
+}
+
 export function canSubmitCouncilBluebook(role: UserRole) {
-  return isCouncilMember(role) || DISTRICT_ROLES.includes(role);
+  return canViewMyCouncilBluebook(role);
 }
 
 export function canSubmitClubReporting(role: UserRole) {
@@ -127,9 +138,9 @@ export function getNavigationForRole(role: UserRole, email?: string | null): Nav
     });
   }
 
-  if (canSubmitCouncilBluebook(role) && isCouncilMember(role)) {
+  if (canViewMyCouncilBluebook(role)) {
     nav.push({ title: "My Bluebook", href: "/dashboard/bluebook/my-tasks", icon: BookOpen });
-  } else if (DISTRICT_ROLES.includes(role) || role === "DISTRICT_SECRETARY") {
+  } else if (isClubUser(role)) {
     nav.push({ title: "Bluebook", href: "/dashboard/bluebook", icon: BookOpen });
   }
 

@@ -4,10 +4,13 @@ import { requireRole } from "@/lib/api-auth";
 import { getOrCreateCycle, serializeReport } from "@/lib/bluebook-cycle";
 import { isCycleOpen } from "@/lib/bluebook-labels";
 import { submitCouncilReportSchema } from "@/lib/validators/bluebook-cycle";
-import { DISTRICT_ROLES } from "@/lib/roles";
+import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
 
 export async function POST(request: Request) {
-  const { session, error } = await requireRole(["COUNCIL_MEMBER", ...DISTRICT_ROLES]);
+  const { session, error } = await requireRole([
+    ...COUNCIL_BLUEBOOK_PARTICIPANT_ROLES,
+    ...DISTRICT_ROLES,
+  ]);
   if (error) return error;
 
   try {

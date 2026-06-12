@@ -4,12 +4,15 @@ import { requireRole } from "@/lib/api-auth";
 import { getOrCreateCycle, serializeReport } from "@/lib/bluebook-cycle";
 import { isAllowedBluebookFile } from "@/lib/bluebook-labels";
 import { saveUpload } from "@/lib/upload";
-import { DISTRICT_ROLES } from "@/lib/roles";
+import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
 
 const MAX_BLUEBOOK_BYTES = 8 * 1024 * 1024;
 
 export async function POST(request: Request) {
-  const { session, error } = await requireRole(["COUNCIL_MEMBER", ...DISTRICT_ROLES]);
+  const { session, error } = await requireRole([
+    ...COUNCIL_BLUEBOOK_PARTICIPANT_ROLES,
+    ...DISTRICT_ROLES,
+  ]);
   if (error) return error;
 
   const { searchParams } = new URL(request.url);
