@@ -1,7 +1,7 @@
 import { SOCIAL_LINKS } from "@/config/site-navigation";
 import { cn } from "@/lib/utils";
 
-function SocialIcon({ label, className }: { label: string; className?: string }) {
+export function SocialIcon({ label, className }: { label: string; className?: string }) {
   switch (label) {
     case "Facebook":
       return (

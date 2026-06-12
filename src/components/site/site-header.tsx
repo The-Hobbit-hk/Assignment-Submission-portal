@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { SocialLinks } from "@/components/site/social-links";
+import { SocialLinksMenu } from "@/components/site/social-links-menu";
 import { SITE_NAV, type SiteNavItem } from "@/config/site-navigation";
 import { cn } from "@/lib/utils";
 
@@ -148,14 +149,17 @@ export function SiteHeader({ transparent = false }: { transparent?: boolean }) {
           )}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2 lg:ml-2 lg:border-l lg:border-zinc-200/80 lg:pl-3 xl:gap-2.5 xl:pl-4">
-          <Link
-            href="/login"
-            className="depth-btn-accent hidden rounded-full px-3.5 py-1.5 text-sm font-medium text-white sm:inline-flex lg:px-4 xl:px-5 xl:py-2"
-          >
-            Login
-          </Link>
-          <SocialLinks variant="compact" className="hidden lg:flex" />
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="hidden items-center sm:flex lg:rounded-full lg:border lg:border-zinc-200/90 lg:bg-white lg:p-0.5 lg:shadow-sm">
+            <Link
+              href="/login"
+              className="depth-btn-accent rounded-full px-4 py-1.5 text-sm font-medium text-white xl:px-5 xl:py-2"
+            >
+              Login
+            </Link>
+            <div className="mx-0.5 hidden h-5 w-px bg-zinc-200 lg:block" aria-hidden />
+            <SocialLinksMenu className="hidden lg:block" />
+          </div>
           <button
             type="button"
             className="rounded-lg p-2.5 text-zinc-700 hover:bg-zinc-100 lg:hidden"
