@@ -84,7 +84,7 @@ export function JobCard({
       <div className="mt-5 flex flex-wrap gap-2">
         {job.status === "OPEN" && (
           <Button asChild className="depth-btn-accent">
-            <a href={applyUrl} target="_self" rel="noopener noreferrer">
+            <a href={applyUrl} target="_blank" rel="noopener noreferrer">
               Apply via email
             </a>
           </Button>
