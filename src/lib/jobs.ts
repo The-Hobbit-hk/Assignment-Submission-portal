@@ -42,8 +42,8 @@ export function serializeJobPosting(job: JobWithCreator): SerializedJobPosting {
   };
 }
 
-export function buildJobApplyMailto(
-  job: Pick<SerializedJobPosting, "title" | "company" | "recruiterEmail" | "recruiterName">,
+function buildJobApplyContent(
+  job: Pick<SerializedJobPosting, "title" | "company" | "recruiterName">,
   applicant?: { name?: string | null; email?: string | null }
 ) {
   const subject = `Application: ${job.title} at ${job.company}`;
@@ -63,10 +63,32 @@ export function buildJobApplyMailto(
     .filter((line) => line !== null)
     .join("\n");
 
+  return { subject, body };
+}
+
+/** Opens Gmail compose in the same browser tab (works for most Rotaractors on web). */
+export function buildJobApplyEmailUrl(
+  job: Pick<SerializedJobPosting, "title" | "company" | "recruiterEmail" | "recruiterName">,
+  applicant?: { name?: string | null; email?: string | null }
+) {
+  const { subject, body } = buildJobApplyContent(job, applicant);
   const params = new URLSearchParams({
-    subject,
+    view: "cm",
+    fs: "1",
+    to: job.recruiterEmail,
+    su: subject,
     body,
   });
 
+  return `https://mail.google.com/mail/?${params.toString()}`;
+}
+
+/** Desktop mail-app fallback. */
+export function buildJobApplyMailto(
+  job: Pick<SerializedJobPosting, "title" | "company" | "recruiterEmail" | "recruiterName">,
+  applicant?: { name?: string | null; email?: string | null }
+) {
+  const { subject, body } = buildJobApplyContent(job, applicant);
+  const params = new URLSearchParams({ subject, body });
   return `mailto:${job.recruiterEmail}?${params.toString()}`;
 }

@@ -4,7 +4,7 @@ import { Briefcase, Mail, MapPin } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { buildJobApplyMailto, type SerializedJobPosting } from "@/lib/jobs";
+import { buildJobApplyEmailUrl, type SerializedJobPosting } from "@/lib/jobs";
 import { useDeleteJobPosting, useUpdateJobPosting } from "@/hooks/use-jobs";
 import { toast } from "@/lib/toast";
 
@@ -19,7 +19,7 @@ export function JobCard({
   const update = useUpdateJobPosting();
   const remove = useDeleteJobPosting();
 
-  const applyUrl = buildJobApplyMailto(job, {
+  const applyUrl = buildJobApplyEmailUrl(job, {
     name: session?.user?.name,
     email: session?.user?.email,
   });
@@ -84,7 +84,9 @@ export function JobCard({
       <div className="mt-5 flex flex-wrap gap-2">
         {job.status === "OPEN" && (
           <Button asChild className="depth-btn-accent">
-            <a href={applyUrl}>Apply via email</a>
+            <a href={applyUrl} target="_self" rel="noopener noreferrer">
+              Apply via email
+            </a>
           </Button>
         )}
         {canManage && (
