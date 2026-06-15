@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
+import { getClubUserClubId } from "@/lib/club-access";
 import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
 import { buildMemberWhere, serializeMemberListItem } from "@/lib/member";
 import { createMemberSchema, memberQuerySchema } from "@/lib/validators/member";
 import { logActivity } from "@/lib/activity";
-import { validationError, handleRouteError, apiError } from "@/lib/api-errors";
+import { validationError, handleRouteError, apiError, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 export async function GET(request: Request) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
 
   const { searchParams } = new URL(request.url);
@@ -18,11 +20,19 @@ export async function GET(request: Request) {
     return validationError(parsed.error);
   }
 
-  const { search, clubId, role, status, page, limit } = parsed.data;
+  const role = session!.user.role as UserRole;
+  const ownClubId = getClubUserClubId({ role, clubId: session!.user.clubId });
+  const { search, role: memberRole, status, page, limit } = parsed.data;
+  let { clubId } = parsed.data;
+
+  if (ownClubId) {
+    clubId = ownClubId;
+  }
+
   const { skip } = getPaginationParams(searchParams, limit);
 
   try {
-    const where = buildMemberWhere({ search, clubId, role, status });
+    const where = buildMemberWhere({ search, clubId, role: memberRole, status });
 
     const [members, total] = await Promise.all([
       prisma.member.findMany({
@@ -61,11 +71,17 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
-    const { isClubUser } = await import("@/lib/roles");
-    const clubId =
-      isClubUser(session!.user.role) && session!.user.clubId
-        ? session!.user.clubId
-        : data.clubId;
+    const role = session!.user.role as UserRole;
+    const ownClubId = getClubUserClubId({ role, clubId: session!.user.clubId });
+    const clubId = ownClubId ?? data.clubId;
+
+    if (!clubId) {
+      return apiError("Club is required.", 400);
+    }
+
+    if (ownClubId && data.clubId && data.clubId !== ownClubId) {
+      return forbidden();
+    }
 
     const existing = await prisma.member.findUnique({
       where: { email_clubId: { email: data.email, clubId } },

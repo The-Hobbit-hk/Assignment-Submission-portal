@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
+import { canAccessClubRecord, getClubUserClubId } from "@/lib/club-access";
 import { logActivity } from "@/lib/activity";
-import { handleRouteError, apiError, notFound } from "@/lib/api-errors";
+import { handleRouteError, apiError, notFound, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 function parseCSV(text: string): Record<string, string>[] {
   const lines = text.trim().split(/\r?\n/);
@@ -30,10 +32,20 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
-    const clubId = formData.get("clubId") as string | null;
+    let clubId = formData.get("clubId") as string | null;
+    const role = session!.user.role as UserRole;
+    const ownClubId = getClubUserClubId({ role, clubId: session!.user.clubId });
+
+    if (ownClubId) {
+      clubId = ownClubId;
+    }
 
     if (!file || !clubId) {
       return apiError("File and clubId are required.", 400);
+    }
+
+    if (!canAccessClubRecord({ role, clubId: session!.user.clubId }, clubId)) {
+      return forbidden();
     }
 
     const club = await prisma.club.findUnique({ where: { id: clubId } });

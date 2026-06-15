@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { ArrowLeft, Building2, MapPin, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,12 +13,19 @@ import { ClubPerformancePanel } from "@/components/clubs/club-performance";
 import { ClubEventsList } from "@/components/clubs/club-events-list";
 import { ClubMembersList } from "@/components/clubs/club-members-list";
 import { useClub } from "@/hooks/use-clubs";
+import { isClubUser } from "@/lib/roles";
+import type { UserRole } from "@/types/auth";
 
 interface ClubProfileProps {
   clubId: string;
 }
 
 export function ClubProfile({ clubId }: ClubProfileProps) {
+  const { data: session } = useSession();
+  const role = (session?.user?.role ?? "MEMBER") as UserRole;
+  const clubUser = isClubUser(role);
+  const ownClub = clubUser && session?.user?.clubId === clubId;
+
   const { data: club, isLoading, error } = useClub(clubId);
 
   if (isLoading) {
@@ -37,7 +45,7 @@ export function ClubProfile({ clubId }: ClubProfileProps) {
     <div className="space-y-4">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/clubs">
+          <Link href={ownClub ? "/dashboard" : "/dashboard/clubs"}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -129,7 +137,7 @@ export function ClubProfile({ clubId }: ClubProfileProps) {
           <ClubAnalyticsPanel clubId={clubId} />
         </TabsContent>
         <TabsContent value="members">
-          <ClubMembersList clubId={clubId} />
+          <ClubMembersList clubId={clubId} canAdd={ownClub} />
         </TabsContent>
         <TabsContent value="events">
           <ClubEventsList clubId={clubId} />

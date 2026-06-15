@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,9 +11,10 @@ import { useClubMembers } from "@/hooks/use-clubs";
 
 interface ClubMembersListProps {
   clubId: string;
+  canAdd?: boolean;
 }
 
-export function ClubMembersList({ clubId }: ClubMembersListProps) {
+export function ClubMembersList({ clubId, canAdd = false }: ClubMembersListProps) {
   const { data: members, isLoading } = useClubMembers(clubId);
 
   if (isLoading) {
@@ -20,16 +23,26 @@ export function ClubMembersList({ clubId }: ClubMembersListProps) {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-row items-center justify-between gap-3">
         <CardTitle className="text-base">
           Members ({members?.length ?? 0})
         </CardTitle>
-        <Link
-          href={`/dashboard/members?clubId=${clubId}`}
-          className="text-xs text-accent hover:underline"
-        >
-          View all
-        </Link>
+        <div className="flex items-center gap-2">
+          {canAdd && (
+            <Button asChild size="sm" className="depth-btn-accent">
+              <Link href={`/dashboard/members/new?clubId=${clubId}`}>
+                <UserPlus className="h-4 w-4" />
+                Add Member
+              </Link>
+            </Button>
+          )}
+          <Link
+            href={`/dashboard/members?clubId=${clubId}`}
+            className="text-xs text-accent hover:underline"
+          >
+            View all
+          </Link>
+        </div>
       </CardHeader>
       <CardContent className="space-y-2">
         {!members?.length ? (

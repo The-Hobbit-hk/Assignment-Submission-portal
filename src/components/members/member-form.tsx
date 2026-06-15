@@ -21,6 +21,7 @@ interface MemberFormProps {
   initialData?: Partial<MemberDetail>;
   onSubmit: (data: Record<string, unknown>) => Promise<void>;
   submitLabel?: string;
+  lockClubId?: string;
 }
 
 export function MemberForm({
@@ -28,11 +29,12 @@ export function MemberForm({
   initialData,
   onSubmit,
   submitLabel = "Save Member",
+  lockClubId,
 }: MemberFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
-    clubId: initialData?.club?.id ?? "",
+    clubId: lockClubId ?? initialData?.club?.id ?? "",
     firstName: initialData?.firstName ?? "",
     lastName: initialData?.lastName ?? "",
     email: initialData?.email ?? "",
@@ -126,22 +128,29 @@ export function MemberForm({
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label>Club</Label>
-          <Select
-            value={form.clubId}
-            onValueChange={(v) => update("clubId", v)}
-            required
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select club" />
-            </SelectTrigger>
-            <SelectContent>
-              {clubs.map((club) => (
-                <SelectItem key={club.id} value={club.id}>
-                  {club.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {lockClubId ? (
+            <Input
+              value={clubs.find((club) => club.id === lockClubId)?.name ?? "Your club"}
+              disabled
+            />
+          ) : (
+            <Select
+              value={form.clubId}
+              onValueChange={(v) => update("clubId", v)}
+              required
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select club" />
+              </SelectTrigger>
+              <SelectContent>
+                {clubs.map((club) => (
+                  <SelectItem key={club.id} value={club.id}>
+                    {club.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="riId">RI ID</Label>

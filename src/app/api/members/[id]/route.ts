@@ -1,20 +1,23 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
+import { canAccessMemberRecord } from "@/lib/club-access";
 import { serializeMemberDetail } from "@/lib/member";
 import { updateMemberSchema } from "@/lib/validators/member";
 import { logActivity } from "@/lib/activity";
-import { validationError, handleRouteError, notFound } from "@/lib/api-errors";
+import { validationError, handleRouteError, notFound, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
 export async function GET(_request: Request, { params }: RouteParams) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
 
   const { id } = await params;
+  const role = session!.user.role as UserRole;
 
   try {
     const member = await prisma.member.findUnique({
@@ -24,6 +27,15 @@ export async function GET(_request: Request, { params }: RouteParams) {
 
     if (!member) {
       return notFound("Member not found.");
+    }
+
+    if (
+      !canAccessMemberRecord(
+        { role, clubId: session!.user.clubId },
+        member.clubId
+      )
+    ) {
+      return forbidden();
     }
 
     return NextResponse.json(serializeMemberDetail(member));
@@ -51,6 +63,16 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return notFound("Member not found.");
     }
 
+    const role = session!.user.role as UserRole;
+    if (
+      !canAccessMemberRecord(
+        { role, clubId: session!.user.clubId },
+        existing.clubId
+      )
+    ) {
+      return forbidden();
+    }
+
     const member = await prisma.member.update({
       where: { id },
       data: parsed.data,
@@ -72,15 +94,25 @@ export async function PUT(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(_request: Request, { params }: RouteParams) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
 
   const { id } = await params;
+  const role = session!.user.role as UserRole;
 
   try {
     const existing = await prisma.member.findUnique({ where: { id } });
     if (!existing) {
       return notFound("Member not found.");
+    }
+
+    if (
+      !canAccessMemberRecord(
+        { role, clubId: session!.user.clubId },
+        existing.clubId
+      )
+    ) {
+      return forbidden();
     }
 
     await prisma.member.delete({ where: { id } });

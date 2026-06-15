@@ -15,12 +15,14 @@ interface MemberFiltersBarProps {
   filters: MemberFilters;
   onChange: (filters: MemberFilters) => void;
   clubs: { id: string; name: string }[];
+  hideClubFilter?: boolean;
 }
 
 export function MemberFiltersBar({
   filters,
   onChange,
   clubs,
+  hideClubFilter = false,
 }: MemberFiltersBarProps) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -36,24 +38,26 @@ export function MemberFiltersBar({
         />
       </div>
 
-      <Select
-        value={filters.clubId ?? "all"}
-        onValueChange={(v) =>
-          onChange({ ...filters, clubId: v === "all" ? undefined : v, page: 1 })
-        }
-      >
-        <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder="All clubs" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All clubs</SelectItem>
-          {clubs.map((club) => (
-            <SelectItem key={club.id} value={club.id}>
-              {club.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {!hideClubFilter && (
+        <Select
+          value={filters.clubId ?? "all"}
+          onValueChange={(v) =>
+            onChange({ ...filters, clubId: v === "all" ? undefined : v, page: 1 })
+          }
+        >
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="All clubs" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All clubs</SelectItem>
+            {clubs.map((club) => (
+              <SelectItem key={club.id} value={club.id}>
+                {club.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
 
       <Select
         value={filters.role ?? "all"}

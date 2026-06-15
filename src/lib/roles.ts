@@ -98,7 +98,19 @@ export function canManageJobs(role: UserRole, email?: string | null) {
   return DISTRICT_ROLES.includes(role) || isProfessionalAssistanceOfficer(email);
 }
 
-export function getNavigationForRole(role: UserRole, email?: string | null): NavItem[] {
+export function canManageClubMembers(role: UserRole) {
+  return isClubUser(role) || DISTRICT_ROLES.includes(role) || role === "REPORTING_SECRETARY";
+}
+
+export function canViewClubBluebook(role: UserRole) {
+  return !isClubUser(role);
+}
+
+export function getNavigationForRole(
+  role: UserRole,
+  email?: string | null,
+  clubId?: string | null
+): NavItem[] {
   const reportingChildren: NavItem[] = [];
 
   if (canSubmitClubReporting(role)) {
@@ -137,6 +149,11 @@ export function getNavigationForRole(role: UserRole, email?: string | null): Nav
       { title: "Clubs", href: "/dashboard/clubs", icon: Building2 },
       { title: "Council Live Scores", href: "/dashboard/council-scores", icon: BarChart3 }
     );
+  } else if (isClubUser(role) && clubId) {
+    nav.push(
+      { title: "Members", href: `/dashboard/members?clubId=${clubId}`, icon: Users },
+      { title: "My Club", href: `/dashboard/clubs/${clubId}`, icon: Building2 }
+    );
   }
 
   if (isCouncilMember(role)) {
@@ -160,8 +177,6 @@ export function getNavigationForRole(role: UserRole, email?: string | null): Nav
 
   if (canViewMyCouncilBluebook(role)) {
     nav.push({ title: "My Bluebook", href: "/dashboard/bluebook/my-tasks", icon: BookOpen });
-  } else if (isClubUser(role)) {
-    nav.push({ title: "Bluebook", href: "/dashboard/bluebook", icon: BookOpen });
   }
 
   if (canManageCitations(role)) {
