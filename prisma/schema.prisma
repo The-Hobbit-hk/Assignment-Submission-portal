@@ -108,6 +108,11 @@ enum CitationAssignmentStatus {
   EXPIRED
 }
 
+enum JobPostingStatus {
+  OPEN
+  CLOSED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -135,6 +140,7 @@ model User {
   councilReportsReviewed   CouncilBluebookReport[]     @relation("CouncilReportReviewer")
   citationsCreated         CitationDefinition[]        @relation("CitationCreator")
   citationsReviewed        CitationAssignment[]        @relation("CitationReviewer")
+  jobPostingsCreated       JobPosting[]                @relation("JobCreator")
 }
 
 model Account {
@@ -250,6 +256,24 @@ model CitationAssignment {
   @@index([clubId, status])
   @@index([status])
   @@index([cadence, periodKey])
+}
+
+model JobPosting {
+  id             String           @id @default(cuid())
+  title          String
+  company        String
+  description    String           @db.Text
+  location       String?
+  recruiterName  String?
+  recruiterEmail String
+  status         JobPostingStatus @default(OPEN)
+  createdById    String
+  createdBy      User             @relation("JobCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
 }
 
 model ReportingPeriod {

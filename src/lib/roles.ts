@@ -1,5 +1,6 @@
 import type { UserRole } from "@/types/auth";
 import type { NavItem } from "@/types/navigation";
+import { isProfessionalAssistanceOfficer } from "@/lib/professional-assistance";
 import { isZonalRepresentative } from "@/lib/zonal-reps";
 import {
   Award,
@@ -90,6 +91,11 @@ export function canSubmitCitations(role: UserRole) {
 
 export function canViewCitationStandings(role: UserRole) {
   return role !== "MEMBER";
+}
+
+/** Professional Assistance Officers and district admins can post jobs. */
+export function canManageJobs(role: UserRole, email?: string | null) {
+  return DISTRICT_ROLES.includes(role) || isProfessionalAssistanceOfficer(email);
 }
 
 export function getNavigationForRole(role: UserRole, email?: string | null): NavItem[] {
@@ -184,6 +190,8 @@ export function getNavigationForRole(role: UserRole, email?: string | null): Nav
   if (reportingChildren.length > 0) {
     nav.push({ title: "Reporting", icon: ClipboardList, children: reportingChildren });
   }
+
+  nav.push({ title: "Job Portal", href: "/dashboard/jobs", icon: Briefcase });
 
   return nav;
 }
