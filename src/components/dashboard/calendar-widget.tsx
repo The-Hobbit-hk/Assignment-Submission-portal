@@ -63,15 +63,20 @@ export function CalendarWidget({ events }: CalendarWidgetProps) {
     return map;
   }, [events, currentDate]);
 
-  const upcomingInMonth = useMemo(
-    () =>
-      [...events].sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-      ),
-    [events]
-  );
-
   const today = new Date();
+
+  const upcomingInMonth = useMemo(() => {
+    const startOfToday = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate()
+    ).getTime();
+    return [...events]
+      .filter((e) => new Date(e.date).getTime() >= startOfToday)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [events]);
+
   const isCurrentMonth =
     today.getMonth() === currentDate.getMonth() &&
     today.getFullYear() === currentDate.getFullYear();
