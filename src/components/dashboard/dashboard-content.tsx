@@ -39,7 +39,7 @@ export function DashboardContent() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-accent">
-              District ERP
+            
             </p>
             <h1 className="mt-1 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
               Welcome back
