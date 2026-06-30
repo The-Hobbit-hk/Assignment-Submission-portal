@@ -23,53 +23,9 @@ export type AnnualSponsor = {
   website?: string;
 };
 
-export const ANNUAL_SPONSORS: AnnualSponsor[] = [
-  {
-    name: "Pune Tech Solutions",
-    tier: "Gold Partner",
-    tagline: "Empowering digital-ready youth across Pune",
-  },
-  {
-    name: "Western Maharashtra Healthcare",
-    tier: "Gold Partner",
-    tagline: "Health outreach with district-wide impact",
-  },
-  {
-    name: "Konkan Infra Projects",
-    tier: "Silver Partner",
-    tagline: "Building communities, building leaders",
-  },
-  {
-    name: "Bavdhan Business Park",
-    tier: "Silver Partner",
-    tagline: "Professional growth for young entrepreneurs",
-  },
-  {
-    name: "Raigad Youth Foundation",
-    tier: "Silver Partner",
-    tagline: "Service leadership in Konkan & Raigad",
-  },
-  {
-    name: "Camp Education Trust",
-    tier: "Community Partner",
-    tagline: "Education-first community programmes",
-  },
-  {
-    name: "Shaniwarwada Media House",
-    tier: "Community Partner",
-    tagline: "Amplifying stories of service",
-  },
-  {
-    name: "District Print & Signage Co.",
-    tier: "Community Partner",
-    tagline: "Visible support at every district event",
-  },
-  {
-    name: "Pimpri Industrial Association",
-    tier: "Community Partner",
-    tagline: "Industry meets youth leadership",
-  },
-];
+// Real RIY 2026-27 partners are announced through the season. Until then the
+// public sponsor wall renders a "coming soon" board instead of placeholders.
+export const ANNUAL_SPONSORS: AnnualSponsor[] = [];
 
 export const SPONSORSHIP = {
   title: "Partner with Rotaract District 3131",

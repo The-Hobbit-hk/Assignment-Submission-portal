@@ -43,7 +43,7 @@ export async function upsertClubPresident(
       status: "ACTIVE",
       profession: "Club President",
       bio: presidentBio(record),
-      points: 100,
+      points: 0,
     },
     update: {
       firstName,

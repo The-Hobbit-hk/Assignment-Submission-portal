@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Award, Crown, Heart, Medal } from "lucide-react";
+import { Award, Crown, Handshake, Heart, Medal, Sparkles } from "lucide-react";
 import {
   ANNUAL_SPONSORS,
   SPONSORSHIP,
@@ -213,6 +213,55 @@ function TierSponsorGroup({
   );
 }
 
+function SponsorsComingSoonBoard({ compact }: { compact?: boolean }) {
+  return (
+    <div
+      className={cn(
+        "group relative overflow-hidden rounded-2xl border-2 border-dashed border-accent/25 bg-gradient-to-br from-rose-50/60 via-white to-amber-50/40 transition-all duration-500 hover:border-accent/50 hover:shadow-xl hover:shadow-accent/10",
+        compact ? "p-6" : "p-10 sm:p-14"
+      )}
+    >
+      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-accent/5 blur-3xl transition-all duration-500 group-hover:bg-accent/10" />
+      <div className="pointer-events-none absolute -bottom-12 -left-12 h-44 w-44 rounded-full bg-amber-200/20 blur-3xl transition-all duration-500 group-hover:bg-amber-200/30" />
+
+      <div className="relative flex flex-col items-center text-center">
+        <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent shadow-sm transition-all duration-500 group-hover:-translate-y-1 group-hover:scale-110 group-hover:bg-accent group-hover:text-white">
+          <Handshake className={cn("transition", compact ? "h-6 w-6" : "h-7 w-7")} aria-hidden />
+        </span>
+
+        <h3
+          className={cn(
+            "mt-5 font-display font-bold text-zinc-900",
+            compact ? "text-xl" : "text-2xl sm:text-3xl"
+          )}
+        >
+          Partners Coming Soon
+        </h3>
+        <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-600">
+          We&apos;re onboarding our RIY 2026-27 partners. Hover to know more — your
+          brand could be the first on our wall.
+        </p>
+
+        {/* Hover-revealed board */}
+        <div className="grid w-full grid-rows-[0fr] transition-all duration-500 ease-out group-hover:grid-rows-[1fr]">
+          <div className="overflow-hidden">
+            <div className="mx-auto mt-6 max-w-md rounded-xl border border-accent/20 bg-white/80 p-5 shadow-sm backdrop-blur-sm">
+              <p className="flex items-center justify-center gap-2 text-sm font-semibold text-accent">
+                <Sparkles className="h-4 w-4" aria-hidden />
+                Be a founding partner
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-zinc-600">
+                Gold, Silver &amp; Community slots are open for RIY 2026-27. Reach
+                2,700+ Rotaractors across 101 clubs with CSR-ready visibility.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AnnualSponsorsSection({
   compact = false,
   className,
@@ -223,6 +272,8 @@ export function AnnualSponsorsSection({
   const tiersToShow = compact
     ? (["Gold Partner", "Silver Partner"] as SponsorTier[])
     : TIER_ORDER;
+
+  const hasSponsors = ANNUAL_SPONSORS.length > 0;
 
   return (
     <div className={cn(className)}>
@@ -255,16 +306,20 @@ export function AnnualSponsorsSection({
         </div>
       </div>
 
-      {tiersToShow.map((tier) => (
-        <TierSponsorGroup
-          key={tier}
-          tier={tier}
-          sponsors={ANNUAL_SPONSORS.filter((s) => s.tier === tier)}
-          compact={compact}
-        />
-      ))}
+      {hasSponsors ? (
+        tiersToShow.map((tier) => (
+          <TierSponsorGroup
+            key={tier}
+            tier={tier}
+            sponsors={ANNUAL_SPONSORS.filter((s) => s.tier === tier)}
+            compact={compact}
+          />
+        ))
+      ) : (
+        <SponsorsComingSoonBoard compact={compact} />
+      )}
 
-      {!compact && (
+      {!compact && hasSponsors && (
         <p className="mt-12 text-center text-sm text-zinc-500">
           Your brand could be featured here next Rotary year —{" "}
           <span className="font-medium text-accent">join our partner family.</span>

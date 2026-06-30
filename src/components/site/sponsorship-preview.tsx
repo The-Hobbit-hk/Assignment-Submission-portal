@@ -29,27 +29,33 @@ export function SponsorshipPreview() {
             </Link>
           </div>
 
-          {GOLD_PARTNERS.length > 0 && (
-            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-zinc-200 pt-5">
-              <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">
-                Proud partners
-              </span>
-              {GOLD_PARTNERS.map((sponsor) => (
-                <span
-                  key={sponsor.name}
-                  className="rounded-full border border-amber-200/80 bg-amber-50/60 px-3 py-1 text-xs font-semibold text-amber-900"
+          <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-zinc-200 pt-5">
+            <span className="text-xs font-medium uppercase tracking-wide text-zinc-400">
+              Proud partners
+            </span>
+            {GOLD_PARTNERS.length > 0 ? (
+              <>
+                {GOLD_PARTNERS.map((sponsor) => (
+                  <span
+                    key={sponsor.name}
+                    className="rounded-full border border-amber-200/80 bg-amber-50/60 px-3 py-1 text-xs font-semibold text-amber-900"
+                  >
+                    {sponsor.name}
+                  </span>
+                ))}
+                <Link
+                  href="/sponsorship"
+                  className="text-xs font-medium text-accent hover:underline"
                 >
-                  {sponsor.name}
-                </span>
-              ))}
-              <Link
-                href="/sponsorship"
-                className="text-xs font-medium text-accent hover:underline"
-              >
-                See all partners
-              </Link>
-            </div>
-          )}
+                  See all partners
+                </Link>
+              </>
+            ) : (
+              <span className="rounded-full border border-accent/20 bg-accent/5 px-3 py-1 text-xs font-semibold text-accent">
+                Coming soon
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </section>

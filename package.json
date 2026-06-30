@@ -24,6 +24,7 @@
     "db:import-presidents": "npx tsx scripts/import-presidents.ts",
     "db:ensure-district-assembly": "npx tsx scripts/ensure-district-assembly.ts",
     "db:purge-legacy-events": "npx tsx scripts/purge-legacy-events.ts",
+    "db:reset-production": "npx tsx scripts/reset-production.ts",
     "db:ensure-installations": "npx tsx scripts/ensure-installations.ts",
     "db:ensure-district-calendar": "npx tsx scripts/ensure-district-calendar.ts",
     "db:dev": "npx prisma dev --detach --name rac3131",
