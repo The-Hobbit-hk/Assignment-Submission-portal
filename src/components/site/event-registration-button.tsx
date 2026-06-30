@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { eventHasEnded } from "@/lib/event-display";
 import {
@@ -25,6 +28,15 @@ export function EventRegistrationButton({
   };
   className?: string;
 }) {
+  // These pages are statically cached, so any status derived from `new Date()`
+  // would freeze at build/cache time. Recompute against the live clock on the
+  // client so a passed event never stays stuck on "Coming Soon".
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+  const evalNow = now ?? new Date();
+
   const startDate = coerceDate(event.startDate);
   const endDate = coerceDate(event.endDate);
   const isInstallation = event.type === "INSTALLATION";
@@ -33,14 +45,14 @@ export function EventRegistrationButton({
     startDate &&
     eventHasEnded(
       { status: event.status, startDate, endDate },
-      new Date()
+      evalNow
     );
 
   const state = isInstallation
     ? installationEnded
       ? "completed"
       : "open"
-    : getRegistrationState(event);
+    : getRegistrationState(event, evalNow);
   const label = isInstallation
     ? installationEnded
       ? "Completed"

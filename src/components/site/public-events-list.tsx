@@ -1,10 +1,21 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { PublicEventCard, type PublicEventCardData } from "@/components/site/public-event-card";
 import { getEventLifecycle } from "@/lib/event-display";
 
 export function PublicEventsList({ events }: { events: PublicEventCardData[] }) {
-  const upcoming = events.filter((e) => getEventLifecycle(e) !== "completed");
-  const completed = events.filter((e) => getEventLifecycle(e) === "completed");
+  // This page is statically cached; recompute lifecycle on the client so a
+  // passed event moves out of "Upcoming" without waiting for revalidation.
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+  }, []);
+  const evalNow = now ?? new Date();
+
+  const upcoming = events.filter((e) => getEventLifecycle(e, evalNow) !== "completed");
+  const completed = events.filter((e) => getEventLifecycle(e, evalNow) === "completed");
 
   if (events.length === 0) {
     return <p className="text-center text-zinc-500">No district events listed yet.</p>;
