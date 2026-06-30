@@ -42,7 +42,7 @@ export const SITE_NAV: SiteNavItem[] = [
       { label: "Council Overview", href: "/council" },
       { label: "DRR", href: "/council/drr" },
       { label: "Core Council", href: "/council/core-council" },
-      { label: "Sub Core", href: "/council/sub-core" },
+      { label: "Zonal Representatives", href: "/council/sub-core" },
       { label: "District Executive Council", href: "/council/district-executive-council" },
       { label: "Event Chairperson", href: "/council/event-chairperson" },
       { label: "Convenors", href: "/council/convenors" },

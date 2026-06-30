@@ -341,10 +341,10 @@ export const COUNCIL_PAGES: Record<string, ContentPage> = {
     ],
   },
   "sub-core": {
-    title: "Sub Core",
+    title: "Zonal Representatives",
     badge: "Council 26-27",
     paragraphs: [
-      "Sub Core teams extend the Core Council's reach through specialized portfolios and zonal coordination.",
+      "Zonal Representatives extend the Core Council's reach across zones, coordinating clubs and driving district initiatives on the ground.",
       "They assist with event execution, club visits, and follow-up on district directives.",
     ],
   },

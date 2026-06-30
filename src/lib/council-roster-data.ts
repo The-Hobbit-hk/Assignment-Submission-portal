@@ -46,7 +46,7 @@ export const COUNCIL_USERS: CouncilUserSeed[] = [
   { name: "Rtr. Dr. Aishwarya Patil", email: "rtr.dr.aishwaryapatil@gmail.com", title: "District Secretary - Reporting", club: "Rotaract Club of Pune Shaniwarwada", role: "REPORTING_SECRETARY", group: "core-council" },
   { name: "PHF. Rtr. Sharvindu Jogdand", email: "sharvindu@gmail.com", title: "District Treasurer", club: "Rotaract Club of Pune Warje", role: "COUNCIL_MEMBER", group: "core-council" },
   { name: "Rtr. Dr. Ashlesha Deshpande", email: "rtr.drashlesha3131@gmail.com", title: "District Club Advisor", club: "Rotaract Club of Pune Heritage", role: "COUNCIL_MEMBER", group: "core-council" },
-  { name: "Rtr. Rohan Puri", email: "rohanpuri777@gmail.com", title: "Zonal Advisor", club: "Rotaract Club of Khopoli", role: "COUNCIL_MEMBER", group: "core-council" },
+  { name: "Rtr. Rohan Puri", email: "rohanpuri777@gmail.com", title: "Zonal Advisor", club: "Rotaract Club of Khopoli", role: "COUNCIL_MEMBER", group: "sub-core" },
   { name: "Rtr. Aniket Sardar", email: "anisardar777@gmail.com", title: "District Zonal Representative", club: "Rotaract Club of Khopoli", role: "COUNCIL_MEMBER", group: "sub-core" },
   { name: "Rtr. Vedant Chirmade", email: "vedant.chirmade@gmail.com", title: "District Zonal Representative", club: "Rotaract Club of Genba Sopanrao Moze College of Engineering", role: "COUNCIL_MEMBER", group: "sub-core" },
   { name: "Rtr. Vedant Chaudhari", email: "vedantpchaudhari41@gmail.com", title: "District Zonal Representative", club: "Rotaract Club of Genba Sopanrao Moze College of Engineering", role: "COUNCIL_MEMBER", group: "sub-core" },
