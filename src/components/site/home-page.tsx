@@ -34,8 +34,7 @@ export function HomePage() {
                 development across {siteConfig.organization} {siteConfig.district}.
               </p>
               <p className="mx-auto mt-4 max-w-2xl text-sm text-zinc-500">
-                Led by DRR {siteConfig.drr} · Governed through district council, bluebook
-                accountability, and transparent reporting for RIY {siteConfig.rotaryYear}.
+                Led by DRR {siteConfig.drr} ·  {siteConfig.rotaryYear}.
               </p>
               <Link
                 href="/about"
