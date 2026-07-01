@@ -28,6 +28,21 @@ export const metadata: Metadata = {
     template: `%s | ${siteConfig.shortName}`,
   },
   description: siteConfig.description,
+  metadataBase: new URL(siteConfig.url),
+  openGraph: {
+    title: siteConfig.name,
+    description: siteConfig.description,
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    type: "website",
+    images: [{ url: siteConfig.logo, alt: siteConfig.name }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [siteConfig.logo],
+  },
   icons: {
     icon: [{ url: siteConfig.favicon, type: "image/png" }],
     apple: [{ url: siteConfig.favicon, type: "image/png" }],

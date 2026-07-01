@@ -11,7 +11,7 @@ export const siteConfig = {
   themeTagline: "Rotaract Empowering Individuals for Growth and Networking",
   drr: "Dr. Karishma Awari",
   description:
-    "Enterprise resource planning platform for Rotaract District 3131 operations, clubs, and district leadership.",
+    "Official website of Rotaract District 3131 — empowering young leaders through fellowship, service, and professional development across Pune & Raigad.",
   url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
   district: "District 3131",
   organization: "Rotaract",
