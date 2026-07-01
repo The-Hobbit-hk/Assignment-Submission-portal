@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
+import { canManageClubs } from "@/lib/roles";
 import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
 import { buildClubWhere, clubListInclude, serializeClubListItem } from "@/lib/club";
 import { createClubSchema, clubQuerySchema } from "@/lib/validators/club";
 import { logActivity } from "@/lib/activity";
-import { validationError, handleRouteError } from "@/lib/api-errors";
+import { validationError, handleRouteError, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 export async function GET(request: Request) {
   const { error } = await requireAuth();
@@ -70,6 +72,10 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const { session, error } = await requireAuth();
   if (error) return error;
+
+  if (!canManageClubs(session!.user.role as UserRole)) {
+    return forbidden();
+  }
 
   try {
     const body = await request.json();

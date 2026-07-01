@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
+import { canAccessMemberRecord } from "@/lib/club-access";
 import { serializeMemberListItem } from "@/lib/member";
-import { isClubUser } from "@/lib/roles";
+import { canManageClubMembers } from "@/lib/roles";
 import { saveUpload } from "@/lib/upload";
 import { handleRouteError, apiError, notFound, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 export async function POST(
   request: Request,
@@ -12,6 +14,11 @@ export async function POST(
 ) {
   const { session, error } = await requireAuth();
   if (error) return error;
+
+  const role = session!.user.role as UserRole;
+  if (!canManageClubMembers(role)) {
+    return forbidden();
+  }
 
   const { id } = await params;
 
@@ -25,10 +32,7 @@ export async function POST(
       return notFound("Member not found.");
     }
 
-    if (
-      isClubUser(session!.user.role) &&
-      session!.user.clubId !== member.clubId
-    ) {
+    if (!canAccessMemberRecord({ role, clubId: session!.user.clubId }, member.clubId)) {
       return forbidden();
     }
 

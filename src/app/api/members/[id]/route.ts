@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { canAccessMemberRecord } from "@/lib/club-access";
+import { canReassignMemberPrivilegedFields } from "@/lib/roles";
 import { serializeMemberDetail } from "@/lib/member";
 import { updateMemberSchema } from "@/lib/validators/member";
 import { logActivity } from "@/lib/activity";
@@ -73,9 +74,17 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return forbidden();
     }
 
+    // Prevent club users from moving a member to another club or self-awarding
+    // score points via the update payload.
+    const data = { ...parsed.data };
+    if (!canReassignMemberPrivilegedFields(role)) {
+      delete data.clubId;
+      delete data.points;
+    }
+
     const member = await prisma.member.update({
       where: { id },
-      data: parsed.data,
+      data,
       include: { club: { select: { id: true, name: true } } },
     });
 

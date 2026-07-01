@@ -1,6 +1,13 @@
 import type { UserRole } from "@/generated/prisma/client";
 
-export const COUNCIL_PASSWORD = "Rotaract@3131";
+/**
+ * Initial password applied to seeded council/club logins.
+ * MUST be overridden in production via SEED_COUNCIL_PASSWORD; the literal
+ * fallback is for local development only. Rotate immediately after seeding
+ * and have each user change their password on first login.
+ */
+export const COUNCIL_PASSWORD =
+  process.env.SEED_COUNCIL_PASSWORD ?? "Rotaract@3131";
 
 export type CouncilGroupSlug =
   | "drr"

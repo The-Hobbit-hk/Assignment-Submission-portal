@@ -2,8 +2,8 @@ import { AuthLayout } from "@/components/layout/auth-layout";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
 
 export const metadata = {
-  title: "Forgot Password | Rotaract District 3131 ERP",
-  description: "Reset your Rotaract District 3131 ERP account password.",
+  title: "Forgot Password | Rotaract District 3131",
+  description: "Reset your Rotaract District 3131 account password.",
 };
 
 export default function ForgotPasswordPage() {

@@ -1,9 +1,13 @@
 import { COUNCIL_PASSWORD } from "./council-users";
 
-/** Technical system admin — created on every seed run */
+/**
+ * Technical system admin — created on every seed run.
+ * Override the password in production via SEED_ADMIN_PASSWORD; the literal
+ * fallback is for local development only. Rotate immediately after seeding.
+ */
 export const SEED_ADMIN = {
-  email: "admin@rotaract3131.org",
-  password: "Admin@3131",
+  email: process.env.SEED_ADMIN_EMAIL ?? "admin@rotaract3131.org",
+  password: process.env.SEED_ADMIN_PASSWORD ?? "Admin@3131",
   name: "System Admin",
 };
 

@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
+import { canManageEvents } from "@/lib/roles";
 import { serializeRegistration } from "@/lib/event";
-import { handleRouteError, apiError, notFound } from "@/lib/api-errors";
+import { handleRouteError, apiError, notFound, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 interface RouteParams { params: Promise<{ id: string }> }
 
 export async function GET(_req: Request, { params }: RouteParams) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
+  if (!canManageEvents(session!.user.role as UserRole)) return forbidden();
   const { id } = await params;
 
   try {
@@ -25,8 +28,9 @@ export async function GET(_req: Request, { params }: RouteParams) {
 }
 
 export async function POST(request: Request, { params }: RouteParams) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
+  if (!canManageEvents(session!.user.role as UserRole)) return forbidden();
   const { id } = await params;
 
   try {

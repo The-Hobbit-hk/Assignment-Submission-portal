@@ -1,5 +1,5 @@
 export const siteConfig = {
-  name: "Rotaract District 3131 ERP",
+  name: "Rotaract District 3131",
   shortName: "Rotaract District 3131",
   logo: "/logo-rotaract-3131.png",
   logoMark: "/logo-rotaract-mark.png",

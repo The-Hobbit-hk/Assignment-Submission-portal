@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
+import { canManageEvents } from "@/lib/roles";
+import { canAccessClubRecord } from "@/lib/club-access";
 import { serializeEvent } from "@/lib/event";
 import { updateEventSchema } from "@/lib/validators/event";
-import { validationError, handleRouteError, notFound } from "@/lib/api-errors";
+import { validationError, handleRouteError, notFound, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 interface RouteParams { params: Promise<{ id: string }> }
 
 export async function GET(_req: Request, { params }: RouteParams) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
   const { id } = await params;
 
@@ -28,15 +31,26 @@ export async function GET(_req: Request, { params }: RouteParams) {
     });
     if (!event) return notFound("Not found.");
 
+    // Attendee PII (emails) is only for district event managers or the
+    // host club — everyone else gets the event without the registration list.
+    const role = session!.user.role as UserRole;
+    const canSeeAttendees =
+      canManageEvents(role) ||
+      (event.clubId
+        ? canAccessClubRecord({ role, clubId: session!.user.clubId }, event.clubId)
+        : false);
+
     const serialized = serializeEvent(event);
     return NextResponse.json({
       ...serialized,
-      registrations: event.registrations.map((r) => ({
-        id: r.id,
-        status: r.status,
-        registeredAt: r.registeredAt.toISOString(),
-        member: r.member,
-      })),
+      registrations: canSeeAttendees
+        ? event.registrations.map((r) => ({
+            id: r.id,
+            status: r.status,
+            registeredAt: r.registeredAt.toISOString(),
+            member: r.member,
+          }))
+        : [],
     });
   } catch (err) {
     return handleRouteError(err, "Failed to fetch event.");
@@ -44,8 +58,13 @@ export async function GET(_req: Request, { params }: RouteParams) {
 }
 
 export async function PUT(request: Request, { params }: RouteParams) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
+
+  if (!canManageEvents(session!.user.role as UserRole)) {
+    return forbidden();
+  }
+
   const { id } = await params;
 
   try {
@@ -79,8 +98,13 @@ export async function PUT(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(_req: Request, { params }: RouteParams) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
+
+  if (!canManageEvents(session!.user.role as UserRole)) {
+    return forbidden();
+  }
+
   const { id } = await params;
 
   try {

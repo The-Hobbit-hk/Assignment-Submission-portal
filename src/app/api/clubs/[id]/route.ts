@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { canAccessClubRecord } from "@/lib/club-access";
+import { canManageClubs } from "@/lib/roles";
 import { clubListInclude, serializeClubDetail } from "@/lib/club";
 import { updateClubSchema } from "@/lib/validators/club";
 import { validationError, handleRouteError, notFound, forbidden } from "@/lib/api-errors";
@@ -39,8 +40,12 @@ export async function GET(_request: Request, { params }: RouteParams) {
 }
 
 export async function PUT(request: Request, { params }: RouteParams) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
+
+  if (!canManageClubs(session!.user.role as UserRole)) {
+    return forbidden();
+  }
 
   const { id } = await params;
 
@@ -74,8 +79,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(_request: Request, { params }: RouteParams) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
+
+  if (!canManageClubs(session!.user.role as UserRole)) {
+    return forbidden();
+  }
 
   const { id } = await params;
 

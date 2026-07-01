@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { getClubUserClubId } from "@/lib/club-access";
+import { canManageClubMembers, canReassignMemberPrivilegedFields } from "@/lib/roles";
 import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
 import { buildMemberWhere, serializeMemberListItem } from "@/lib/member";
 import { createMemberSchema, memberQuerySchema } from "@/lib/validators/member";
@@ -13,6 +14,11 @@ export async function GET(request: Request) {
   const { session, error } = await requireAuth();
   if (error) return error;
 
+  const role = session!.user.role as UserRole;
+  if (!canManageClubMembers(role)) {
+    return forbidden();
+  }
+
   const { searchParams } = new URL(request.url);
   const parsed = memberQuerySchema.safeParse(Object.fromEntries(searchParams));
 
@@ -20,7 +26,6 @@ export async function GET(request: Request) {
     return validationError(parsed.error);
   }
 
-  const role = session!.user.role as UserRole;
   const ownClubId = getClubUserClubId({ role, clubId: session!.user.clubId });
   const { search, role: memberRole, status, page, limit } = parsed.data;
   let { clubId } = parsed.data;
@@ -62,6 +67,11 @@ export async function POST(request: Request) {
   const { session, error } = await requireAuth();
   if (error) return error;
 
+  const role = session!.user.role as UserRole;
+  if (!canManageClubMembers(role)) {
+    return forbidden();
+  }
+
   try {
     const body = await request.json();
     const parsed = createMemberSchema.safeParse(body);
@@ -71,7 +81,6 @@ export async function POST(request: Request) {
     }
 
     const data = parsed.data;
-    const role = session!.user.role as UserRole;
     const ownClubId = getClubUserClubId({ role, clubId: session!.user.clubId });
     const clubId = ownClubId ?? data.clubId;
 
@@ -108,7 +117,7 @@ export async function POST(request: Request) {
         duesPaid: data.duesPaid || null,
         bloodGroup: data.bloodGroup,
         whatsapp: data.whatsapp,
-        points: data.points ?? 0,
+        points: canReassignMemberPrivilegedFields(role) ? (data.points ?? 0) : 0,
       },
       include: { club: { select: { id: true, name: true } } },
     });

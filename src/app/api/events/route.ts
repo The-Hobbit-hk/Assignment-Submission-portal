@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
+import { canManageEvents, isClubUser } from "@/lib/roles";
 import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
 import { buildEventWhere, serializeEvent } from "@/lib/event";
 import { createEventSchema, eventQuerySchema } from "@/lib/validators/event";
 import { logActivity } from "@/lib/activity";
-import { validationError, handleRouteError } from "@/lib/api-errors";
+import { validationError, handleRouteError, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 const eventInclude = {
   club: { select: { id: true, name: true } },
@@ -39,7 +41,6 @@ export async function GET(request: Request) {
       year: scopeYear,
     });
 
-    const { isClubUser } = await import("@/lib/roles");
     const where =
       isClubUser(session!.user.role) && session!.user.clubId
         ? {
@@ -71,6 +72,11 @@ export async function POST(request: Request) {
   const { session, error } = await requireAuth();
   if (error) return error;
 
+  const role = session!.user.role as UserRole;
+  if (!canManageEvents(role) && !isClubUser(role)) {
+    return forbidden();
+  }
+
   try {
     const body = await request.json();
     const parsed = createEventSchema.safeParse(body);
@@ -79,9 +85,8 @@ export async function POST(request: Request) {
     }
 
     const d = parsed.data;
-    const { isClubUser } = await import("@/lib/roles");
     const resolvedClubId =
-      isClubUser(session!.user.role) && session!.user.clubId
+      isClubUser(role) && session!.user.clubId
         ? session!.user.clubId
         : d.clubId;
 

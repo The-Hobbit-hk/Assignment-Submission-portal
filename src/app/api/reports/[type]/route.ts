@@ -1,16 +1,22 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api-auth";
+import { canExportDistrictReports } from "@/lib/roles";
 import { getReportData, type ReportType } from "@/lib/reports";
 import { rowsToCsv, rowsToExcel, rowsToPdf, exportResponse } from "@/lib/export";
-import { handleRouteError, apiError } from "@/lib/api-errors";
+import { handleRouteError, apiError, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 const VALID_TYPES = ["members", "clubs", "events", "bluebook", "council-bluebook", "performance"];
 
 interface RouteParams { params: Promise<{ type: string }> }
 
 export async function GET(request: Request, { params }: RouteParams) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
+
+  if (!canExportDistrictReports(session!.user.role as UserRole)) {
+    return forbidden();
+  }
 
   const { type } = await params;
   if (!VALID_TYPES.includes(type)) {

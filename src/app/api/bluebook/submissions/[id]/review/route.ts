@@ -1,15 +1,22 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
+import { canReviewClubBluebook } from "@/lib/roles";
 import { serializeSubmission } from "@/lib/bluebook";
 import { reviewSubmissionSchema } from "@/lib/validators/bluebook";
-import { validationError, handleRouteError } from "@/lib/api-errors";
+import { validationError, handleRouteError, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 interface RouteParams { params: Promise<{ id: string }> }
 
 export async function POST(request: Request, { params }: RouteParams) {
   const { session, error } = await requireAuth();
   if (error) return error;
+
+  if (!canReviewClubBluebook(session!.user.role as UserRole)) {
+    return forbidden();
+  }
+
   const { id } = await params;
 
   try {

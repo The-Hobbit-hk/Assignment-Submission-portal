@@ -102,6 +102,35 @@ export function canManageClubMembers(role: UserRole) {
   return isClubUser(role) || DISTRICT_ROLES.includes(role) || role === "REPORTING_SECRETARY";
 }
 
+/** District-wide member visibility (all clubs). Club users only see their own club. */
+export function canViewAllMembers(role: UserRole) {
+  return DISTRICT_ROLES.includes(role) || role === "REPORTING_SECRETARY";
+}
+
+/** Create / update / delete clubs and the club roster — district administration only. */
+export function canManageClubs(role: UserRole) {
+  return DISTRICT_ROLES.includes(role) || role === "REPORTING_SECRETARY";
+}
+
+/** Create / edit / delete district events and their media. */
+export function canManageEvents(role: UserRole) {
+  return SECRETARY_ROLES.includes(role);
+}
+
+/** Approve / score club Blue Book submissions, and export district reports. */
+export function canReviewClubBluebook(role: UserRole) {
+  return isDistrictSecretary(role);
+}
+
+export function canExportDistrictReports(role: UserRole) {
+  return SECRETARY_ROLES.includes(role);
+}
+
+/** May fields like clubId / role / points be reassigned on a member record? */
+export function canReassignMemberPrivilegedFields(role: UserRole) {
+  return DISTRICT_ROLES.includes(role) || role === "REPORTING_SECRETARY";
+}
+
 export function canViewClubBluebook(role: UserRole) {
   return !isClubUser(role);
 }

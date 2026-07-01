@@ -10,7 +10,21 @@ const registerSchema = z.object({
   password: z.string().min(8).max(128),
 });
 
+/**
+ * Public self-registration is DISABLED by default: this is an invite-only
+ * district ERP where accounts are provisioned by admins/seed. Without this
+ * gate, anyone could create an account and reach authenticated endpoints.
+ * Set ALLOW_SELF_REGISTRATION="true" to re-enable.
+ */
+function isSelfRegistrationEnabled() {
+  return process.env.ALLOW_SELF_REGISTRATION === "true";
+}
+
 export async function POST(request: Request) {
+  if (!isSelfRegistrationEnabled()) {
+    return apiError("Self-registration is disabled. Contact your district administrator.", 403);
+  }
+
   try {
     const body = await request.json();
     const parsed = registerSchema.safeParse(body);

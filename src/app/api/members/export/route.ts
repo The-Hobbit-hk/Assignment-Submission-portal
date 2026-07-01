@@ -1,14 +1,25 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
-import { handleRouteError } from "@/lib/api-errors";
+import { getClubUserClubId } from "@/lib/club-access";
+import { canManageClubMembers } from "@/lib/roles";
+import { handleRouteError, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 export async function GET() {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
+
+  const role = session!.user.role as UserRole;
+  if (!canManageClubMembers(role)) {
+    return forbidden();
+  }
+
+  const ownClubId = getClubUserClubId({ role, clubId: session!.user.clubId });
 
   try {
     const members = await prisma.member.findMany({
+      where: ownClubId ? { clubId: ownClubId } : undefined,
       orderBy: { lastName: "asc" },
       include: { club: { select: { name: true } } },
     });
