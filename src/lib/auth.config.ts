@@ -16,6 +16,7 @@ export const authConfig = {
         token.id = user.id!;
         token.role = user.role as UserRole;
         token.clubId = user.clubId ?? null;
+        token.mustChangePassword = user.mustChangePassword ?? false;
       }
       return token;
     },
@@ -24,6 +25,7 @@ export const authConfig = {
         session.user.id = token.id as string;
         session.user.role = token.role as UserRole;
         session.user.clubId = (token.clubId as string | null) ?? null;
+        session.user.mustChangePassword = Boolean(token.mustChangePassword);
       }
       return session;
     },

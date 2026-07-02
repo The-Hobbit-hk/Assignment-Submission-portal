@@ -29,6 +29,8 @@ export async function upsertClubPortalLogin(
       password: passwordHash,
       role: login.role,
       clubId: club.id,
+      // Force a password reset on the very first login for seeded accounts.
+      mustChangePassword: true,
     },
     update: {
       name: login.name,

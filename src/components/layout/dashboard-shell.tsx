@@ -2,6 +2,7 @@
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppNavbar } from "@/components/layout/app-navbar";
+import { ForcePasswordReset } from "@/components/auth/force-password-reset";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -18,6 +19,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
         <AppNavbar />
         <main className="flex-1 bg-background p-3 sm:p-4 lg:p-5">{children}</main>
       </div>
+
+      <ForcePasswordReset />
     </div>
   );
 }

@@ -38,6 +38,8 @@ export async function upsertCouncilUser(
       email: councilUser.email.toLowerCase().trim(),
       password: passwordHash,
       role: councilUser.role,
+      // Force a password reset on the very first login for seeded accounts.
+      mustChangePassword: true,
     },
     update: {
       name: councilUser.name,

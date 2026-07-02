@@ -120,6 +120,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
+  mustChangePassword Boolean @default(false)
   role          UserRole  @default(MEMBER)
   clubId        String?
   club          Club?     @relation("ClubLogin", fields: [clubId], references: [id], onDelete: SetNull)

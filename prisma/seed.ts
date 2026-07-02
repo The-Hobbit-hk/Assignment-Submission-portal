@@ -144,6 +144,7 @@ async function main() {
       password: councilHash,
       role: CLUB_LOGIN.role,
       clubId: demoClub.id,
+      mustChangePassword: true,
     },
   });
 

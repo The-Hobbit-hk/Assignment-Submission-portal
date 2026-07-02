@@ -21,14 +21,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.id = user.id!;
         token.role = user.role as UserRole;
         token.clubId = user.clubId ?? null;
+        token.mustChangePassword = user.mustChangePassword ?? false;
       } else if (token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { clubId: true, role: true },
+          select: { clubId: true, role: true, mustChangePassword: true },
         });
         if (dbUser) {
           token.clubId = dbUser.clubId ?? null;
           token.role = dbUser.role as UserRole;
+          token.mustChangePassword = dbUser.mustChangePassword;
         }
       }
       return token;
@@ -38,6 +40,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.id = token.id as string;
         session.user.role = token.role as UserRole;
         session.user.clubId = (token.clubId as string | null) ?? null;
+        session.user.mustChangePassword = Boolean(token.mustChangePassword);
       }
       return session;
     },
@@ -78,6 +81,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           image: user.image,
           role: user.role,
           clubId: user.clubId,
+          mustChangePassword: user.mustChangePassword,
         };
       },
     }),
