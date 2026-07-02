@@ -5,16 +5,16 @@ import { cn } from "@/lib/utils";
 const LOGO_FULL = "/logo-rotaract-3131.png";
 const LOGO_MARK = "/logo-rotaract-mark.png";
 
-/** Official cranberry logo asset ratio (1024×981) */
-const FULL_RATIO = 1024 / 981;
-const FULL_WIDTH = 1024;
-const FULL_HEIGHT = 981;
+/** Official cranberry logo asset ratio (cropped ≈ 794×301) */
+const FULL_RATIO = 794 / 301;
+const FULL_WIDTH = 794;
+const FULL_HEIGHT = 301;
 
 const fullSizes = {
-  nav: "h-10 w-auto max-w-[10.5rem]",
-  md: "h-14 w-auto max-w-[15rem]",
-  lg: "h-20 w-auto max-w-[21rem]",
-  hero: "h-auto w-full max-w-md",
+  nav: "w-[148px]",
+  md: "w-[200px]",
+  lg: "w-[280px]",
+  hero: "w-full max-w-xl",
 } as const;
 
 interface BrandLogoProps {
