@@ -17,6 +17,7 @@ export interface MemberListItem {
   duesProofUrl: string | null;
   bloodGroup: string | null;
   whatsapp: string | null;
+  avatar: string | null;
   points: number;
   club: {
     id: string;
@@ -26,7 +27,6 @@ export interface MemberListItem {
 
 export interface MemberDetail extends MemberListItem {
   bio: string | null;
-  avatar: string | null;
   createdAt: string;
   updatedAt: string;
 }

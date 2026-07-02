@@ -4,13 +4,27 @@ import { requireAuth } from "@/lib/api-auth";
 import { canAccessMemberRecord } from "@/lib/club-access";
 import { canReassignMemberPrivilegedFields } from "@/lib/roles";
 import { serializeMemberDetail } from "@/lib/member";
-import { updateMemberSchema } from "@/lib/validators/member";
+import { updateMemberSchema, MEMBER_SELF_EDITABLE_FIELDS } from "@/lib/validators/member";
 import { logActivity } from "@/lib/activity";
 import { validationError, handleRouteError, notFound, forbidden } from "@/lib/api-errors";
 import type { UserRole } from "@/types/auth";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
+}
+
+/** A member may always view/edit their own record (matched by user id or email). */
+function isOwnMemberRecord(
+  session: { user: { id?: string; email?: string | null } },
+  member: { userId: string | null; email: string }
+): boolean {
+  if (member.userId && session.user.id && member.userId === session.user.id) {
+    return true;
+  }
+  return (
+    !!session.user.email &&
+    member.email.toLowerCase() === session.user.email.toLowerCase()
+  );
 }
 
 export async function GET(_request: Request, { params }: RouteParams) {
@@ -34,7 +48,8 @@ export async function GET(_request: Request, { params }: RouteParams) {
       !canAccessMemberRecord(
         { role, clubId: session!.user.clubId },
         member.clubId
-      )
+      ) &&
+      !isOwnMemberRecord(session!, member)
     ) {
       return forbidden();
     }
@@ -65,21 +80,32 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     const role = session!.user.role as UserRole;
-    if (
-      !canAccessMemberRecord(
-        { role, clubId: session!.user.clubId },
-        existing.clubId
-      )
-    ) {
+    const isManager = canAccessMemberRecord(
+      { role, clubId: session!.user.clubId },
+      existing.clubId
+    );
+    const isSelf = isOwnMemberRecord(session!, existing);
+
+    if (!isManager && !isSelf) {
       return forbidden();
     }
 
-    // Prevent club users from moving a member to another club or self-awarding
-    // score points via the update payload.
-    const data = { ...parsed.data };
-    if (!canReassignMemberPrivilegedFields(role)) {
-      delete data.clubId;
-      delete data.points;
+    let data = { ...parsed.data };
+
+    if (isManager) {
+      // Prevent club users from moving a member to another club or
+      // self-awarding score points via the update payload.
+      if (!canReassignMemberPrivilegedFields(role)) {
+        delete data.clubId;
+        delete data.points;
+      }
+    } else {
+      // Self-service edit: restrict to profile fields (no club/role/status/points).
+      data = Object.fromEntries(
+        Object.entries(data).filter(([key]) =>
+          (MEMBER_SELF_EDITABLE_FIELDS as readonly string[]).includes(key)
+        )
+      );
     }
 
     const member = await prisma.member.update({

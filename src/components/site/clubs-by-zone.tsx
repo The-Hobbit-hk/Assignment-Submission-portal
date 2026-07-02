@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { Building2, Mail, MapPin, Search, Users } from "lucide-react";
 import type { DistrictZoneMeta } from "@/lib/district-clubs-data";
 import type { PublicClub } from "@/lib/public-site-data";
@@ -126,8 +127,19 @@ export function ClubsByZone({
                       className="flex flex-col rounded-xl border border-zinc-200 bg-white p-5 shadow-sm transition hover:border-accent/30 hover:shadow-md"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent">
-                          <Building2 className="h-5 w-5" />
+                        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-accent/10 text-accent">
+                          {club.logo ? (
+                            <Image
+                              src={club.logo}
+                              alt={`${club.name} logo`}
+                              fill
+                              sizes="40px"
+                              className="object-cover"
+                              unoptimized
+                            />
+                          ) : (
+                            <Building2 className="h-5 w-5" />
+                          )}
                         </div>
                         <div className="min-w-0">
                           <h3 className="font-semibold text-zinc-900">{club.name}</h3>

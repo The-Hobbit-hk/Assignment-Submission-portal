@@ -35,7 +35,7 @@ export function ProfileContent() {
         <div className="flex flex-col gap-8 md:flex-row md:items-start">
           <div className="flex flex-col items-center gap-3 md:w-48">
             <Avatar className="h-28 w-28 border-2 border-border/40">
-              <AvatarImage src={user?.image ?? undefined} />
+              <AvatarImage src={member?.avatar ?? user?.image ?? undefined} />
               <AvatarFallback className="bg-muted text-2xl">
                 {displayName
                   .replace("Rtr. ", "")

@@ -76,6 +76,13 @@ async function saveUploadToDisk(file: File, subfolder: string): Promise<string> 
   return `/uploads/${subfolder}/${filename}`;
 }
 
+export const IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
+
+/** True when the uploaded file is an allowed profile/logo image. */
+export function isImageFile(file: File): boolean {
+  return IMAGE_MIME_TYPES.includes(file.type as (typeof IMAGE_MIME_TYPES)[number]);
+}
+
 function getExtFromMime(mime: string) {
   const map: Record<string, string> = {
     "image/jpeg": ".jpg",

@@ -21,6 +21,7 @@ export const createMemberSchema = z.object({
   riId: z.string().max(50).optional(),
   profession: z.string().max(100).optional(),
   bio: z.string().max(2000).optional(),
+  avatar: z.string().max(1000).optional(),
   gender: z.string().max(30).optional(),
   dateOfBirth: z.string().datetime().optional(),
   duesPaid: z.enum(["yes", "no", ""]).optional(),
@@ -32,6 +33,22 @@ export const createMemberSchema = z.object({
 export const updateMemberSchema = createMemberSchema.partial().extend({
   clubId: z.string().min(1).optional(),
 });
+
+/** Profile fields a member may edit on their own record (no club/role/points). */
+export const MEMBER_SELF_EDITABLE_FIELDS = [
+  "firstName",
+  "lastName",
+  "phone",
+  "email",
+  "riId",
+  "profession",
+  "bio",
+  "avatar",
+  "gender",
+  "dateOfBirth",
+  "bloodGroup",
+  "whatsapp",
+] as const;
 
 export const memberQuerySchema = z.object({
   search: z.string().optional(),

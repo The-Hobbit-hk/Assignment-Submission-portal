@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageUpload } from "@/components/shared/image-upload";
+import { useUploadMemberAvatar } from "@/hooks/use-members";
 import type { MemberDetail } from "@/types/member";
 import { formErrorMessage, toast } from "@/lib/toast";
 
@@ -22,6 +24,10 @@ interface MemberFormProps {
   onSubmit: (data: Record<string, unknown>) => Promise<void>;
   submitLabel?: string;
   lockClubId?: string;
+  /** When editing an existing member, enables the profile-photo uploader. */
+  memberId?: string;
+  /** Self-service edit: hide club / role / status controls. */
+  selfRestricted?: boolean;
 }
 
 export function MemberForm({
@@ -30,9 +36,12 @@ export function MemberForm({
   onSubmit,
   submitLabel = "Save Member",
   lockClubId,
+  memberId,
+  selfRestricted = false,
 }: MemberFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const uploadAvatar = useUploadMemberAvatar(memberId ?? "");
   const [form, setForm] = useState({
     clubId: lockClubId ?? initialData?.club?.id ?? "",
     firstName: initialData?.firstName ?? "",
@@ -57,14 +66,22 @@ export function MemberForm({
     setIsLoading(true);
 
     try {
-      await onSubmit({
-        ...form,
+      const payload: Record<string, unknown> = {
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
         phone: form.phone || undefined,
         riId: form.riId || undefined,
         profession: form.profession || undefined,
         bio: form.bio || undefined,
-        points: Number(form.points),
-      });
+      };
+      if (!selfRestricted) {
+        payload.clubId = form.clubId;
+        payload.role = form.role;
+        payload.status = form.status;
+        payload.points = Number(form.points);
+      }
+      await onSubmit(payload);
       toast.success(
         initialData?.id ? "Member updated successfully" : "Member created successfully"
       );
@@ -80,6 +97,18 @@ export function MemberForm({
       {error && (
         <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           {error}
+        </div>
+      )}
+
+      {memberId && (
+        <div className="space-y-2">
+          <Label>Profile photo</Label>
+          <ImageUpload
+            value={initialData?.avatar}
+            shape="circle"
+            label="Upload photo"
+            onUpload={async (file) => (await uploadAvatar.mutateAsync(file)).avatar}
+          />
         </div>
       )}
 
@@ -162,35 +191,39 @@ export function MemberForm({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label>Role</Label>
-          <Select value={form.role} onValueChange={(v) => update("role", v)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="PRESIDENT">President</SelectItem>
-              <SelectItem value="SECRETARY">Secretary</SelectItem>
-              <SelectItem value="TREASURER">Treasurer</SelectItem>
-              <SelectItem value="DIRECTOR">Director</SelectItem>
-              <SelectItem value="MEMBER">Member</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Status</Label>
-          <Select value={form.status} onValueChange={(v) => update("status", v)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="INACTIVE">Inactive</SelectItem>
-              <SelectItem value="ALUMNI">Alumni</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <div className={selfRestricted ? "space-y-2" : "grid gap-4 sm:grid-cols-3"}>
+        {!selfRestricted && (
+          <>
+            <div className="space-y-2">
+              <Label>Role</Label>
+              <Select value={form.role} onValueChange={(v) => update("role", v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PRESIDENT">President</SelectItem>
+                  <SelectItem value="SECRETARY">Secretary</SelectItem>
+                  <SelectItem value="TREASURER">Treasurer</SelectItem>
+                  <SelectItem value="DIRECTOR">Director</SelectItem>
+                  <SelectItem value="MEMBER">Member</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select value={form.status} onValueChange={(v) => update("status", v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
+                  <SelectItem value="ALUMNI">Alumni</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
         <div className="space-y-2">
           <Label htmlFor="profession">Profession</Label>
           <Input

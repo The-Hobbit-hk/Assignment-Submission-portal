@@ -20,12 +20,15 @@ interface ClubFormProps {
   initialData?: Partial<ClubDetail>;
   onSubmit: (data: Record<string, unknown>) => Promise<void>;
   submitLabel?: string;
+  /** District admins get all fields; club logins edit their profile subset. */
+  fullControl?: boolean;
 }
 
 export function ClubForm({
   initialData,
   onSubmit,
   submitLabel = "Save Club",
+  fullControl = true,
 }: ClubFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -49,14 +52,18 @@ export function ClubForm({
     setIsLoading(true);
 
     try {
-      await onSubmit({
-        ...form,
-        charterNumber: form.charterNumber || undefined,
+      const payload: Record<string, unknown> = {
+        name: form.name,
         city: form.city || undefined,
         zone: form.zone || undefined,
         description: form.description || undefined,
-        serviceHours: Number(form.serviceHours),
-      });
+      };
+      if (fullControl) {
+        payload.charterNumber = form.charterNumber || undefined;
+        payload.status = form.status;
+        payload.serviceHours = Number(form.serviceHours);
+      }
+      await onSubmit(payload);
       toast.success(
         initialData?.id ? "Club updated successfully" : "Club created successfully"
       );
@@ -85,28 +92,30 @@ export function ClubForm({
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="charterNumber">Charter number</Label>
-          <Input
-            id="charterNumber"
-            value={form.charterNumber}
-            onChange={(e) => update("charterNumber", e.target.value)}
-          />
+      {fullControl && (
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="charterNumber">Charter number</Label>
+            <Input
+              id="charterNumber"
+              value={form.charterNumber}
+              onChange={(e) => update("charterNumber", e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Status</Label>
+            <Select value={form.status} onValueChange={(v) => update("status", v)}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="INACTIVE">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label>Status</Label>
-          <Select value={form.status} onValueChange={(v) => update("status", v)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ACTIVE">Active</SelectItem>
-              <SelectItem value="INACTIVE">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">

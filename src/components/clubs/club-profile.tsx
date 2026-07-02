@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { ArrowLeft, Building2, MapPin, User } from "lucide-react";
@@ -12,8 +13,9 @@ import { ClubAnalyticsPanel } from "@/components/clubs/club-analytics";
 import { ClubPerformancePanel } from "@/components/clubs/club-performance";
 import { ClubEventsList } from "@/components/clubs/club-events-list";
 import { ClubMembersList } from "@/components/clubs/club-members-list";
+import { ClubEditDialog } from "@/components/clubs/club-edit-dialog";
 import { useClub } from "@/hooks/use-clubs";
-import { isClubUser } from "@/lib/roles";
+import { canManageClubs, isClubUser } from "@/lib/roles";
 import type { UserRole } from "@/types/auth";
 
 interface ClubProfileProps {
@@ -25,6 +27,8 @@ export function ClubProfile({ clubId }: ClubProfileProps) {
   const role = (session?.user?.role ?? "MEMBER") as UserRole;
   const clubUser = isClubUser(role);
   const ownClub = clubUser && session?.user?.clubId === clubId;
+  const districtManager = canManageClubs(role);
+  const canEdit = ownClub || districtManager;
 
   const { data: club, isLoading, error } = useClub(clubId);
 
@@ -50,8 +54,19 @@ export function ClubProfile({ clubId }: ClubProfileProps) {
           </Link>
         </Button>
         <div className="flex flex-1 items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-accent/15 text-accent">
-            <Building2 className="h-7 w-7" />
+          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-accent/15 text-accent">
+            {club.logo ? (
+              <Image
+                src={club.logo}
+                alt={`${club.name} logo`}
+                fill
+                sizes="56px"
+                className="object-cover"
+                unoptimized
+              />
+            ) : (
+              <Building2 className="h-7 w-7" />
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -66,6 +81,7 @@ export function ClubProfile({ clubId }: ClubProfileProps) {
             )}
           </div>
         </div>
+        {canEdit && <ClubEditDialog club={club} fullControl={districtManager} />}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

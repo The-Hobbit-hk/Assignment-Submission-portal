@@ -64,6 +64,25 @@ export function useUpdateMember(id: string) {
   });
 }
 
+export function useUploadMemberAvatar(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiJson<{ avatar: string | null }>(`/api/members/${id}/avatar`, {
+        method: "POST",
+        body: formData,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["members"] });
+      queryClient.invalidateQueries({ queryKey: ["members", id] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+    },
+  });
+}
+
 export function useDeleteMember() {
   const queryClient = useQueryClient();
   return useMutation({

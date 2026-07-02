@@ -66,6 +66,7 @@ async function fetchPublicClubsByZone() {
         status: true,
         description: true,
         charterNumber: true,
+        logo: true,
         _count: { select: { members: true } },
       },
     }),
@@ -108,6 +109,7 @@ async function fetchPublicClubsByZone() {
       status: club.status,
       description: club.description,
       charterNumber: club.charterNumber,
+      logo: club.logo,
       memberCount: club._count.members,
       presidentName: presidentName || null,
       presidentEmail: president?.email ?? null,
@@ -185,6 +187,7 @@ export type PublicClub = {
   status: string;
   description: string | null;
   charterNumber: string | null;
+  logo: string | null;
   memberCount: number;
   presidentName: string | null;
   presidentEmail: string | null;

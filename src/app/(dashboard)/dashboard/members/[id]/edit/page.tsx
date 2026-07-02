@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MemberForm } from "@/components/members/member-form";
 import { useMember, useUpdateMember } from "@/hooks/use-members";
 import { useClubsList } from "@/hooks/use-clubs";
-import { isClubUser } from "@/lib/roles";
+import { canManageClubMembers, isClubUser } from "@/lib/roles";
 import type { UserRole } from "@/types/auth";
 
 interface PageProps {
@@ -24,14 +24,20 @@ export default function EditMemberPage({ params }: PageProps) {
   const { data: session } = useSession();
   const role = (session?.user?.role ?? "MEMBER") as UserRole;
   const clubUser = isClubUser(role);
+  const isManager = canManageClubMembers(role);
   const { data: member, isLoading } = useMember(id);
   const updateMutation = useUpdateMember(id);
-  const { data: clubsData } = useClubsList({ limit: 100 }, { enabled: !clubUser });
+
+  // A member who is not a club/district manager may only edit their own record.
+  const selfRestricted = !isManager;
+  const lockClub = clubUser || selfRestricted;
+
+  const { data: clubsData } = useClubsList({ limit: 100 }, { enabled: !lockClub });
   const clubs =
-    clubUser && member
+    lockClub && member
       ? [{ id: member.club.id, name: member.club.name }]
       : (clubsData?.data?.map((c) => ({ id: c.id, name: c.name })) ?? []);
-  const lockClubId = clubUser ? member?.club.id : undefined;
+  const lockClubId = lockClub ? member?.club.id : undefined;
 
   if (isLoading) {
     return <Skeleton className="mx-auto h-96 max-w-2xl" />;
@@ -65,6 +71,8 @@ export default function EditMemberPage({ params }: PageProps) {
           <MemberForm
             clubs={clubs}
             lockClubId={lockClubId}
+            memberId={id}
+            selfRestricted={selfRestricted}
             initialData={member}
             submitLabel="Save Changes"
             onSubmit={async (data) => {

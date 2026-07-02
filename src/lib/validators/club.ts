@@ -10,10 +10,20 @@ export const createClubSchema = z.object({
   status: clubStatusEnum.default("ACTIVE"),
   foundedAt: z.string().datetime().optional(),
   description: z.string().max(5000).optional(),
+  logo: z.string().max(1000).optional(),
   presidentId: z.string().optional(),
   secretaryId: z.string().optional(),
   serviceHours: z.number().int().min(0).optional(),
 });
+
+/** Fields a club login may edit on its own club profile. */
+export const CLUB_SELF_EDITABLE_FIELDS = [
+  "name",
+  "city",
+  "zone",
+  "description",
+  "logo",
+] as const;
 
 export const updateClubSchema = createClubSchema.partial();
 

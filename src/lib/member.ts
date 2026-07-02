@@ -27,6 +27,7 @@ export function serializeMemberListItem(member: MemberWithClub): MemberListItem 
     duesProofUrl: member.duesProofUrl,
     bloodGroup: member.bloodGroup,
     whatsapp: member.whatsapp,
+    avatar: member.avatar,
     points: member.points,
     club: { id: member.club.id, name: member.club.name },
   };
@@ -36,7 +37,6 @@ export function serializeMemberDetail(member: MemberWithClub): MemberDetail {
   return {
     ...serializeMemberListItem(member),
     bio: member.bio,
-    avatar: member.avatar,
     createdAt: member.createdAt.toISOString(),
     updatedAt: member.updatedAt.toISOString(),
   };
