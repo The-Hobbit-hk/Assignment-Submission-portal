@@ -51,9 +51,16 @@ export const SITE_NAV: SiteNavItem[] = [
 ];
 
 export const SOCIAL_LINKS = [
-  { label: "Facebook", href: "https://facebook.com" },
-  { label: "LinkedIn", href: "https://linkedin.com" },
-  { label: "Twitter", href: "https://twitter.com" },
-  { label: "Instagram", href: "https://instagram.com" },
-  { label: "YouTube", href: "https://youtube.com" },
+  {
+    label: "Instagram",
+    href: "https://www.instagram.com/rotaractdistrict3131?igsh=MjlnMDdwbHpvYmIw",
+  },
+  {
+    label: "Facebook",
+    href: "https://www.facebook.com/share/198JKSdDAt/",
+  },
+  {
+    label: "YouTube",
+    href: "https://youtube.com/@rotaractdistrict3131?si=N5xQM5pCyE5gWWHI",
+  },
 ] as const;
