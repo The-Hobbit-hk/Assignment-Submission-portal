@@ -29,7 +29,7 @@ export default async function CalendarPage() {
     <>
       <PageHero
         title="Calendar"
-        subtitle="Next district dates, installations, and registrations — at a glance for RIY 2026-27."
+        subtitle="Upcoming District Events, Installations & Registrations — At a Glance for RIY 2026–27."
         backgroundImage="/home-hero-background.png"
         large
       />

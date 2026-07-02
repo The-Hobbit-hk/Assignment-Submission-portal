@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { CONTACT } from "@/lib/site-content";
 import { SOCIAL_LINKS } from "@/config/site-navigation";
+import { SocialIcon } from "@/components/site/social-links";
 import { toast } from "@/lib/toast";
 
 function ContactForm({
@@ -54,7 +55,7 @@ function ContactForm({
           />
           <button
             type="submit"
-            className="rounded-sm bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-800"
+            className="rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90"
           >
             {submitLabel}
           </button>
@@ -104,12 +105,37 @@ export function ContactPageContent() {
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 text-xs text-zinc-600 hover:text-accent"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 text-zinc-600 transition hover:border-accent hover:bg-accent/5 hover:text-accent"
                 aria-label={social.label}
               >
-                {social.label[0]}
+                <SocialIcon label={social.label} className="h-4 w-4" />
               </a>
             ))}
+          </div>
+
+          <div className="mt-12">
+            <h3 className="text-lg font-semibold text-zinc-900">Find Us.</h3>
+            <div className="mt-4 overflow-hidden rounded-xl border border-zinc-200 shadow-sm">
+              <iframe
+                title="Rotaract District 3131 office location"
+                src={`https://www.google.com/maps?q=${encodeURIComponent(CONTACT.address)}&output=embed`}
+                width="100%"
+                height="360"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="block h-[320px] w-full border-0 sm:h-[360px]"
+                allowFullScreen
+              />
+            </div>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(CONTACT.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-accent hover:underline"
+            >
+              <MapPin className="h-4 w-4" />
+              Open in Google Maps
+            </a>
           </div>
         </div>
       </section>

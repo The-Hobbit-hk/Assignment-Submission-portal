@@ -1,5 +1,6 @@
 import { Mail, MapPin, Phone } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { SocialIcon } from "@/components/site/social-links";
 import { SOCIAL_LINKS } from "@/config/site-navigation";
 import { CONTACT } from "@/lib/site-content";
 
@@ -54,10 +55,10 @@ export function SiteFooter() {
                 href={social.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 text-xs text-zinc-600 transition hover:border-accent hover:text-accent"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-zinc-300 text-zinc-600 transition hover:border-accent hover:bg-accent/5 hover:text-accent"
                 aria-label={social.label}
               >
-                {social.label[0]}
+                <SocialIcon label={social.label} className="h-4 w-4" />
               </a>
             ))}
           </div>

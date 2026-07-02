@@ -37,7 +37,7 @@ export function JoinRotaractSection() {
             </Link>
             <Link
               href="/contact"
-              className="inline-flex rounded-full bg-zinc-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-zinc-800"
+              className="inline-flex rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90"
             >
               Contact district team
             </Link>

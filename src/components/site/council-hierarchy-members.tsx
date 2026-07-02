@@ -29,18 +29,16 @@ export function CouncilHierarchyMembers({
       <p className="mx-auto mt-4 max-w-lg text-center text-xs text-zinc-500 sm:text-sm">
         Hover a card for club and contact details.
       </p>
-      <div
-        className={cn(
-          "mt-8 grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 lg:gap-6",
-          members.length <= 3 && "md:grid-cols-3",
-          members.length === 2 && "max-w-2xl mx-auto"
-        )}
-      >
+      {/* Fixed-width, centered cards so every group renders identical card sizes
+          regardless of how many members it has. */}
+      <div className="mt-8 flex flex-wrap justify-center gap-4 sm:gap-5 lg:gap-6">
         {members.map((member, index) => (
           <SiteReveal
             key={member.email}
             delay={Math.min(index * 60, 420)}
-            className="h-full"
+            className={cn(
+              "w-[calc(50%-0.5rem)] sm:w-[220px] lg:w-[236px]"
+            )}
           >
             <CouncilMemberCard member={member} />
           </SiteReveal>

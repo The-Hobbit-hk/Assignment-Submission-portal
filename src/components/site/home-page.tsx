@@ -19,16 +19,22 @@ export function HomePage() {
         large
       />
 
-      <DistrictTrustBar variant="light" />
+      <div className="relative z-10 px-4 lg:px-8">
+        <div className="mx-auto -mt-6 max-w-4xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg sm:-mt-8">
+          <DistrictTrustBar variant="light" className="border-t-0" />
+        </div>
+      </div>
 
       <SiteReveal>
         <section className="py-10 sm:py-12 lg:py-14">
           <div className="mx-auto max-w-6xl px-4 text-center lg:px-8">
-            <h2 className="bg-gradient-to-r from-amber-600 via-amber-500 to-rose-600 bg-clip-text font-display text-3xl font-bold text-transparent md:text-4xl">
+            <h2 className="bg-gradient-to-r from-amber-600 via-amber-500 to-rose-600 bg-clip-text text-center font-display text-3xl font-bold text-transparent md:text-4xl">
               About us
             </h2>
-            <div className="depth-card relative mx-auto mt-8 max-w-4xl overflow-hidden rounded-2xl p-8">
-              <BrandLogo variant="full" size="lg" linked={false} className="mx-auto" />
+            <div className="depth-card relative mx-auto mt-8 max-w-4xl overflow-hidden rounded-2xl p-8 text-center">
+              <div className="flex justify-center">
+                <BrandLogo variant="full" size="lg" linked={false} />
+              </div>
               <p className="mx-auto mt-8 max-w-2xl text-zinc-600">
                 Empowering young leaders through fellowship, service, and professional
                 development across {siteConfig.organization} {siteConfig.district}.

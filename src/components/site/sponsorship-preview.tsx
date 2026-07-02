@@ -22,7 +22,7 @@ export function SponsorshipPreview() {
 
             <Link
               href="/sponsorship"
-              className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 sm:self-center"
+              className="inline-flex shrink-0 items-center gap-2 self-start rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90 sm:self-center"
             >
               View packages
               <ArrowRight className="h-4 w-4" aria-hidden />

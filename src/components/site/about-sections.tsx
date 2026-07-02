@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { SiteReveal } from "@/components/site/site-reveal";
+import { siteConfig } from "@/config/site";
 import { ABOUT_PAGES, ABOUT_SECTION_ORDER, type ContentPage } from "@/lib/site-content";
 import { cn } from "@/lib/utils";
 
@@ -36,8 +37,26 @@ function AboutSectionBlock({ id, content }: { id: string; content: ContentPage }
                 />
               </div>
             ) : (
-              <div className="flex min-h-[220px] w-full max-w-md items-center justify-center rounded-xl border border-zinc-200 bg-zinc-50 p-8">
-                <BrandLogo variant="full" size="lg" linked={false} />
+              <div className="flex min-h-[360px] w-full max-w-md flex-col items-center justify-center gap-6 rounded-2xl border border-zinc-200 bg-gradient-to-br from-rose-50 via-white to-amber-50 p-8 text-center shadow-sm">
+                <BrandLogo variant="full" size="lg" linked={false} className="w-full max-w-[320px]" />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
+                    RIY {siteConfig.rotaryYear} · {siteConfig.theme}
+                  </p>
+                  <p className="mx-auto mt-2 max-w-xs text-xs leading-relaxed text-zinc-500">
+                    {siteConfig.themeTagline}
+                  </p>
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {["101 Clubs", "2,700+ Rotaractors", "Pune & Raigad"].map((chip) => (
+                    <span
+                      key={chip}
+                      className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-600 shadow-sm"
+                    >
+                      {chip}
+                    </span>
+                  ))}
+                </div>
               </div>
             )}
           </div>

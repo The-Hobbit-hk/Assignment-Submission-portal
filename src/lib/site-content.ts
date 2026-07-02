@@ -161,7 +161,6 @@ export const ABOUT_SECTION_ORDER = [
   "rotaract-district-3131",
   "rotary-international",
   "message-riy-2026-27",
-  "from-leaders-desk",
 ] as const;
 
 export const ABOUT_PAGES: Record<string, ContentPage> = {
@@ -202,15 +201,6 @@ export const ABOUT_PAGES: Record<string, ContentPage> = {
       "Together, let us make RIY 2026-27 a year of empowered leaders, stronger communities, and proud Rotaract across RID 3131.",
     ],
     signatory: "DRR Dr. Karishma Awari · RIY 2026-27 · RID 3131",
-  },
-  "from-leaders-desk": {
-    title: "From Leaders Desk",
-    badge: "Leadership",
-    paragraphs: [
-      "Leadership in Rotaract District 3131 is built on accountability, transparency, and service above self. The district team works closely with club presidents and secretaries to ensure every initiative aligns with Rotary's core values.",
-      "Through regular council meetings, bluebook assignments, and monthly reporting, we maintain excellence across administration, events, and community projects.",
-      "We invite every member to engage with district programs, share feedback, and contribute to a culture where young leaders grow into changemakers.",
-    ],
   },
 };
 

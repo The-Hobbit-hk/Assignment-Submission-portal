@@ -13,7 +13,6 @@ export const SITE_NAV: SiteNavItem[] = [
       { label: "Rotaract District 3131", href: "/about#rotaract-district-3131" },
       { label: "Rotary International", href: "/about#rotary-international" },
       { label: "Message for RIY 2026-27", href: "/about#message-riy-2026-27" },
-      { label: "From Leaders Desk", href: "/about#from-leaders-desk" },
     ],
   },
   {
