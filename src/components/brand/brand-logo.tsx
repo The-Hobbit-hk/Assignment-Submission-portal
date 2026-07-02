@@ -5,19 +5,21 @@ import { cn } from "@/lib/utils";
 const LOGO_FULL = "/logo-rotaract-3131.png";
 const LOGO_MARK = "/logo-rotaract-mark.png";
 
-/** Cropped asset ratio ≈ 448×168 */
-const FULL_RATIO = 448 / 168;
+/** Official cranberry logo asset ratio (1024×981) */
+const FULL_RATIO = 1024 / 981;
+const FULL_WIDTH = 1024;
+const FULL_HEIGHT = 981;
 
-const fullWidths = {
-  nav: "w-[148px]",
-  md: "w-[200px]",
-  lg: "w-[280px]",
-  hero: "w-full max-w-xl",
+const fullSizes = {
+  nav: "h-10 w-auto max-w-[10.5rem]",
+  md: "h-14 w-auto max-w-[15rem]",
+  lg: "h-20 w-auto max-w-[21rem]",
+  hero: "h-auto w-full max-w-md",
 } as const;
 
 interface BrandLogoProps {
   variant?: "full" | "mark" | "sidebar";
-  size?: keyof typeof fullWidths;
+  size?: keyof typeof fullSizes;
   href?: string;
   linked?: boolean;
   className?: string;
@@ -70,12 +72,12 @@ export function BrandLogo({
     <Image
       src={src}
       alt="Rotaract District 3131"
-      width={isMark ? 171 : 448}
-      height={isMark ? 168 : 168}
+      width={isMark ? 171 : FULL_WIDTH}
+      height={isMark ? 168 : FULL_HEIGHT}
       priority={priority}
       className={cn(
         "object-contain",
-        isMark ? "h-10 w-10" : cn("h-auto", fullWidths[size]),
+        isMark ? "h-10 w-10" : cn("h-auto", fullSizes[size]),
         className
       )}
       style={!isMark ? { aspectRatio: FULL_RATIO } : undefined}
