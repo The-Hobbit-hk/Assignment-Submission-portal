@@ -49,8 +49,8 @@ async function main() {
       startDate,
       endDate,
       location: installation.location,
-      registrationUrl: installation.meetUrl,
-      description: `Join online: ${installation.meetUrl}`,
+      registrationUrl: installation.meetUrl ?? null,
+      description: installation.meetUrl ? `Join online: ${installation.meetUrl}` : null,
       serviceHours: 2,
       attendees: 0,
     };

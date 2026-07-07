@@ -6,7 +6,8 @@ export type DistrictInstallationSeed = {
   startDate: string;
   endDate: string;
   location: string;
-  meetUrl: string;
+  /** Optional Google Meet link; omit for in-person-only installations. */
+  meetUrl?: string;
 };
 
 export const DISTRICT_INSTALLATION_EVENTS: DistrictInstallationSeed[] = [
@@ -31,9 +32,31 @@ export const DISTRICT_INSTALLATION_EVENTS: DistrictInstallationSeed[] = [
   {
     clubCharterId: "215158",
     title: "Club Installation — Rotaract Club of Daund College",
-    startDate: "2026-07-26T16:00:00+05:30",
-    endDate: "2026-07-26T18:00:00+05:30",
+    startDate: "2026-07-25T16:00:00+05:30",
+    endDate: "2026-07-25T18:00:00+05:30",
     location: "CREATIVE COMPUTER — Daund, Maharashtra 413801, India",
     meetUrl: "https://meet.google.com/epr-uxdu-tqv",
+  },
+  {
+    clubCharterId: "8825271",
+    title: "Club Installation — Rotaract Club of Sancheti Healthcare Academy",
+    startDate: "2026-07-10T12:00:00+05:30",
+    endDate: "2026-07-10T14:00:00+05:30",
+    location:
+      "Sancheti Healthcare Academy — Thube Park, 11/12, Narveer Tanaji Wadi, Shivajinagar, Pune",
+  },
+  {
+    clubCharterId: "7295",
+    title: "Club Installation — Rotaract Club of Pimpri",
+    startDate: "2026-07-26T20:00:00+05:30",
+    endDate: "2026-07-26T22:00:00+05:30",
+    location: "Rotary Club of Pimpri, Pune — Sambhajinagar, Chinchwad, Pimpri-Chinchwad, Pune",
+  },
+  {
+    clubCharterId: "85530",
+    title: "Club Installation — Rotaract Club of Pune Mideast",
+    startDate: "2026-08-08T19:00:00+05:30",
+    endDate: "2026-08-08T22:00:00+05:30",
+    location: "CMA Bhawan — Bhagyoday Colony, Hingne Budrukh, Karvenagar, Pune",
   },
 ];
