@@ -8,12 +8,15 @@ import {
 } from "@/lib/citations";
 import { siteConfig } from "@/config/site";
 import { citationStandingsQuerySchema } from "@/lib/validators/citations";
-import { validationError, handleRouteError } from "@/lib/api-errors";
+import { forbidden, validationError, handleRouteError } from "@/lib/api-errors";
+import { canViewCitationStandings } from "@/lib/roles";
 import type { CitationCadence } from "@/generated/prisma/client";
 
 export async function GET(request: Request) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
+
+  if (!canViewCitationStandings(session!.user.role)) return forbidden();
 
   const { searchParams } = new URL(request.url);
   const parsed = citationStandingsQuerySchema.safeParse(

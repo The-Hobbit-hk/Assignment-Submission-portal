@@ -2,7 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { jsonCached } from "@/lib/api-response";
 import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
-import { handleRouteError } from "@/lib/api-errors";
+import { forbidden, handleRouteError } from "@/lib/api-errors";
+import { canViewCouncilStandings, isCouncilMember } from "@/lib/roles";
 import {
   ensureCouncilScoresSynced,
   fetchCouncilLeaderboard,
@@ -11,13 +12,17 @@ import {
 } from "@/lib/council";
 
 export async function GET(request: Request) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
 
+  const role = session!.user.role;
+  if (!canViewCouncilStandings(role)) return forbidden();
+
   const { searchParams } = new URL(request.url);
-  const entityType = (searchParams.get("entityType") ?? "MEMBER") as
-    | "CLUB"
-    | "MEMBER";
+  // Council members are scoped to council-member standings only.
+  const entityType = isCouncilMember(role)
+    ? "MEMBER"
+    : ((searchParams.get("entityType") ?? "MEMBER") as "CLUB" | "MEMBER");
   const month = parseInt(
     searchParams.get("month") ?? String(new Date().getMonth() + 1)
   );

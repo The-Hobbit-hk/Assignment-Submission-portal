@@ -89,8 +89,21 @@ export function canSubmitCitations(role: UserRole) {
   return isClubUser(role);
 }
 
+/**
+ * Club (citation) standings — visible to club users and district oversight roles.
+ * Council members are intentionally excluded: they only see council standings.
+ */
 export function canViewCitationStandings(role: UserRole) {
-  return role !== "MEMBER";
+  return role !== "MEMBER" && !isCouncilMember(role);
+}
+
+/**
+ * Council live-score standings — visible to council members and district
+ * oversight roles. Club users are intentionally excluded: they only see club
+ * standings.
+ */
+export function canViewCouncilStandings(role: UserRole) {
+  return role !== "MEMBER" && !isClubUser(role);
 }
 
 /** Professional Assistance Officers and district admins can post jobs. */
@@ -175,14 +188,21 @@ export function getNavigationForRole(
   if (DISTRICT_ROLES.includes(role) || role === "REPORTING_SECRETARY") {
     nav.push(
       { title: "All Members", href: "/dashboard/members", icon: Users },
-      { title: "Clubs", href: "/dashboard/clubs", icon: Building2 },
-      { title: "Council Live Scores", href: "/dashboard/council-scores", icon: BarChart3 }
+      { title: "Clubs", href: "/dashboard/clubs", icon: Building2 }
     );
   } else if (isClubUser(role) && clubId) {
     nav.push(
       { title: "Members", href: `/dashboard/members?clubId=${clubId}`, icon: Users },
       { title: "My Club", href: `/dashboard/clubs/${clubId}`, icon: Building2 }
     );
+  }
+
+  if (canViewCouncilStandings(role)) {
+    nav.push({
+      title: "Council Live Scores",
+      href: "/dashboard/council-scores",
+      icon: BarChart3,
+    });
   }
 
   if (isCouncilMember(role)) {

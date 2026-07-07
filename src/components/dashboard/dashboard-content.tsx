@@ -5,15 +5,17 @@ import { useSession } from "next-auth/react";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { CalendarWidget } from "@/components/dashboard/calendar-widget";
 import { CitationStandingsWidget } from "@/components/dashboard/citation-standings-widget";
+import { CouncilScoresWidget } from "@/components/dashboard/council-scores-widget";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { DashboardSkeleton } from "@/components/dashboard/dashboard-skeleton";
-import { DISTRICT_ROLES, isClubUser } from "@/lib/roles";
+import { DISTRICT_ROLES, isClubUser, isCouncilMember } from "@/lib/roles";
 import type { UserRole } from "@/types/auth";
 
 export function DashboardContent() {
   const { data: session } = useSession();
   const role = (session?.user?.role ?? "MEMBER") as UserRole;
   const clubUser = isClubUser(role);
+  const councilUser = isCouncilMember(role);
   const showMemberLeaderboard = DISTRICT_ROLES.includes(role);
 
   const { data, isLoading, error } = useDashboard();
@@ -31,7 +33,7 @@ export function DashboardContent() {
   const now = new Date();
   const monthLabel = now.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
   const eventCount = data.calendarEvents.length;
-  const leaderCount = clubUser ? 0 : data.leaderboard.length;
+  const leaderCount = clubUser || councilUser ? 0 : data.leaderboard.length;
 
   return (
     <div className="space-y-5">
@@ -55,7 +57,7 @@ export function DashboardContent() {
                 <span className="font-semibold text-foreground">{eventCount}</span> events this month
               </span>
             </div>
-            {!clubUser && (
+            {!clubUser && !councilUser && (
               <div className="depth-btn-surface flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
                 <Trophy className="h-4 w-4 text-amber-500" />
                 <span>
@@ -76,7 +78,9 @@ export function DashboardContent() {
           <CalendarWidget events={data.calendarEvents} />
         </div>
         <div className="lg:col-span-2">
-          {clubUser ? (
+          {councilUser ? (
+            <CouncilScoresWidget limit={5} />
+          ) : clubUser ? (
             <CitationStandingsWidget limit={5} />
           ) : showMemberLeaderboard ? (
             <div className="space-y-5">
