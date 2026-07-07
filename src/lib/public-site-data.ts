@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
+import { fetchGoogleCalendarInstallations } from "@/lib/google-calendar-feed";
 import {
   publicCalendarEventWhere,
   publicDistrictEventWhere,
@@ -8,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 
 const PUBLIC_EVENTS_REVALIDATE = 120;
 const PUBLIC_CLUBS_REVALIDATE = 300;
+const GOOGLE_FEED_REVALIDATE = 180;
 
 const publicEventSelect = {
   id: true,
@@ -165,9 +167,48 @@ const getCachedPublicClubsByZone = unstable_cache(
   { revalidate: PUBLIC_CLUBS_REVALIDATE, tags: ["public-clubs"] }
 );
 
+const getCachedGoogleInstallations = unstable_cache(
+  fetchGoogleCalendarInstallations,
+  ["public-google-installations"],
+  { revalidate: GOOGLE_FEED_REVALIDATE, tags: ["public-events"] }
+);
+
+/** Normalize a title so "Club Installation — X", "Club Installation - X" and
+ * "Club Installation ~ X" collapse to the same de-dup key. */
+function eventDedupKey(title: string, startDate: Date) {
+  const normalizedTitle = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  const day = startDate.toISOString().slice(0, 10);
+  return `${normalizedTitle}|${day}`;
+}
+
 export async function getPublicCalendarEvents() {
-  const events = await getCachedPublicCalendarEvents();
-  return events.map(hydratePublicEvent);
+  const [dbEvents, googleEvents] = await Promise.all([
+    getCachedPublicCalendarEvents(),
+    getCachedGoogleInstallations(),
+  ]);
+
+  const hydratedDb = dbEvents.map(hydratePublicEvent);
+
+  // Prefer the DB copy when an installation exists in both sources.
+  const seen = new Set(
+    hydratedDb.map((event) => eventDedupKey(event.title, event.startDate))
+  );
+
+  const hydratedGoogle = googleEvents
+    .map(hydratePublicEvent)
+    .filter((event) => {
+      const key = eventDedupKey(event.title, event.startDate);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+  return [...hydratedDb, ...hydratedGoogle].sort(
+    (a, b) => a.startDate.getTime() - b.startDate.getTime()
+  );
 }
 
 export async function getPublicDistrictEvents() {
