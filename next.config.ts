@@ -26,6 +26,7 @@ const nextConfig: NextConfig = {
     "pdfkit",
     "exceljs",
     "@supabase/supabase-js",
+    "node-ical",
   ],
   images: {
     remotePatterns: [

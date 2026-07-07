@@ -50,10 +50,11 @@ export async function fetchGoogleCalendarInstallations(): Promise<GoogleFeedEven
     .trim();
 
   try {
+    // Caching is owned by the surrounding unstable_cache wrapper; do not pass
+    // an explicit `cache`/`revalidate` here (Next.js forbids `no-store` inside
+    // unstable_cache and it breaks the production build).
     const res = await fetch(url, {
       headers: { "User-Agent": "rotaract-district-3131-calendar" },
-      // Let unstable_cache own the caching; always fetch fresh here.
-      cache: "no-store",
     });
     if (!res.ok) {
       console.error(`Google Calendar feed responded ${res.status}`);
