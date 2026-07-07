@@ -1,5 +1,4 @@
 import { Quote } from "lucide-react";
-import { DISTRICT_TESTIMONIALS } from "@/lib/site-content";
 
 export function TestimonialsSection() {
   return (
@@ -18,23 +17,15 @@ export function TestimonialsSection() {
           </p>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {DISTRICT_TESTIMONIALS.map((item) => (
-            <figure
-              key={item.name}
-              className="depth-card flex h-full flex-col rounded-2xl border border-zinc-200/80 bg-white p-6"
-            >
-              <Quote className="h-8 w-8 text-accent/25" aria-hidden />
-              <blockquote className="mt-4 flex-1 text-sm leading-relaxed text-zinc-700">
-                &ldquo;{item.quote}&rdquo;
-              </blockquote>
-              <figcaption className="mt-5 border-t border-zinc-100 pt-4">
-                <p className="font-semibold text-zinc-900">{item.name}</p>
-                <p className="mt-0.5 text-xs font-medium text-accent">{item.role}</p>
-                <p className="mt-1 text-xs text-zinc-500">{item.club}</p>
-              </figcaption>
-            </figure>
-          ))}
+        <div className="depth-card mx-auto flex max-w-2xl flex-col items-center rounded-2xl border border-zinc-200/80 bg-white px-6 py-14 text-center">
+          <Quote className="h-10 w-10 text-accent/30" aria-hidden />
+          <p className="mt-5 font-display text-xl font-bold text-zinc-900 sm:text-2xl">
+            Coming soon
+          </p>
+          <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-600">
+            We&apos;re collecting stories from Rotaractors across the district.
+            Check back soon to hear their experiences.
+          </p>
         </div>
       </div>
     </section>
