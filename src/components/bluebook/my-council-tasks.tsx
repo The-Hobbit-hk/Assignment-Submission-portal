@@ -23,17 +23,19 @@ import {
 } from "@/hooks/use-council-assignments";
 import { reportStatusLabel } from "@/lib/bluebook-labels";
 import { getReportingPeriodLabel } from "@/lib/reporting";
+import { getCurrentRotaryYear, rotaryMonthOptions } from "@/lib/rotary-year";
 import { toast } from "@/lib/toast";
-
-const MONTHS = Array.from({ length: 12 }, (_, i) => ({
-  value: i + 1,
-  label: new Date(2000, i, 1).toLocaleString("en-IN", { month: "long" }),
-}));
 
 export function MyCouncilTasks() {
   const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
+  const monthOptions = rotaryMonthOptions(getCurrentRotaryYear(now).startYear, {
+    long: true,
+    withYear: true,
+  });
+  const [period, setPeriod] = useState(
+    () => `${now.getMonth() + 1}-${now.getFullYear()}`
+  );
+  const [month, year] = period.split("-").map(Number);
   const [submitOpen, setSubmitOpen] = useState(false);
   const [notes, setNotes] = useState("");
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
@@ -91,27 +93,13 @@ export function MyCouncilTasks() {
         <label className="space-y-1 text-sm">
           <span className="text-muted-foreground">Period</span>
           <select
-            value={month}
-            onChange={(e) => setMonth(parseInt(e.target.value, 10))}
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
             className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
           >
-            {MONTHS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground">Year</span>
-          <select
-            value={year}
-            onChange={(e) => setYear(parseInt(e.target.value, 10))}
-            className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
-          >
-            {[year - 1, year, year + 1].map((y) => (
-              <option key={y} value={y}>
-                {y}
+            {monthOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
               </option>
             ))}
           </select>

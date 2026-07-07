@@ -5,6 +5,7 @@ import {
   OFFICIAL_DISTRICT_CLUB_FILTER,
   OFFICIAL_ROTARACT_MEMBER_FILTER,
 } from "@/lib/district-clubs-data";
+import { rotaryYearMonths, rotaryYearOfMonth } from "@/lib/rotary-year";
 
 export function getBadge(score: number): string | null {
   if (score >= 400) return "Gold";
@@ -260,9 +261,56 @@ export async function fetchCouncilLeaderboard(
         ? { club: { name: { contains: search, mode: "insensitive" as const } } }
         : {};
 
+  // Yearly view: aggregate every monthly CouncilScore in the Rotary year
+  // (Jul -> Jun) that contains the selected month, summing per entity.
+  if (yearOnly) {
+    const pairs = rotaryYearMonths(rotaryYearOfMonth(month, year));
+    const rows = await prisma.councilScore.findMany({
+      where: {
+        entityType,
+        OR: pairs.map((p) => ({ month: p.month, year: p.year })),
+        ...councilMemberScope,
+      },
+      include: councilInclude,
+    });
+
+    const grouped = new Map<string, { representative: (typeof rows)[number]; score: number; trend: number }>();
+    for (const row of rows) {
+      const existing = grouped.get(row.entityId);
+      if (existing) {
+        existing.score += row.score;
+        existing.trend += row.trend;
+        // Keep the most recent row for its relation data / id.
+        if (row.year > existing.representative.year || (row.year === existing.representative.year && row.month > existing.representative.month)) {
+          existing.representative = row;
+        }
+      } else {
+        grouped.set(row.entityId, { representative: row, score: row.score, trend: row.trend });
+      }
+    }
+
+    const ranked = [...grouped.values()]
+      .sort((a, b) => b.score - a.score)
+      .map((group, index) => ({
+        ...group.representative,
+        score: group.score,
+        trend: group.trend,
+        badge: getBadge(group.score),
+        rank: index + 1,
+      }));
+
+    return {
+      entries: ranked.slice(skip, skip + limit),
+      total: ranked.length,
+      page,
+      limit,
+    };
+  }
+
   const where = {
     entityType,
-    ...(yearOnly ? { year } : { month, year }),
+    month,
+    year,
     ...councilMemberScope,
   };
 

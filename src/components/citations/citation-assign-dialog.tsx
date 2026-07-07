@@ -25,6 +25,7 @@ import { useClubsList } from "@/hooks/use-clubs";
 import { siteConfig } from "@/config/site";
 import type { SerializedCitationDefinition } from "@/lib/citations-shared";
 import type { CitationCadence } from "@/generated/prisma/client";
+import { ROTARY_MONTH_ORDER, rotaryQuarterOfMonth } from "@/lib/rotary-year";
 import { cn } from "@/lib/utils";
 import { formErrorMessage, notifyValidation, toast } from "@/lib/toast";
 
@@ -50,7 +51,7 @@ export function CitationAssignDialog({ definition }: CitationAssignDialogProps) 
   const [selectedClubIds, setSelectedClubIds] = useState<string[]>([]);
   const [year, setYear] = useState(String(now.getFullYear()));
   const [month, setMonth] = useState(String(now.getMonth() + 1));
-  const [quarter, setQuarter] = useState(String(Math.ceil((now.getMonth() + 1) / 3)));
+  const [quarter, setQuarter] = useState(String(rotaryQuarterOfMonth(now.getMonth() + 1)));
   const [rotaryYear, setRotaryYear] = useState<string>(siteConfig.rotaryYear);
   const [dueDate, setDueDate] = useState("");
   const [error, setError] = useState("");
@@ -130,8 +131,8 @@ export function CitationAssignDialog({ definition }: CitationAssignDialogProps) 
                 <Select value={month} onValueChange={setMonth}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {MONTHS.map((m, i) => (
-                      <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>
+                    {ROTARY_MONTH_ORDER.map((m) => (
+                      <SelectItem key={m} value={String(m)}>{MONTHS[m - 1]}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

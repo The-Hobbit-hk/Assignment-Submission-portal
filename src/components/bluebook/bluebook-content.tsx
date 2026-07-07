@@ -8,11 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBluebookTasks } from "@/hooks/use-bluebook";
-
-const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
+import { getCurrentRotaryYear, rotaryMonthOptions } from "@/lib/rotary-year";
 
 type TaskRow = {
   id: string;
@@ -29,19 +25,29 @@ type Analytics = { totalAllocated: number };
 
 export function BluebookContent() {
   const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year] = useState(now.getFullYear());
-  const [filterMonth, setFilterMonth] = useState(month);
+  const rotaryYear = getCurrentRotaryYear(now);
+  const monthOptions = rotaryMonthOptions(rotaryYear.startYear, { withYear: true });
+
+  const [selected, setSelected] = useState(
+    () => `${now.getMonth() + 1}-${now.getFullYear()}`
+  );
+  const [filter, setFilter] = useState(selected);
+
+  const [selMonth, selYear] = selected.split("-").map(Number);
+  const [filterMonth, filterYear] = filter.split("-").map(Number);
 
   const { data, isLoading, refetch } = useBluebookTasks({
     month: filterMonth,
-    year,
+    year: filterYear,
     summary: true,
   });
 
   const tasks = (data as { tasks?: TaskRow[] } | undefined)?.tasks;
   const analytics = (data as { analytics?: Analytics } | undefined)?.analytics;
-  const monthLabel = `${MONTHS[filterMonth - 1]} ${year}`;
+  const selectedLabel =
+    monthOptions.find((o) => o.value === selected)?.label ?? `${selMonth}/${selYear}`;
+  const monthLabel =
+    monthOptions.find((o) => o.value === filter)?.label ?? `${filterMonth}/${filterYear}`;
 
   return (
     <div className="space-y-4">
@@ -55,14 +61,14 @@ export function BluebookContent() {
       />
 
       <div className="flex flex-wrap items-center gap-3">
-        <Select value={String(month)} onValueChange={(v) => setMonth(parseInt(v))}>
+        <Select value={selected} onValueChange={setSelected}>
           <SelectTrigger className="w-full border-border/60 bg-card sm:w-40">
-            <SelectValue>{MONTHS[month - 1]} {year}</SelectValue>
+            <SelectValue>{selectedLabel}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {MONTHS.map((m, i) => (
-              <SelectItem key={m} value={String(i + 1)}>
-                {m} {year}
+            {monthOptions.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -70,7 +76,7 @@ export function BluebookContent() {
         <Button
           className="bg-accent text-accent-foreground hover:bg-accent/90"
           onClick={() => {
-            setFilterMonth(month);
+            setFilter(selected);
             refetch();
           }}
         >

@@ -25,6 +25,7 @@ import { ChevronLeft, ChevronRight, Search, Trophy, Users } from "lucide-react";
 import { useCouncilData } from "@/hooks/use-council";
 import { cn } from "@/lib/utils";
 import { getReportingPeriodLabel } from "@/lib/reporting";
+import { getRotaryYearLabel, rotaryYearOfMonth } from "@/lib/rotary-year";
 
 function memberInitials(name: string) {
   return name
@@ -125,7 +126,9 @@ export function CouncilContent() {
   }, [podium]);
 
   const periodLabel =
-    period === "yearly" ? `RIY ${year - 1}-${String(year).slice(-2)}` : getReportingPeriodLabel(month, year);
+    period === "yearly"
+      ? `RIY ${getRotaryYearLabel(rotaryYearOfMonth(month, year))}`
+      : getReportingPeriodLabel(month, year);
 
   const topScore = podium?.[0]?.score ?? 0;
 

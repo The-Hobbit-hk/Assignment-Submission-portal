@@ -10,6 +10,7 @@
  * returns an empty list so the public calendar always falls back to the DB.
  */
 import ical from "node-ical";
+import { rotaryYearStart } from "@/lib/rotary-year";
 
 /** Public shape matching the DB events consumed by the calendar page. */
 export type GoogleFeedEvent = {
@@ -53,13 +54,6 @@ function excludeKeywords(): string[] {
     .filter(Boolean);
 }
 
-function calendarYearStart() {
-  const yearStart = new Date();
-  yearStart.setMonth(0, 1);
-  yearStart.setHours(0, 0, 0, 0);
-  return yearStart;
-}
-
 function clean(value: unknown): string | null {
   if (value === null || value === undefined) return null;
   const text = String(value).trim();
@@ -89,7 +83,7 @@ export async function fetchGoogleCalendarInstallations(): Promise<GoogleFeedEven
 
     const text = await res.text();
     const parsed = ical.sync.parseICS(text);
-    const yearStart = calendarYearStart();
+    const yearStart = rotaryYearStart();
     const events: GoogleFeedEvent[] = [];
 
     for (const key of Object.keys(parsed)) {

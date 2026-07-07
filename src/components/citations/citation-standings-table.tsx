@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCitationStandings } from "@/hooks/use-citations";
 import { siteConfig } from "@/config/site";
 import type { CitationCadence } from "@/generated/prisma/client";
+import { ROTARY_MONTH_ORDER, rotaryQuarterOfMonth } from "@/lib/rotary-year";
 import { cn } from "@/lib/utils";
 
 const MONTHS = [
@@ -62,7 +63,7 @@ export function CitationStandingsTable({ limit, compact }: CitationStandingsTabl
   const [cadence, setCadence] = useState<CitationCadence>("MONTHLY");
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
-  const [quarter, setQuarter] = useState(Math.ceil((now.getMonth() + 1) / 3));
+  const [quarter, setQuarter] = useState(rotaryQuarterOfMonth(now.getMonth() + 1));
   const [rotaryYear, setRotaryYear] = useState<string>(siteConfig.rotaryYear);
   const [search, setSearch] = useState("");
 
@@ -148,8 +149,8 @@ export function CitationStandingsTable({ limit, compact }: CitationStandingsTabl
             <Select value={String(month)} onValueChange={(v) => setMonth(parseInt(v, 10))}>
               <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {MONTHS.map((m, i) => (
-                  <SelectItem key={m} value={String(i + 1)}>{m}</SelectItem>
+                {ROTARY_MONTH_ORDER.map((m) => (
+                  <SelectItem key={m} value={String(m)}>{MONTHS[m - 1]}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

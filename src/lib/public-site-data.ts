@@ -6,6 +6,7 @@ import {
   publicDistrictEventWhere,
 } from "@/lib/legacy-demo-events";
 import { prisma } from "@/lib/prisma";
+import { rotaryYearStart } from "@/lib/rotary-year";
 
 const PUBLIC_EVENTS_REVALIDATE = 120;
 const PUBLIC_CLUBS_REVALIDATE = 300;
@@ -26,16 +27,9 @@ const publicEventSelect = {
   bannerUrl: true,
 } as const;
 
-function calendarYearStart() {
-  const yearStart = new Date();
-  yearStart.setMonth(0, 1);
-  yearStart.setHours(0, 0, 0, 0);
-  return yearStart;
-}
-
 async function fetchPublicCalendarEvents() {
   return prisma.event.findMany({
-    where: publicCalendarEventWhere(calendarYearStart()),
+    where: publicCalendarEventWhere(rotaryYearStart()),
     orderBy: { startDate: "asc" },
     select: {
       ...publicEventSelect,

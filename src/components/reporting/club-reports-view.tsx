@@ -15,23 +15,9 @@ import {
   getSubmissionWindowLabel,
 } from "@/lib/reporting";
 import { DISTRICT_ZONE_META } from "@/lib/district-clubs-data";
+import { getCurrentRotaryYear, rotaryMonthOptions } from "@/lib/rotary-year";
 import { CheckCircle2, Download, XCircle } from "lucide-react";
 import type { UserRole } from "@/types/auth";
-
-const MONTHS = [
-  { value: 1, label: "January" },
-  { value: 2, label: "February" },
-  { value: 3, label: "March" },
-  { value: 4, label: "April" },
-  { value: 5, label: "May" },
-  { value: 6, label: "June" },
-  { value: 7, label: "July" },
-  { value: 8, label: "August" },
-  { value: 9, label: "September" },
-  { value: 10, label: "October" },
-  { value: 11, label: "November" },
-  { value: 12, label: "December" },
-];
 
 function SummaryCard({
   label,
@@ -52,8 +38,12 @@ function SummaryCard({
 
 export function ClubReportsView() {
   const active = getActiveReportPeriod();
-  const [month, setMonth] = useState(active.month);
-  const [year, setYear] = useState(active.year);
+  const monthOptions = rotaryMonthOptions(getCurrentRotaryYear().startYear, {
+    long: true,
+    withYear: true,
+  });
+  const [period, setPeriod] = useState(() => `${active.month}-${active.year}`);
+  const [month, year] = period.split("-").map(Number);
   const [zone, setZone] = useState("");
 
   const { data: session } = useSession();
@@ -121,27 +111,13 @@ export function ClubReportsView() {
         <label className="space-y-1 text-sm">
           <span className="text-muted-foreground">Report period</span>
           <select
-            value={month}
-            onChange={(e) => setMonth(parseInt(e.target.value, 10))}
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
             className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
           >
-            {MONTHS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground">Year</span>
-          <select
-            value={year}
-            onChange={(e) => setYear(parseInt(e.target.value, 10))}
-            className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
-          >
-            {[year - 1, year, year + 1].map((y) => (
-              <option key={y} value={y}>
-                {y}
+            {monthOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
               </option>
             ))}
           </select>

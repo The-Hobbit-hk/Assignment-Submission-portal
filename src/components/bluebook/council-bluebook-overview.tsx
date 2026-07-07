@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { BluebookStatusBadge } from "@/components/bluebook/bluebook-status-badge";
 import { useCouncilBluebookOverview } from "@/hooks/use-council-assignments";
 import { getReportingPeriodLabel } from "@/lib/reporting";
+import { getCurrentRotaryYear, rotaryMonthOptions } from "@/lib/rotary-year";
 import { Download, ExternalLink, FileSpreadsheet } from "lucide-react";
 
 const CATEGORIES = [
@@ -19,21 +20,6 @@ const CATEGORIES = [
   "Administration",
   "Events",
   "Professional Development",
-];
-
-const MONTHS = [
-  { value: 1, label: "January" },
-  { value: 2, label: "February" },
-  { value: 3, label: "March" },
-  { value: 4, label: "April" },
-  { value: 5, label: "May" },
-  { value: 6, label: "June" },
-  { value: 7, label: "July" },
-  { value: 8, label: "August" },
-  { value: 9, label: "September" },
-  { value: 10, label: "October" },
-  { value: 11, label: "November" },
-  { value: 12, label: "December" },
 ];
 
 function SummaryCard({
@@ -55,8 +41,14 @@ function SummaryCard({
 
 export function CouncilBluebookOverview() {
   const now = new Date();
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
+  const monthOptions = rotaryMonthOptions(getCurrentRotaryYear(now).startYear, {
+    long: true,
+    withYear: true,
+  });
+  const [period, setPeriod] = useState(
+    () => `${now.getMonth() + 1}-${now.getFullYear()}`
+  );
+  const [month, year] = period.split("-").map(Number);
   const [statusFilter, setStatusFilter] = useState("");
   const [memberFilter, setMemberFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
@@ -90,29 +82,15 @@ export function CouncilBluebookOverview() {
 
       <div className="flex flex-wrap items-end gap-3">
         <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground">Month</span>
+          <span className="text-muted-foreground">Reporting period</span>
           <select
-            value={month}
-            onChange={(e) => setMonth(parseInt(e.target.value, 10))}
+            value={period}
+            onChange={(e) => setPeriod(e.target.value)}
             className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
           >
-            {MONTHS.map((m) => (
-              <option key={m.value} value={m.value}>
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="space-y-1 text-sm">
-          <span className="text-muted-foreground">Year</span>
-          <select
-            value={year}
-            onChange={(e) => setYear(parseInt(e.target.value, 10))}
-            className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
-          >
-            {[year - 1, year, year + 1].map((y) => (
-              <option key={y} value={y}>
-                {y}
+            {monthOptions.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
               </option>
             ))}
           </select>

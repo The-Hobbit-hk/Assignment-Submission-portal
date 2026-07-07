@@ -39,6 +39,9 @@ yarn-error.log*
 # generated login credentials (run npm run db:seed)
 prisma/council-logins.csv
 
+# generated exports / artifacts (may contain credentials)
+/output
+
 # vercel
 .vercel
 
