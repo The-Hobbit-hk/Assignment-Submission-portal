@@ -154,7 +154,7 @@ export const CONTACT = {
   email: "rotaractdistrict3131@gmail.com",
   drrEmail: "rtr.dr.karishmaawari@gmail.com",
   address:
-    "3rd Floor, Pratham Elite, Office No 303, opp. Civil Court Metro Station, near Pune District & Sessions Court, Tophakhana, Shivajinagar, Pune, Maharashtra 411005",
+    "World of Aesthetics Hair & Skin Clinic, Flat no. 4, Sumit Apartments, DP Rd, near D.A.V School, Raagdari Society, Aundh, Pune, Maharashtra 411067, India",
 } as const;
 
 export const ABOUT_SECTION_ORDER = [
