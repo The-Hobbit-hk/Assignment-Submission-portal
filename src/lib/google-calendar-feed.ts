@@ -28,6 +28,31 @@ export type GoogleFeedEvent = {
   club: null;
 };
 
+/**
+ * Titles that contain the include keyword but are NOT public club installations
+ * (district/council-level ceremonies, the DRR's personal club-visit log, planning
+ * meetings, multi-district events). Matched case-insensitively as substrings.
+ * Override/extend with the GOOGLE_CALENDAR_EXCLUDE env var (comma-separated).
+ */
+const DEFAULT_EXCLUDE_KEYWORDS = [
+  "council",
+  "district assembly",
+  "drr drishti",
+  "dg and",
+  "dg &",
+  "mdio",
+  "meeting",
+];
+
+function excludeKeywords(): string[] {
+  const raw = process.env.GOOGLE_CALENDAR_EXCLUDE;
+  if (!raw) return DEFAULT_EXCLUDE_KEYWORDS;
+  return raw
+    .split(",")
+    .map((word) => word.toLowerCase().trim())
+    .filter(Boolean);
+}
+
 function calendarYearStart() {
   const yearStart = new Date();
   yearStart.setMonth(0, 1);
@@ -48,6 +73,7 @@ export async function fetchGoogleCalendarInstallations(): Promise<GoogleFeedEven
   const keyword = (process.env.GOOGLE_CALENDAR_FILTER ?? "installation")
     .toLowerCase()
     .trim();
+  const excludes = excludeKeywords();
 
   try {
     // Caching is owned by the surrounding unstable_cache wrapper; do not pass
@@ -72,7 +98,9 @@ export async function fetchGoogleCalendarInstallations(): Promise<GoogleFeedEven
 
       const title = clean(component.summary);
       if (!title) continue;
-      if (keyword && !title.toLowerCase().includes(keyword)) continue;
+      const lowerTitle = title.toLowerCase();
+      if (keyword && !lowerTitle.includes(keyword)) continue;
+      if (excludes.some((word) => lowerTitle.includes(word))) continue;
 
       const start = component.start ? new Date(component.start) : null;
       if (!start || Number.isNaN(start.getTime()) || start < yearStart) continue;
