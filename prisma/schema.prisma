@@ -336,6 +336,8 @@ model Member {
   profession    String?
   bio           String?      @db.Text
   avatar        String?
+  /** Display-only home club for council members (they belong to the district council club for scoring). */
+  homeClub      String?
   gender        String?
   dateOfBirth   DateTime?
   duesPaid      String?

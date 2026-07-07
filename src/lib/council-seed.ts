@@ -56,29 +56,34 @@ export async function upsertCouncilMember(
   _index: number
 ) {
   const email = councilUser.email.toLowerCase().trim();
+  const data = {
+    firstName: councilUser.name,
+    lastName: "",
+    email,
+    profession: councilUser.title,
+    // Home club is display-only; the member stays in the district council club for scoring.
+    homeClub: councilUser.club,
+    role: "MEMBER" as const,
+    status: "ACTIVE" as const,
+    points: 0,
+  };
 
+  // A user can hold only one member record (userId is unique) and it may currently live
+  // under their real club. Move/refresh it into the district council club (used for
+  // scoring) while keeping the real club as the display-only home club.
+  const existing = await prisma.member.findUnique({ where: { userId } });
+  if (existing) {
+    return prisma.member.update({
+      where: { id: existing.id },
+      data: { ...data, clubId },
+    });
+  }
+
+  // No record tied to this user yet — reuse a stray council-club record if one exists.
   return prisma.member.upsert({
-    where: {
-      email_clubId: { email, clubId },
-    },
-    create: {
-      clubId,
-      userId,
-      firstName: councilUser.name,
-      lastName: "",
-      email,
-      profession: councilUser.title,
-      role: "MEMBER",
-      status: "ACTIVE",
-      points: 0,
-    },
-    update: {
-      userId,
-      firstName: councilUser.name,
-      profession: councilUser.title,
-      status: "ACTIVE",
-      points: 0,
-    },
+    where: { email_clubId: { email, clubId } },
+    create: { ...data, clubId, userId },
+    update: { ...data, userId },
   });
 }
 

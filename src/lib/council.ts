@@ -164,6 +164,7 @@ export function serializeCouncilEntry(entry: {
     firstName: string;
     lastName: string;
     email?: string;
+    homeClub?: string | null;
     club?: { name: string };
   } | null;
 }) {
@@ -180,7 +181,8 @@ export function serializeCouncilEntry(entry: {
     entityId: entry.entityId,
     name,
     email: entry.member?.email ?? null,
-    clubName: entry.member?.club?.name ?? entry.club?.name ?? null,
+    clubName:
+      entry.member?.homeClub ?? entry.member?.club?.name ?? entry.club?.name ?? null,
     month: entry.month,
     year: entry.year,
     score: entry.score,
@@ -199,6 +201,7 @@ const councilInclude = {
       firstName: true,
       lastName: true,
       email: true,
+      homeClub: true,
       club: { select: { name: true } },
     },
   },

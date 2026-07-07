@@ -29,7 +29,8 @@ export function serializeMemberListItem(member: MemberWithClub): MemberListItem 
     whatsapp: member.whatsapp,
     avatar: member.avatar,
     points: member.points,
-    club: { id: member.club.id, name: member.club.name },
+    // Council members display their real home club while belonging to the district council club.
+    club: { id: member.club.id, name: member.homeClub ?? member.club.name },
   };
 }
 
