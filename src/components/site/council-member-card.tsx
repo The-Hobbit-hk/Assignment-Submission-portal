@@ -83,7 +83,7 @@ export function CouncilMemberCard({
             {member.title}
           </p>
 
-          <div className="mt-3 max-h-0 overflow-hidden opacity-0 transition-all duration-500 group-hover:max-h-24 group-hover:opacity-100">
+          <div className="mt-3 max-h-24 overflow-hidden opacity-100 transition-all duration-500 sm:max-h-0 sm:opacity-0 sm:group-hover:max-h-24 sm:group-hover:opacity-100">
             <p className="text-[11px] leading-relaxed text-zinc-300 sm:text-xs">{member.club}</p>
             <a
               href={`mailto:${member.email}`}

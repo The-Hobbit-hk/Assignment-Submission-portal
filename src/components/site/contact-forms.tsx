@@ -69,7 +69,7 @@ export function ContactPageContent() {
   return (
     <>
       <section className="border-b border-zinc-200 py-16">
-        <div className="mx-auto grid max-w-7xl gap-16 px-4 lg:grid-cols-2 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-2 lg:gap-16 lg:px-8">
           <ContactForm title="Grievance Redressal" submitLabel="Send Grievance" />
           <ContactForm title="Get In Touch" submitLabel="Send Message" />
         </div>
