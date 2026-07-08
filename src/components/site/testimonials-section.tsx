@@ -1,4 +1,60 @@
+"use client";
+
+import Image from "next/image";
+import { useState } from "react";
 import { Quote } from "lucide-react";
+import { DISTRICT_TESTIMONIALS } from "@/lib/site-content";
+
+const CLAMP_CHARS = 280;
+
+function TestimonialCard({
+  quote,
+  name,
+  role,
+  club,
+  photo,
+}: (typeof DISTRICT_TESTIMONIALS)[number]) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = quote.length > CLAMP_CHARS;
+  const displayQuote =
+    expanded || !isLong ? quote : `${quote.slice(0, CLAMP_CHARS).trim()}…`;
+
+  return (
+    <figure className="depth-card flex h-full flex-col rounded-2xl border border-zinc-200/80 bg-white p-6">
+      <div className="flex items-start gap-4">
+        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-accent/20 bg-zinc-100">
+          <Image
+            src={photo}
+            alt={name}
+            fill
+            sizes="64px"
+            className="object-cover object-top"
+          />
+        </div>
+        <figcaption className="min-w-0 pt-0.5">
+          <p className="font-semibold leading-snug text-zinc-900">{name}</p>
+          <p className="mt-1 text-xs font-medium leading-snug text-accent">{role}</p>
+          <p className="mt-1 text-xs leading-snug text-zinc-500">{club}</p>
+        </figcaption>
+      </div>
+
+      <Quote className="mt-5 h-7 w-7 text-accent/25" aria-hidden />
+      <blockquote className="mt-3 flex-1 whitespace-pre-line text-sm leading-relaxed text-zinc-700">
+        &ldquo;{displayQuote}&rdquo;
+      </blockquote>
+
+      {isLong ? (
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          className="mt-3 self-start text-xs font-semibold text-accent hover:underline"
+        >
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      ) : null}
+    </figure>
+  );
+}
 
 export function TestimonialsSection() {
   return (
@@ -17,15 +73,10 @@ export function TestimonialsSection() {
           </p>
         </div>
 
-        <div className="depth-card mx-auto flex max-w-2xl flex-col items-center rounded-2xl border border-zinc-200/80 bg-white px-6 py-14 text-center">
-          <Quote className="h-10 w-10 text-accent/30" aria-hidden />
-          <p className="mt-5 font-display text-xl font-bold text-zinc-900 sm:text-2xl">
-            Coming soon
-          </p>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-zinc-600">
-            We&apos;re collecting stories from Rotaractors across the district.
-            Check back soon to hear their experiences.
-          </p>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {DISTRICT_TESTIMONIALS.map((item) => (
+            <TestimonialCard key={item.name} {...item} />
+          ))}
         </div>
       </div>
     </section>

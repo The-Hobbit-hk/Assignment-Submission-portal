@@ -106,46 +106,75 @@ export const JOIN_ROTARACT = {
 
 export const DISTRICT_TESTIMONIALS = [
   {
-    quote:
-      "District 3131 gives every club a clear structure to grow — from reporting and events to council support. REIGN is not just a theme; it is how we lead this year.",
-    name: "PHF. DRR. Dr. Karishma Awari",
-    role: "District Rotaract Representative",
-    club: "Rotaract Club of Pune Shaniwarwada",
+    quote: `My Rotaract Journey – A Journey of Service, Leadership & Transformation
+
+Rotaract has been one of the greatest blessings of my life. It didn't just make me a Rotaractor—it gave me a new identity. It transformed me into a more confident, responsible, and service-oriented individual.
+
+For me, Rotaract is much more than an organization; it is a platform that empowers young leaders to serve the community while developing their personalities. Through this incredible journey, I have gained countless life skills, including leadership, communication, public speaking, presentation skills, event management, and professionalism. Rotaract has also improved my standard of living by teaching me discipline, time management, and the value of teamwork.
+
+One of the biggest gifts Rotaract has given me is a strong network. I have met inspiring leaders, built meaningful relationships with Rotarians, and found friends who have become family. The love, respect, and recognition I receive from the community today are all because of Rotaract.
+
+Throughout my journey, I have had the privilege of serving in multiple leadership positions within my club. Serving as the President of Rotaract Club of Daund College during RIY 2023–24 was truly a God-gifted opportunity. It was a year filled with learning, challenges, achievements, networking, friendships, fun, and unforgettable memories.
+
+During my presidential tenure, our club successfully completed 100 impactful projects dedicated to community service and youth development. This remarkable journey was recognized when I was honored with the Outstanding President Award by Rotaract District 3131.
+
+Today, I am deeply honored to serve as the District Interact Rotaract Relationship Officer (RIY 2026–27) for Rotaract District 3131. This role is another milestone in my journey and a wonderful opportunity to strengthen the bond between Interact and Rotaract while creating a lasting impact across the district.
+
+Once a Rotaractor, always a Rotaractor. I will always be grateful to Rotaract for making me the person I am today.`,
+    name: "Rtr. Prajwal Bande",
+    role: "District Interact Rotaract Relationship Officer",
+    club: "Rotaract Club of Daund College",
+    photo: "/council/prajwal-bande.png",
   },
   {
     quote:
-      "Serving as District General Secretary, I have seen how organised district systems help clubs deliver impact faster. Fellowship here is backed by real accountability.",
-    name: "PHF. Rtr. Harshvardhan Kale",
-    role: "District General Secretary",
-    club: "Rotaract Club of Bavdhan Pioneers",
+      "Rotaract District 3131 has this amazing way of turning youth potential into real, ground-level impact. Stepping up as a District Zonal Representative on the district team is proving to be an incredible experience. It's giving me a front-row seat to watch our clubs challenge themselves and show what true leadership looks like in action. Honestly, every single day here is becoming a continuous journey of learning, leading, and growing alongside everyone.",
+    name: "Rtr. Vedant Chaudhari",
+    role: "District Zonal Representative, Zone 5",
+    club: "Rotaract Club of Pimpri",
+    photo: "/council/vedant-chaudhari.png",
   },
   {
     quote:
-      "Monthly reporting and transparent club data have made it easier for us to track progress across all 101 clubs. The district team is always approachable and supportive.",
-    name: "Rtr. Dr. Aishwarya Patil",
-    role: "District Secretary - Reporting",
-    club: "Rotaract Club of Pune Shaniwarwada",
+      "Being a part of Rotaract District 3131 has been an incredibly enriching journey. The district truly embodies the spirit of \"Service Above Self\" by creating meaningful opportunities for leadership, fellowship, and community impact. Every initiative reflects dedication, innovation, and teamwork, inspiring Rotaractors to grow both personally and professionally. Proud to be a part of a district that empowers individuals to lead with purpose, serve with compassion, and create lasting change. Here's to many more milestones and meaningful moments together!",
+    name: "Rtr. Vaishnavi Kedari",
+    role: "District Co-Director, Community Service",
+    club: "Rotaract Club of Symbiosis Skills and Professional University",
+    photo: "/council/vaishnavi-kedari.png",
   },
   {
-    quote:
-      "From zone visits to flagship events, being part of this district has shaped my leadership. Rotaract 3131 is where service meets professional growth.",
-    name: "Rtr. Aniket Sardar",
+    quote: `Rotaract never just gave me positions; it gave me purpose.
+
+From learning how to lead a small team to leading a chartered club, from creating content behind the scenes to representing an entire zone, every role has taught me that true leadership is about creating opportunities for others to grow.
+
+The friendships, late-night planning calls, countless service projects, impossible deadlines, and unforgettable victories have shaped me into someone I never imagined I'd become. Rotaract has shown me that ordinary people, united by a common purpose, can create extraordinary impact.
+
+If there's one thing Rotaract has taught me, it's this: titles may change, tenures may end, but the people you inspire and the legacy you leave behind will always outlive them.`,
+    name: "Rtr. Pratham Pokharkar",
+    role: "IPP & Treasurer",
+    club: "Rotaract Club of Pune Aurora",
+    photo: "/council/pratham-pokharkar.png",
+  },
+  {
+    quote: `Joining Rotaract has been one of the most transformative experiences of my life. It has helped me grow as a leader, improve my communication skills, and build meaningful friendships with people who share a passion for service.
+
+Through Rotaract, I have had the opportunity to organize community service projects, coordinate events, and work with dedicated teams. Every project has taught me the importance of teamwork, responsibility, and creating a positive impact in society.
+
+As a dance instructor and an active Rotaractor, I enjoy combining creativity with service by using dance and cultural activities to connect with people and spread awareness. Rotaract has given me the confidence to take initiative, lead with purpose, and continue learning every day.
+
+For me, Rotaract is more than an organization—it is a family that inspires me to "Service Above Self." I am grateful for every opportunity to serve, grow, and inspire others, and I look forward to continuing this journey.`,
+    name: "Rtr. Prem Bansode",
     role: "District Zonal Representative",
-    club: "Rotaract Club of Khopoli",
+    club: "Rotaract Club of Daund College",
+    photo: "/council/prem-bansode.png",
   },
   {
     quote:
-      "Bluebook assignments and council portfolios push you to think beyond your club. That district-wide perspective is what makes Rotaract special here.",
-    name: "Rtr. Samrudhi Khade",
-    role: "District Director - Professional Development",
-    club: "Rotaract Club of Pune Zenith",
-  },
-  {
-    quote:
-      "Our club finds strength in the district network — shared resources, mentorship, and events that unite Rotaractors from Pune to Raigad every Rotary year.",
+      "Rotaract gave me family before it gave me friends. What started as service projects became something deeper — a space where I grew, led, and found purpose. Today, I don't just do Rotaract; I live it, every single day.",
     name: "Rtr. Jayesh Chavan",
-    role: "District Director - Club Service",
+    role: "District Director — Club Service",
     club: "Rotaract Club of Pune City Fortune",
+    photo: "/council/jayesh-chavan.png",
   },
 ] as const;
 
