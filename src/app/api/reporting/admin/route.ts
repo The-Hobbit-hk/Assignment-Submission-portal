@@ -76,7 +76,6 @@ export async function POST(request: Request) {
         newsletterEvent: d.newsletterEvent || null,
         status: isSubmit ? "SUBMITTED" : "DRAFT",
         submittedAt: isSubmit ? new Date() : null,
-        ...(clubId ? { club: { connect: { id: clubId } } } : {}),
       }
     );
 

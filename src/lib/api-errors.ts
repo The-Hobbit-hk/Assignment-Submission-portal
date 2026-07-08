@@ -52,9 +52,7 @@ export function handleRouteError(
   error: unknown,
   fallback: string = API_MESSAGES.internal
 ) {
-  if (process.env.NODE_ENV !== "production") {
-    console.error("[api]", error);
-  }
+  console.error("[api]", error);
 
   if (error instanceof SyntaxError) {
     return apiError("Invalid JSON in request body.", 400);

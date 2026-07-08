@@ -25,7 +25,7 @@ import {
 import { useReportingWindow } from "@/hooks/use-reporting-window";
 import { useSession } from "next-auth/react";
 import { isClubUser } from "@/lib/roles";
-import { notifyValidation, toast } from "@/lib/toast";
+import { notifyValidation, toast, formErrorMessage } from "@/lib/toast";
 
 export function AdminReportingForm() {
   const { month, year } = getActiveReportPeriod();
@@ -88,22 +88,26 @@ export function AdminReportingForm() {
       return;
     }
 
-    await save.mutateAsync({
-      month,
-      year,
-      newMembers: newMembers ? parseInt(newMembers, 10) : undefined,
-      resolutionPassed,
-      resolutionFileUrl: resolutionPassed === "yes" ? resolutionFileUrl : null,
-      districtDuesPaid,
-      districtDuesFileUrl: districtDuesPaid === "yes" ? districtDuesFileUrl : null,
-      bylawsFileUrl,
-      bylawsPassDate: bylawsPassDate ? new Date(bylawsPassDate).toISOString() : null,
-      hostClub,
-      districtEventAttendance,
-      newsletterEvent,
-      submit: true,
-    });
-    toast.success("Administration report submitted successfully");
+    try {
+      await save.mutateAsync({
+        month,
+        year,
+        newMembers: newMembers ? parseInt(newMembers, 10) : undefined,
+        resolutionPassed,
+        resolutionFileUrl: resolutionPassed === "yes" ? resolutionFileUrl : null,
+        districtDuesPaid,
+        districtDuesFileUrl: districtDuesPaid === "yes" ? districtDuesFileUrl : null,
+        bylawsFileUrl,
+        bylawsPassDate: bylawsPassDate ? new Date(bylawsPassDate).toISOString() : null,
+        hostClub,
+        districtEventAttendance,
+        newsletterEvent,
+        submit: true,
+      });
+      toast.success("Administration report submitted successfully");
+    } catch (err) {
+      setFormError(formErrorMessage(err, "Failed to submit admin report."));
+    }
   };
 
   if (isLoading) return <Skeleton className="h-96 max-w-3xl" />;

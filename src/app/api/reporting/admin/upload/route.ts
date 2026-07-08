@@ -61,7 +61,6 @@ export async function POST(request: Request) {
       {
         submittedBy: { connect: { id: session!.user.id } },
         ...fileUpdate,
-        ...(clubId ? { club: { connect: { id: clubId } } } : {}),
       }
     );
 

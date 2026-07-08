@@ -64,7 +64,6 @@ export async function POST(request: Request) {
         submittedBy: { connect: { id: session!.user.id } },
         status: isSubmit ? "SUBMITTED" : "DRAFT",
         submittedAt: isSubmit ? new Date() : null,
-        ...(clubId ? { club: { connect: { id: clubId } } } : {}),
       }
     );
 
