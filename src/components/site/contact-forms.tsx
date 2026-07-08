@@ -10,26 +10,58 @@ import { toast } from "@/lib/toast";
 function ContactForm({
   title,
   submitLabel,
+  formType,
 }: {
   title: string;
   submitLabel: string;
+  formType: "grievance" | "general";
 }) {
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl font-bold text-zinc-900 md:text-3xl">{title}</h2>
       {sent ? (
         <p className="text-sm text-emerald-600">
-          Thank you. Your message has been recorded and will be reviewed by the district team.
+          Thank you. Your message has been sent to the district team and will be reviewed shortly.
         </p>
       ) : (
         <form
           className="space-y-6"
-          onSubmit={(e) => {
+          onSubmit={async (e) => {
             e.preventDefault();
-            setSent(true);
-            toast.success("Message sent. The district team will get back to you soon.");
+            const form = e.currentTarget;
+            const data = new FormData(form);
+
+            setSubmitting(true);
+            try {
+              const res = await fetch("/api/contact", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name: data.get("name"),
+                  email: data.get("email"),
+                  message: data.get("message"),
+                  formType,
+                }),
+              });
+
+              if (!res.ok) {
+                const payload = (await res.json().catch(() => null)) as { error?: string } | null;
+                throw new Error(payload?.error ?? "Could not send your message.");
+              }
+
+              setSent(true);
+              toast.success("Message sent. The district team will get back to you soon.");
+              form.reset();
+            } catch (error) {
+              toast.error(
+                error instanceof Error ? error.message : "Could not send your message."
+              );
+            } finally {
+              setSubmitting(false);
+            }
           }}
         >
           <input
@@ -55,9 +87,10 @@ function ContactForm({
           />
           <button
             type="submit"
-            className="rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90"
+            disabled={submitting}
+            className="rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitLabel}
+            {submitting ? "Sending…" : submitLabel}
           </button>
         </form>
       )}
@@ -70,8 +103,12 @@ export function ContactPageContent() {
     <>
       <section className="border-b border-zinc-200 py-16">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-2 lg:gap-16 lg:px-8">
-          <ContactForm title="Grievance Redressal" submitLabel="Send Grievance" />
-          <ContactForm title="Get In Touch" submitLabel="Send Message" />
+          <ContactForm
+            title="Grievance Redressal"
+            submitLabel="Send Grievance"
+            formType="grievance"
+          />
+          <ContactForm title="Get In Touch" submitLabel="Send Message" formType="general" />
         </div>
       </section>
 
@@ -87,7 +124,7 @@ export function ContactPageContent() {
               </div>
               <div className="flex items-center gap-3 text-zinc-600">
                 <Mail className="h-4 w-4" />
-                <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
+                <a href={`mailto:${CONTACT.drrEmail}`}>{CONTACT.drrEmail}</a>
               </div>
             </div>
             <div className="space-y-6">

@@ -20,14 +20,14 @@ on conflict (id) do update set
   file_size_limit = excluded.file_size_limit,
   allowed_mime_types = excluded.allowed_mime_types;
 
--- Public read for uploaded files
-create policy "Public read uploads"
-on storage.objects for select
-to public
-using (bucket_id = 'uploads');
+-- NOTE: Do NOT add a public SELECT policy on storage.objects for this bucket.
+-- Because the bucket is public, files are served via public object URLs
+-- (/storage/v1/object/public/uploads/...) which do NOT consult RLS. A broad
+-- public SELECT policy would only enable clients to LIST/enumerate every file
+-- in the bucket (Supabase Security Advisor: "Public Bucket Allows Listing").
+-- Uploads happen server-side with the service_role key, which bypasses RLS,
+-- so no insert policy is required either.
 
--- Authenticated users can upload (optional; server uses service role which bypasses RLS)
-create policy "Authenticated upload uploads"
-on storage.objects for insert
-to authenticated
-with check (bucket_id = 'uploads');
+-- If the old broad policies exist from a previous run, remove them:
+drop policy if exists "Public read uploads" on storage.objects;
+drop policy if exists "Authenticated upload uploads" on storage.objects;
