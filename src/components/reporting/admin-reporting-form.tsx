@@ -14,7 +14,6 @@ import {
   ReportingSection,
 } from "@/components/reporting/reporting-form-layout";
 import { ReportingFileUpload } from "@/components/reporting/reporting-file-upload";
-import { ManageReportingMemberForm } from "@/components/reporting/manage-reporting-member-form";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
 import { YesNoSelect } from "@/components/reporting/yes-no-select";
 import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting";
@@ -33,7 +32,6 @@ export function AdminReportingForm() {
 
   const { data: session } = useSession();
   const clubUser = isClubUser(session?.user?.role ?? "MEMBER");
-  const clubId = session?.user?.clubId ?? null;
   const { data: window } = useReportingWindow(month, year);
   const { data, isLoading, refetch } = useAdminReport({ month, year });
   const save = useSaveAdminReport();
@@ -235,15 +233,6 @@ export function AdminReportingForm() {
           </ReportingFieldRow>
         </div>
       </ReportingPanel>
-
-      {clubId && (
-        <ReportingPanel title="Manage Members">
-          <p className="mb-4 text-sm text-muted-foreground">
-            Add new members to your club roster as part of monthly reporting.
-          </p>
-          <ManageReportingMemberForm clubId={clubId} disabled={reportingClosed} />
-        </ReportingPanel>
-      )}
 
       {reportingClosed && (
         <p className="text-sm text-destructive">{window?.message}</p>
