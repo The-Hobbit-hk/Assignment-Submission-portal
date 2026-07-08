@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EventsBrowsingView } from "@/components/events/events-browsing-view";
 import { ReportingFormLayout } from "@/components/reporting/reporting-form-layout";
-import { ReportingSubmittedDialog } from "@/components/reporting/reporting-submitted-dialog";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
 import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting";
 import { useEventsReportingPortal } from "@/hooks/use-reporting";
@@ -28,13 +26,6 @@ export function EventsReportingForm() {
   const periodLabel = getReportingPeriodLabel(month, year);
   const hasClubEvents = (data?.clubEvents.length ?? 0) > 0;
   const eventsSubmitted = data?.report?.status === "SUBMITTED" || hasClubEvents;
-  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
-
-  useEffect(() => {
-    if (eventsSubmitted) {
-      setSuccessDialogOpen(true);
-    }
-  }, [eventsSubmitted]);
 
   return (
     <ReportingFormLayout
@@ -47,13 +38,6 @@ export function EventsReportingForm() {
       banner={<ReportingWindowBanner month={month} year={year} />}
       className="max-w-6xl"
     >
-      <ReportingSubmittedDialog
-        open={successDialogOpen && clubUser && eventsSubmitted}
-        onOpenChange={setSuccessDialogOpen}
-        title="Events report submitted"
-        description={`Your events for ${periodLabel} are on record. Complete Admin Reporting to finish monthly reporting.`}
-      />
-
       <Button variant="ghost" size="sm" className="-mt-2 mb-2 w-fit px-0 text-muted-foreground" asChild>
         <Link href="/dashboard/reporting">
           <ArrowLeft className="mr-1 h-4 w-4" />
@@ -68,19 +52,15 @@ export function EventsReportingForm() {
       )}
 
       {clubUser && eventsSubmitted && (
-        <div className="depth-card mb-4 flex flex-col gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-            <div>
-              <p className="font-medium text-foreground">Events reporting complete</p>
-              <p className="text-sm text-muted-foreground">
-                Adding a club event for {periodLabel} counts as your events report.
-              </p>
-            </div>
+        <div className="depth-card mb-4 flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+          <div>
+            <p className="font-medium text-foreground">Events reporting complete</p>
+            <p className="text-sm text-muted-foreground">
+              You can keep adding club events for {periodLabel}. Reporting stays complete once at
+              least one event is on record.
+            </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setSuccessDialogOpen(true)}>
-            View confirmation
-          </Button>
         </div>
       )}
 
