@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,7 @@ import {
   ReportingSection,
 } from "@/components/reporting/reporting-form-layout";
 import { ReportingFileUpload } from "@/components/reporting/reporting-file-upload";
+import { ReportingSubmittedDialog } from "@/components/reporting/reporting-submitted-dialog";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
 import { YesNoSelect } from "@/components/reporting/yes-no-select";
 import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting";
@@ -25,7 +26,7 @@ import {
 import { useReportingWindow } from "@/hooks/use-reporting-window";
 import { useSession } from "next-auth/react";
 import { isClubUser } from "@/lib/roles";
-import { notifyValidation, toast, formErrorMessage } from "@/lib/toast";
+import { notifyValidation, formErrorMessage } from "@/lib/toast";
 
 export function AdminReportingForm() {
   const { month, year } = getActiveReportPeriod();
@@ -48,6 +49,16 @@ export function AdminReportingForm() {
   const [districtEventAttendance, setDistrictEventAttendance] = useState("");
   const [newsletterEvent, setNewsletterEvent] = useState("");
   const [formError, setFormError] = useState("");
+  const [successDialogOpen, setSuccessDialogOpen] = useState(false);
+
+  const periodLabel = getReportingPeriodLabel(month, year);
+  const isSubmitted = data?.status === "SUBMITTED";
+
+  useEffect(() => {
+    if (isSubmitted) {
+      setSuccessDialogOpen(true);
+    }
+  }, [isSubmitted]);
 
   useEffect(() => {
     if (data) {
@@ -104,7 +115,8 @@ export function AdminReportingForm() {
         newsletterEvent,
         submit: true,
       });
-      toast.success("Administration report submitted successfully");
+      await refetch();
+      setSuccessDialogOpen(true);
     } catch (err) {
       setFormError(formErrorMessage(err, "Failed to submit admin report."));
     }
@@ -115,9 +127,16 @@ export function AdminReportingForm() {
   return (
     <ReportingFormLayout
       title="Administration Reporting"
-      subtitle={`Club Administration — Monthly Reporting for ${getReportingPeriodLabel(month, year)}`}
+      subtitle={`Club Administration — Monthly Reporting for ${periodLabel}`}
       banner={<ReportingWindowBanner month={month} year={year} />}
     >
+      <ReportingSubmittedDialog
+        open={successDialogOpen}
+        onOpenChange={setSuccessDialogOpen}
+        title="Admin report submitted"
+        description={`Your administration report for ${periodLabel} has been submitted successfully. You can still complete Events Reporting from Monthly Reporting.`}
+      />
+
       <Button variant="ghost" size="sm" className="-mt-2 mb-2 w-fit px-0 text-muted-foreground" asChild>
         <Link href="/dashboard/reporting">
           <ArrowLeft className="mr-1 h-4 w-4" />
@@ -125,6 +144,24 @@ export function AdminReportingForm() {
         </Link>
       </Button>
 
+      {isSubmitted ? (
+        <div className="depth-card rounded-2xl p-8 text-center">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600">
+            <CheckCircle2 className="h-7 w-7" />
+          </div>
+          <h2 className="text-lg font-semibold text-foreground">Admin report submitted</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Your administration report for {periodLabel} is on record.
+          </p>
+          <Button
+            className="mt-6 bg-accent text-accent-foreground hover:bg-accent/90"
+            onClick={() => setSuccessDialogOpen(true)}
+          >
+            View confirmation
+          </Button>
+        </div>
+      ) : (
+        <>
       <ReportingPanel title="Club Administration">
         <ReportingFieldRow label="New Members :">
           <Input
@@ -251,9 +288,7 @@ export function AdminReportingForm() {
       >
         {save.isPending ? "Submitting..." : "Submit"}
       </Button>
-
-      {data?.status === "SUBMITTED" && (
-        <p className="text-sm text-green-500">Report submitted for this month.</p>
+        </>
       )}
     </ReportingFormLayout>
   );
