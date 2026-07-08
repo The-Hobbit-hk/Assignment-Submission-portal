@@ -377,13 +377,15 @@ model Event {
   registrationOpensAt   DateTime?
   registrationClosesAt  DateTime?
   registrationUrl       String?
+  onSiteRegistration    Boolean     @default(false)
   serviceHours          Int         @default(0)
   budget                Decimal?    @db.Decimal(12, 2)
   bannerUrl             String?
   minutesPdfUrl         String?
 
-  gallery       EventGallery[]
-  registrations EventRegistration[]
+  gallery              EventGallery[]
+  registrations        EventRegistration[]
+  publicRegistrations  PublicEventRegistration[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -392,6 +394,22 @@ model Event {
   @@index([startDate])
   @@index([status])
   @@index([type, startDate, status])
+}
+
+model PublicEventRegistration {
+  id               String   @id @default(cuid())
+  eventId          String
+  event            Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  name             String
+  clubName         String
+  riId             String
+  paymentProofPath String
+  governmentIdPath String
+  acknowledged     Boolean  @default(true)
+  registeredAt     DateTime @default(now())
+
+  @@unique([eventId, riId])
+  @@index([eventId])
 }
 
 model EventGallery {

@@ -22,6 +22,7 @@ export default async function CalendarPage() {
     registrationOpensAt: event.registrationOpensAt?.toISOString() ?? null,
     registrationClosesAt: event.registrationClosesAt?.toISOString() ?? null,
     registrationUrl: event.registrationUrl,
+    onSiteRegistration: "onSiteRegistration" in event ? event.onSiteRegistration : false,
     club: event.club,
   }));
 

@@ -9,6 +9,7 @@ export type DistrictCalendarEventSeed = {
   registrationUrl?: string;
   registrationOpensAt?: string;
   registrationClosesAt?: string;
+  onSiteRegistration?: boolean;
   maxAttendees?: number;
 };
 
@@ -51,6 +52,9 @@ export const DISTRICT_CALENDAR_EVENTS: DistrictCalendarEventSeed[] = [
     startDate: "2026-08-16T06:00:00+05:30",
     endDate: "2026-08-16T18:00:00+05:30",
     location: "District 3131",
+    registrationOpensAt: "2026-07-08T00:00:00+05:30",
+    registrationClosesAt: "2026-08-15T23:59:59+05:30",
+    onSiteRegistration: true,
   },
   {
     key: "searic-summit-2026",

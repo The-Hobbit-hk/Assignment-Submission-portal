@@ -110,6 +110,7 @@ export async function POST(request: Request) {
         registrationClosesAt: d.registrationClosesAt
           ? new Date(d.registrationClosesAt)
           : undefined,
+        onSiteRegistration: d.onSiteRegistration ?? false,
         serviceHours: d.serviceHours ?? 0,
         budget: d.budget,
       },

@@ -23,6 +23,7 @@ export type PublicEventCardData = {
   registrationOpensAt: Date | null;
   registrationClosesAt: Date | null;
   registrationUrl: string | null;
+  onSiteRegistration?: boolean;
   type: string;
   gallery?: { url: string }[];
 };

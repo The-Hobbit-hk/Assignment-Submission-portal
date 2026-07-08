@@ -22,3 +22,6 @@ export function isSupabaseStorageEnabled() {
 
 export const SUPABASE_UPLOAD_BUCKET =
   process.env.SUPABASE_UPLOAD_BUCKET ?? "uploads";
+
+export const SUPABASE_PRIVATE_BUCKET =
+  process.env.SUPABASE_PRIVATE_BUCKET ?? "event-registrations";

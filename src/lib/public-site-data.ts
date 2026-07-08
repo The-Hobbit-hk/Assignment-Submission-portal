@@ -28,6 +28,7 @@ const publicEventSelect = {
   registrationOpensAt: true,
   registrationClosesAt: true,
   registrationUrl: true,
+  onSiteRegistration: true,
   bannerUrl: true,
 } as const;
 

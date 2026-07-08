@@ -27,6 +27,7 @@ export type SerializedCalendarEvent = {
   registrationOpensAt: string | null;
   registrationClosesAt: string | null;
   registrationUrl: string | null;
+  onSiteRegistration?: boolean;
   club: { name: string; zone: string | null; city: string | null } | null;
   gallery?: { url: string }[];
 };
@@ -141,6 +142,7 @@ function SpotlightCard({ event }: { event: SerializedCalendarEvent }) {
               startDate: event.startDate,
               endDate: event.endDate,
               registrationUrl: event.registrationUrl,
+              onSiteRegistration: event.onSiteRegistration,
               registrationOpensAt: event.registrationOpensAt
                 ? new Date(event.registrationOpensAt)
                 : null,
@@ -212,6 +214,7 @@ function AgendaRow({ event }: { event: SerializedCalendarEvent }) {
             startDate: event.startDate,
             endDate: event.endDate,
             registrationUrl: event.registrationUrl,
+            onSiteRegistration: event.onSiteRegistration,
             registrationOpensAt: event.registrationOpensAt
               ? new Date(event.registrationOpensAt)
               : null,

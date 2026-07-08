@@ -54,6 +54,7 @@ next-env.d.ts
 
 # uploads
 /public/uploads
+/private-uploads
 
 # logo processing backups
 /public/*.opaque-backup.png

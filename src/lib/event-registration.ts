@@ -15,6 +15,7 @@ export type EventRegistrationFields = {
   registrationOpensAt: Date | null;
   registrationClosesAt: Date | null;
   registrationUrl?: string | null;
+  onSiteRegistration?: boolean;
 };
 
 export function getRegistrationState(

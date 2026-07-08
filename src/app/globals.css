@@ -583,6 +583,86 @@ body {
   outline-offset: 3px;
 }
 
+/* ── Launch reel (/launch) ───────────────────────────────────────── */
+.launch-reel-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.launch-reel-glow {
+  background:
+    radial-gradient(ellipse 55% 45% at 18% 18%, rgba(217, 30, 92, 0.22), transparent 58%),
+    radial-gradient(ellipse 50% 40% at 82% 72%, rgba(99, 102, 241, 0.18), transparent 55%);
+}
+
+.launch-reel-control {
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(8px);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.launch-reel-control:hover {
+  border-color: rgba(217, 30, 92, 0.45);
+  background: rgba(217, 30, 92, 0.18);
+}
+
+.launch-reel-scene {
+  opacity: 0;
+  transform: translateY(18px) scale(0.98);
+  filter: blur(6px);
+  transition:
+    opacity 0.85s ease,
+    transform 1s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.85s ease;
+  pointer-events: none;
+}
+
+.launch-reel-scene-active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  filter: blur(0);
+  pointer-events: auto;
+}
+
+.launch-reel-logo-wrap {
+  animation: launch-logo-in 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.launch-reel-stat {
+  animation: launch-stat-in 0.75s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes launch-logo-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.82);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes launch-stat-in {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .council-card-ring {
     animation: none !important;
@@ -599,6 +679,16 @@ body {
   .site-welcome-text,
   .site-page-stagger > section,
   .site-scroll-reveal {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  .launch-reel-scene,
+  .launch-reel-logo-wrap,
+  .launch-reel-stat {
     animation: none !important;
     transition: none !important;
     opacity: 1 !important;

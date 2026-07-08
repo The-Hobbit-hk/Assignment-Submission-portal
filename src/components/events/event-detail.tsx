@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDeleteEvent, useEvent, useRegisterEvent, uploadEventFile } from "@/hooks/use-events";
 import { useMembers } from "@/hooks/use-members";
+import { PublicEventRegistrationsPanel } from "@/components/events/public-event-registrations-panel";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function EventDetail({ eventId }: { eventId: string }) {
@@ -124,6 +125,10 @@ export function EventDetail({ eventId }: { eventId: string }) {
           </div>
         </CardContent>
       </Card>
+
+      {(event.type === "DISTRICT" || event.type === "INSTALLATION") && (
+        <PublicEventRegistrationsPanel eventId={eventId} />
+      )}
     </div>
   );
 }

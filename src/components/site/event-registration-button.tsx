@@ -10,6 +10,7 @@ import {
 } from "@/lib/event-registration";
 import { buildGoogleCalendarUrl } from "@/lib/google-calendar";
 import { cn } from "@/lib/utils";
+import { EventRegistrationDialog } from "@/components/site/event-registration-dialog";
 
 function coerceDate(value: Date | string | null | undefined): Date | null {
   if (!value) return null;
@@ -25,34 +26,32 @@ export function EventRegistrationButton({
     title?: string;
     location?: string | null;
     description?: string | null;
+    onSiteRegistration?: boolean;
   };
   className?: string;
 }) {
-  // These pages are statically cached, so any status derived from `new Date()`
-  // would freeze at build/cache time. Recompute against the live clock on the
-  // client so a passed event never stays stuck on "Coming Soon".
   const [now, setNow] = useState<Date | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
   useEffect(() => {
     setNow(new Date());
   }, []);
-  const evalNow = now ?? new Date();
 
+  const evalNow = now ?? new Date();
   const startDate = coerceDate(event.startDate);
   const endDate = coerceDate(event.endDate);
   const isInstallation = event.type === "INSTALLATION";
   const installationEnded =
     isInstallation &&
     startDate &&
-    eventHasEnded(
-      { status: event.status, startDate, endDate },
-      evalNow
-    );
+    eventHasEnded({ status: event.status, startDate, endDate }, evalNow);
 
   const state = isInstallation
     ? installationEnded
       ? "completed"
       : "open"
     : getRegistrationState(event, evalNow);
+
   const label = isInstallation
     ? installationEnded
       ? "Completed"
@@ -90,6 +89,26 @@ export function EventRegistrationButton({
         >
           {label}
         </a>
+      );
+    }
+
+    if (event.onSiteRegistration) {
+      return (
+        <>
+          <button
+            type="button"
+            onClick={() => setDialogOpen(true)}
+            className={cn(base, "depth-btn-accent text-white")}
+          >
+            {label}
+          </button>
+          <EventRegistrationDialog
+            eventId={event.id}
+            eventTitle={event.title ?? "District Event"}
+            open={dialogOpen}
+            onOpenChange={setDialogOpen}
+          />
+        </>
       );
     }
 

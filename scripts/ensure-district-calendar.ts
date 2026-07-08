@@ -84,6 +84,7 @@ async function main() {
       registrationClosesAt: event.registrationClosesAt
         ? new Date(event.registrationClosesAt)
         : null,
+      onSiteRegistration: event.onSiteRegistration ?? false,
       maxAttendees: event.maxAttendees ?? null,
       bannerUrl: getDefaultEventBannerUrl(event.key),
       description: `calendar-key:${event.key}`,

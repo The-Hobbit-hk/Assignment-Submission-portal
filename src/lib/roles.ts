@@ -130,6 +130,11 @@ export function canManageEvents(role: UserRole) {
   return SECRETARY_ROLES.includes(role);
 }
 
+/** View public event registrations (PII + govt ID) — district admins only. */
+export function canViewEventPublicRegistrations(role: UserRole) {
+  return DISTRICT_ROLES.includes(role);
+}
+
 /** Approve / score club Blue Book submissions, and export district reports. */
 export function canReviewClubBluebook(role: UserRole) {
   return isDistrictSecretary(role);

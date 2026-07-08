@@ -44,6 +44,7 @@ export function EventForm({
     registrationClosesAt: initial?.registrationClosesAt
       ? initial.registrationClosesAt.slice(0, 16)
       : "",
+    onSiteRegistration: initial?.onSiteRegistration ?? false,
     serviceHours: initial?.serviceHours ?? 0,
   });
 
@@ -117,7 +118,25 @@ export function EventForm({
         <div className="space-y-2"><Label>Max attendees</Label><Input type="number" value={form.maxAttendees} onChange={(e) => setForm({ ...form, maxAttendees: e.target.value })} /></div>
       </div>
       {(form.type === "DISTRICT" || form.type === "INSTALLATION") && (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-4 rounded-lg border border-border/50 p-4">
+          <label className="flex items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={form.onSiteRegistration}
+              onChange={(e) =>
+                setForm({ ...form, onSiteRegistration: e.target.checked })
+              }
+            />
+            <span>
+              <span className="font-medium">On-site registration form</span>
+              <span className="mt-1 block text-muted-foreground">
+                Visitors register on the website (name, club, RI ID, payment screenshot, govt ID).
+                Submissions are visible to district admins only.
+              </span>
+            </span>
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Registration opens</Label>
             <Input
@@ -134,9 +153,13 @@ export function EventForm({
               onChange={(e) => setForm({ ...form, registrationClosesAt: e.target.value })}
             />
           </div>
+          </div>
         </div>
       )}
-      <Button type="submit" disabled={loading}>{loading && <Loader2 className="animate-spin" />}{submitLabel}</Button>
+      <Button type="submit" disabled={loading}>
+        {loading && <Loader2 className="animate-spin" />}
+        {submitLabel}
+      </Button>
     </form>
   );
 }

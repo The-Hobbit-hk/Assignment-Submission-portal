@@ -32,6 +32,7 @@ export const createEventSchema = z.object({
   maxAttendees: z.number().int().positive().optional(),
   registrationOpensAt: z.string().datetime().optional().nullable(),
   registrationClosesAt: z.string().datetime().optional().nullable(),
+  onSiteRegistration: z.boolean().optional(),
   serviceHours: z.number().int().min(0).optional(),
   budget: z.number().min(0).optional(),
 });
