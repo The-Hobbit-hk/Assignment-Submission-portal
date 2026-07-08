@@ -1,6 +1,10 @@
 import { unstable_cache } from "next/cache";
+import { calendarEventDedupKey } from "@/lib/calendar-event-dedup";
 import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
-import { fetchGoogleCalendarInstallations } from "@/lib/google-calendar-feed";
+import {
+  fetchGoogleCalendarInstallationFeed,
+  syncCancelledInstallationsToDb,
+} from "@/lib/google-calendar-feed";
 import {
   publicCalendarEventWhere,
   publicDistrictEventWhere,
@@ -161,40 +165,39 @@ const getCachedPublicClubsByZone = unstable_cache(
   { revalidate: PUBLIC_CLUBS_REVALIDATE, tags: ["public-clubs"] }
 );
 
-const getCachedGoogleInstallations = unstable_cache(
-  fetchGoogleCalendarInstallations,
+const getCachedGoogleInstallationFeed = unstable_cache(
+  async () => {
+    const feed = await fetchGoogleCalendarInstallationFeed();
+    await syncCancelledInstallationsToDb(feed.cancelledKeys);
+    return feed;
+  },
   ["public-google-installations"],
   { revalidate: GOOGLE_FEED_REVALIDATE, tags: ["public-events"] }
 );
 
-/** Normalize a title so "Club Installation — X", "Club Installation - X" and
- * "Club Installation ~ X" collapse to the same de-dup key. */
-function eventDedupKey(title: string, startDate: Date) {
-  const normalizedTitle = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-  const day = startDate.toISOString().slice(0, 10);
-  return `${normalizedTitle}|${day}`;
-}
-
 export async function getPublicCalendarEvents() {
-  const [dbEvents, googleEvents] = await Promise.all([
+  const [dbEvents, googleFeed] = await Promise.all([
     getCachedPublicCalendarEvents(),
-    getCachedGoogleInstallations(),
+    getCachedGoogleInstallationFeed(),
   ]);
 
-  const hydratedDb = dbEvents.map(hydratePublicEvent);
+  const cancelledKeys = new Set(googleFeed.cancelledKeys);
+
+  const hydratedDb = dbEvents
+    .map(hydratePublicEvent)
+    .filter(
+      (event) => !cancelledKeys.has(calendarEventDedupKey(event.title, event.startDate))
+    );
 
   // Prefer the DB copy when an installation exists in both sources.
   const seen = new Set(
-    hydratedDb.map((event) => eventDedupKey(event.title, event.startDate))
+    hydratedDb.map((event) => calendarEventDedupKey(event.title, event.startDate))
   );
 
-  const hydratedGoogle = googleEvents
+  const hydratedGoogle = googleFeed.active
     .map(hydratePublicEvent)
     .filter((event) => {
-      const key = eventDedupKey(event.title, event.startDate);
+      const key = calendarEventDedupKey(event.title, event.startDate);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
