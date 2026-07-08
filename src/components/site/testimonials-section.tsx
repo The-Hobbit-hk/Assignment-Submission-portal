@@ -22,12 +22,12 @@ function TestimonialCard({
   return (
     <figure className="depth-card flex h-full flex-col rounded-2xl border border-zinc-200/80 bg-white p-6">
       <div className="flex items-start gap-4">
-        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 border-accent/20 bg-zinc-100">
+        <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-xl border-2 border-accent/20 bg-zinc-100">
           <Image
             src={photo}
             alt={name}
             fill
-            sizes="64px"
+            sizes="80px"
             className="object-cover object-top"
           />
         </div>

@@ -32,6 +32,25 @@ const MANUAL_MAP: Record<string, string> = {
   rtr_disha: "rtrdishadaga@gmail.com",
   rohit_kumbhar: "rohitkumbhar98@gmail.com",
   sattyajeet_karale_patil: "sattyajeet.rotaract@gmail.com",
+  prajwal: "prajwalrbande@gmail.com",
+  jayesh: "rtrjayeshchavan@gmail.com",
+  prem: "prembansode.7172@gmail.com",
+  vaishnavi: "rtr.vaishnavikedari@gmail.com",
+  pratham: "prathampokharkar10@gmail.com",
+  vedant_chaudhary: "vedantpchaudhari41@gmail.com",
+  vedant_chaudhari: "vedantpchaudhari41@gmail.com",
+  vedant_chaudhary: "vedantpchaudhari41@gmail.com",
+  disja: "rtrdishadaga@gmail.com",
+  shreyash: "rtrshreyaspathak@gmail.com",
+  samrudhhi: "samrudhikhade26@gmail.com",
+  shriraj: "sikowitzclicks@gmail.com",
+  chinmaye: "chinmayee.bartakke14@gmail.com",
+  abhsihek: "rtr.abhishekdixit@gmail.com",
+  harshvardhan: "rtr.harshvardhan3131@gmail.com",
+  aishwarya_patil: "rtr.dr.aishwaryapatil@gmail.com",
+  ashlesha: "rtr.drashlesha3131@gmail.com",
+  ameya: "ameya.rotaract@gmail.com",
+  madhu: "rtrmadhupimprikar@gmail.com",
 };
 
 const SKIP_FRAGMENTS = [
@@ -60,9 +79,14 @@ function normalizeKey(value: string): string {
 }
 
 function extractNameFromFilename(filename: string): string | null {
-  const match = filename.match(/_-_([^-]+(?:-[^-]+)?)-[0-9a-f]{8}-/i);
-  if (!match) return null;
-  return match[1].replace(/_/g, " ").trim();
+  const dashed = filename.match(/_-_([^-]+(?:-[^-]+)?)-[0-9a-f]{8}-/i);
+  if (dashed) return dashed[1].replace(/_/g, " ").trim();
+
+  // Renamed uploads: ..._images_Firstname-uuid.png
+  const simple = filename.match(/_images_([^-]+)-[0-9a-f]{8}-/i);
+  if (simple) return simple[1].replace(/_/g, " ").trim();
+
+  return null;
 }
 
 function findRosterEmail(nameFragment: string): string | null {
@@ -109,7 +133,7 @@ function main() {
 
   const files = fs
     .readdirSync(assetsDir)
-    .filter((f) => f.endsWith(".png") && f.includes("_-_"));
+    .filter((f) => f.endsWith(".png") && f.includes("_images_"));
 
   const emailToPhoto = new Map<string, { src: string; dest: string }>();
   const unmatched: string[] = [];
@@ -140,10 +164,11 @@ function main() {
 
     const existing = emailToPhoto.get(email);
     if (existing) {
-      // Prefer portrait filenames over duplicates (e.g. two Karishma / Snehal uploads).
+      // Prefer renamed short filenames and full-length portraits over older crops.
       const preferNew =
         file.includes("IMG_7602") ||
-        (file.includes("Karishma") && !existing.src.includes("IMG_7602"));
+        (file.includes("Karishma") && !existing.src.includes("IMG_7602")) ||
+        /_images_[A-Za-z]+-[0-9a-f]{8}-/i.test(file);
       if (!preferNew) continue;
     }
 
