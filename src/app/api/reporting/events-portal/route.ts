@@ -5,6 +5,7 @@ import { buildEventWhere, serializeEvent } from "@/lib/event";
 import { jsonCached } from "@/lib/api-response";
 import { getActiveReportPeriod, serializeMonthlyReport } from "@/lib/reporting";
 import { resolveReportingClubId } from "@/lib/reporting-access";
+import { syncEventsReportIfClubHasEvents } from "@/lib/events-reporting-sync";
 import { handleRouteError } from "@/lib/api-errors";
 
 const eventInclude = {
@@ -23,7 +24,7 @@ export async function GET(request: Request) {
   const clubId = await resolveReportingClubId(session!, searchParams.get("clubId"));
 
   try {
-    const [report, club, clubEvents, districtEvents] = await Promise.all([
+    const [initialReport, club, clubEvents, districtEvents] = await Promise.all([
       prisma.monthlyReport.findFirst({
         where: { type: "EVENTS", month, year, clubId },
       }),
@@ -43,6 +44,16 @@ export async function GET(request: Request) {
         include: eventInclude,
       }),
     ]);
+
+    const report =
+      clubId && clubEvents.length > 0 && initialReport?.status !== "SUBMITTED"
+        ? await syncEventsReportIfClubHasEvents(prisma, {
+            clubId,
+            month,
+            year,
+            submittedByUserId: session!.user.id,
+          })
+        : initialReport;
 
     return jsonCached(
       {

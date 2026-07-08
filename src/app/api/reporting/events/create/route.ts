@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { serializeEvent } from "@/lib/event";
 import { assertClubEventCreateAccess, resolveReportingClubId } from "@/lib/reporting-access";
+import { syncEventsReportIfClubHasEvents } from "@/lib/events-reporting-sync";
 import { reportingEventSchema } from "@/lib/validators/reporting";
 import { isClubUser } from "@/lib/roles";
 import { logActivity } from "@/lib/activity";
@@ -84,6 +85,15 @@ export async function POST(request: Request) {
       clubId: event.clubId ?? undefined,
       userId: session!.user.id,
     });
+
+    if (event.clubId) {
+      await syncEventsReportIfClubHasEvents(prisma, {
+        clubId: event.clubId,
+        month: startDate.getMonth() + 1,
+        year: startDate.getFullYear(),
+        submittedByUserId: session!.user.id,
+      });
+    }
 
     const { revalidatePublicEvents } = await import("@/lib/revalidate-public-site");
     revalidatePublicEvents();

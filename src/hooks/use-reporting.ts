@@ -114,6 +114,7 @@ export function useCreateReportingEvent() {
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["reporting", "events-portal"] });
+      qc.invalidateQueries({ queryKey: ["reporting", "club-reports"] });
       qc.invalidateQueries({ queryKey: ["events"] });
     },
   });
