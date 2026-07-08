@@ -34,8 +34,9 @@ export default auth((req) => {
     pathname === "/forgot-password";
 
   const isApiAuthRoute = pathname.startsWith("/api/auth");
+  const isPublicApiRoute = pathname === "/api/contact";
 
-  if (isApiAuthRoute) {
+  if (isApiAuthRoute || isPublicApiRoute) {
     return;
   }
 

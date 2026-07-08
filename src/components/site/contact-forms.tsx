@@ -36,20 +36,41 @@ function ContactForm({
 
             setSubmitting(true);
             try {
-              const res = await fetch("/api/contact", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  name: data.get("name"),
-                  email: data.get("email"),
-                  message: data.get("message"),
-                  formType,
-                }),
-              });
+              const name = String(data.get("name") ?? "");
+              const email = String(data.get("email") ?? "");
+              const message = String(data.get("message") ?? "");
+              const subject =
+                formType === "grievance"
+                  ? `Grievance Redressal — ${name}`
+                  : `Contact form — ${name}`;
 
-              if (!res.ok) {
-                const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-                throw new Error(payload?.error ?? "Could not send your message.");
+              // FormSubmit only delivers from the browser (not server-side fetch).
+              const res = await fetch(
+                `https://formsubmit.co/ajax/${encodeURIComponent(CONTACT.drrEmail)}`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                  },
+                  body: JSON.stringify({
+                    name,
+                    email,
+                    message,
+                    _subject: subject,
+                    _template: "table",
+                    _captcha: "false",
+                  }),
+                }
+              );
+
+              const result = (await res.json().catch(() => null)) as {
+                success?: string;
+                message?: string;
+              } | null;
+
+              if (!res.ok || result?.success !== "true") {
+                throw new Error(result?.message ?? "Could not send your message.");
               }
 
               setSent(true);
