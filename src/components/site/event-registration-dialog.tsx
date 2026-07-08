@@ -79,9 +79,18 @@ export function EventRegistrationDialog({
         method: "POST",
         body: data,
       });
-      const body = (await res.json().catch(() => null)) as { message?: string } | null;
+      const body = (await res.json().catch(() => null)) as {
+        error?: string;
+        message?: string;
+      } | null;
       if (!res.ok) {
-        throw new Error(body?.message ?? "Registration failed. Please try again.");
+        throw new Error(
+          body?.error ??
+            body?.message ??
+            (res.status === 429
+              ? "Too many registration attempts. Please try again later."
+              : "Registration failed. Please try again.")
+        );
       }
       setSubmitted(true);
       toast.success("Registration submitted successfully.");
@@ -128,6 +137,20 @@ export function EventRegistrationDialog({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div
+              className="absolute left-[-9999px] h-0 w-0 overflow-hidden"
+              aria-hidden="true"
+            >
+              <label htmlFor="reg-website">Website</label>
+              <input
+                id="reg-website"
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="reg-name">Full name *</Label>
               <Input id="reg-name" name="name" required maxLength={120} autoComplete="name" />

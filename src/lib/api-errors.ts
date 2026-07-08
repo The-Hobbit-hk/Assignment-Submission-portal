@@ -29,6 +29,17 @@ export function forbidden(message: string = API_MESSAGES.forbidden) {
   return apiError(message, 403);
 }
 
+export function tooManyRequests(
+  message = "Too many requests. Please try again later.",
+  retryAfterSec?: number
+) {
+  const headers: Record<string, string> = {};
+  if (retryAfterSec) {
+    headers["Retry-After"] = String(retryAfterSec);
+  }
+  return NextResponse.json({ error: message }, { status: 429, headers });
+}
+
 export function notFound(message: string = API_MESSAGES.notFound) {
   return apiError(message, 404);
 }

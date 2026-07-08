@@ -41,7 +41,14 @@ export function LoginForm({ portal }: { portal?: PortalMeta }) {
       });
 
       if (result?.error) {
-        setError(reportError("Invalid email or password. Please try again."));
+        const rateLimited = result.error.toLowerCase().includes("too many");
+        setError(
+          reportError(
+            rateLimited
+              ? "Too many failed attempts for this account. Please wait a few minutes and try again."
+              : "Invalid email or password. Please try again."
+          )
+        );
         return;
       }
 

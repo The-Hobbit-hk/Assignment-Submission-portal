@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getRegistrationState } from "@/lib/event-registration";
-import { handleRouteError, apiError, notFound } from "@/lib/api-errors";
+import { handleRouteError, apiError, notFound, tooManyRequests } from "@/lib/api-errors";
 import { publicEventRegistrationSchema } from "@/lib/validators/public-event-registration";
 import { savePrivateUpload } from "@/lib/upload";
 import { serializePublicRegistration } from "@/lib/public-event-registration";
+import {
+  getClientIp,
+  isHoneypotFilled,
+  rateLimit,
+  RATE_LIMITS,
+} from "@/lib/rate-limit";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -12,6 +18,16 @@ interface RouteParams {
 
 export async function POST(request: Request, { params }: RouteParams) {
   const { id: eventId } = await params;
+
+  const ip = getClientIp(request.headers);
+  const limited = rateLimit(
+    `event-register:${ip}`,
+    RATE_LIMITS.register.limit,
+    RATE_LIMITS.register.windowMs
+  );
+  if (!limited.success) {
+    return tooManyRequests(undefined, limited.retryAfterSec);
+  }
 
   try {
     const event = await prisma.event.findFirst({
@@ -32,6 +48,11 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     const form = await request.formData();
+
+    if (isHoneypotFilled(form.get("website"))) {
+      return apiError("Invalid form submission.", 400);
+    }
+
     const paymentFile = form.get("paymentProof");
     const governmentIdFile = form.get("governmentId");
 

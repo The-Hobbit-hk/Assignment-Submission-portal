@@ -6,6 +6,7 @@ import { z } from "zod";
 import { authConfig } from "@/lib/auth.config";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@/types/auth";
+import { clearRateLimit, isRateLimited, rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const credentialsSchema = z.object({
   email: z.email(),
@@ -60,19 +61,41 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         const { email, password } = parsed.data;
+        const emailKey = email.toLowerCase().trim();
+
+        const locked = isRateLimited(
+          `login-fail:${emailKey}`,
+          RATE_LIMITS.loginFailed.limit,
+          RATE_LIMITS.loginFailed.windowMs
+        );
+        if (!locked.success) {
+          return null;
+        }
 
         const user = await prisma.user.findUnique({
-          where: { email },
+          where: { email: emailKey },
         });
 
         if (!user?.password) {
+          rateLimit(
+            `login-fail:${emailKey}`,
+            RATE_LIMITS.loginFailed.limit,
+            RATE_LIMITS.loginFailed.windowMs
+          );
           return null;
         }
 
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) {
+          rateLimit(
+            `login-fail:${emailKey}`,
+            RATE_LIMITS.loginFailed.limit,
+            RATE_LIMITS.loginFailed.windowMs
+          );
           return null;
         }
+
+        clearRateLimit(`login-fail:${emailKey}`);
 
         return {
           id: user.id,
