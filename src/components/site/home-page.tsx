@@ -19,15 +19,6 @@ export function HomePage() {
         large
       />
 
-      <div className="relative z-20 -mt-10 flex justify-center px-4 sm:-mt-12">
-        <Link
-          href="/launch"
-          className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/90 px-4 py-2 text-xs font-semibold text-zinc-800 shadow-md backdrop-blur-sm transition hover:border-accent/40 hover:text-accent sm:text-sm"
-        >
-          ▶ Watch launch film
-        </Link>
-      </div>
-
       <div className="relative z-10 px-4 lg:px-8">
         <div className="mx-auto -mt-6 max-w-4xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-lg sm:-mt-8">
           <DistrictTrustBar variant="light" className="border-t-0" />
