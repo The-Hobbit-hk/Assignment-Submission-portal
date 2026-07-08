@@ -2,15 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, ClipboardList, FileBarChart2, Lock } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileBarChart2, Lock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { ReportingClosedDialog } from "@/components/reporting/reporting-closed-dialog";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
+import { useAdminReport, useEventsReportingPortal } from "@/hooks/use-reporting";
 import { useReportingWindow } from "@/hooks/use-reporting-window";
 import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting";
+import { isClubUser } from "@/lib/roles";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 
 const links = [
   {
+    id: "events" as const,
     href: "/dashboard/reporting/events",
     title: "Events Reporting",
     description:
@@ -20,6 +25,7 @@ const links = [
     iconBg: "bg-rose-500/10 text-accent",
   },
   {
+    id: "admin" as const,
     href: "/dashboard/reporting/admin",
     title: "Admin Reporting",
     description:
@@ -30,13 +36,35 @@ const links = [
   },
 ];
 
+function CompletionBadge({ complete }: { complete: boolean }) {
+  return (
+    <Badge variant={complete ? "success" : "warning"}>
+      {complete ? "Complete" : "Incomplete"}
+    </Badge>
+  );
+}
+
 export function ReportingHub() {
   const { month, year } = getActiveReportPeriod();
   const periodLabel = getReportingPeriodLabel(month, year);
 
+  const { data: session } = useSession();
+  const clubUser = isClubUser(session?.user?.role ?? "MEMBER");
   const { data: window } = useReportingWindow(month, year);
+  const { data: adminReport } = useAdminReport({ month, year });
+  const { data: eventsPortal } = useEventsReportingPortal(month, year);
   const reportingClosed = window && !window.open;
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  const adminComplete = adminReport?.status === "SUBMITTED";
+  const eventsComplete =
+    eventsPortal?.report?.status === "SUBMITTED" || (eventsPortal?.clubEvents.length ?? 0) > 0;
+  const monthlyComplete = adminComplete && eventsComplete;
+
+  const completionByLink = {
+    events: eventsComplete,
+    admin: adminComplete,
+  };
 
   const handleCardClick = () => {
     if (reportingClosed) {
@@ -77,6 +105,18 @@ export function ReportingHub() {
 
       <ReportingWindowBanner month={month} year={year} />
 
+      {clubUser && monthlyComplete && (
+        <div className="depth-card flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+          <div>
+            <p className="font-medium text-foreground">Monthly reporting complete</p>
+            <p className="text-sm text-muted-foreground">
+              Both admin and events reporting for {periodLabel} are on record.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         {links.map((item) => {
           const cardClassName = cn(
@@ -102,20 +142,25 @@ export function ReportingHub() {
                   >
                     <item.icon className="h-6 w-6" />
                   </div>
-                  <span
-                    className={cn(
-                      "flex h-9 w-9 items-center justify-center rounded-full",
-                      reportingClosed
-                        ? "bg-muted text-muted-foreground"
-                        : "depth-btn-surface border-0"
+                  <div className="flex items-center gap-2">
+                    {clubUser && (
+                      <CompletionBadge complete={completionByLink[item.id]} />
                     )}
-                  >
-                    {reportingClosed ? (
-                      <Lock className="h-4 w-4" />
-                    ) : (
-                      <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-accent" />
-                    )}
-                  </span>
+                    <span
+                      className={cn(
+                        "flex h-9 w-9 items-center justify-center rounded-full",
+                        reportingClosed
+                          ? "bg-muted text-muted-foreground"
+                          : "depth-btn-surface border-0"
+                      )}
+                    >
+                      {reportingClosed ? (
+                        <Lock className="h-4 w-4" />
+                      ) : (
+                        <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-accent" />
+                      )}
+                    </span>
+                  </div>
                 </div>
                 <h2
                   className={cn(
