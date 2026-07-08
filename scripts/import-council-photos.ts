@@ -39,7 +39,6 @@ const MANUAL_MAP: Record<string, string> = {
   pratham: "prathampokharkar10@gmail.com",
   vedant_chaudhary: "vedantpchaudhari41@gmail.com",
   vedant_chaudhari: "vedantpchaudhari41@gmail.com",
-  vedant_chaudhary: "vedantpchaudhari41@gmail.com",
   disja: "rtrdishadaga@gmail.com",
   shreyash: "rtrshreyaspathak@gmail.com",
   samrudhhi: "samrudhikhade26@gmail.com",
