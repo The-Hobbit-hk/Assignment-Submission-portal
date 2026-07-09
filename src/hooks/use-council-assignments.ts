@@ -10,14 +10,9 @@ import type {
 } from "@/lib/council-bluebook-status";
 
 export type AssignmentPortalData = {
-  assignments: {
-    id: string;
-    assigneeName: string;
-    task?: { title: string; dueDate: string };
-    status: string;
-  }[];
+  assignments: SerializedCouncilAssignment[];
   members: { id: string; name: string | null; email: string }[];
-  tasks: { id: string; title: string }[];
+  tasks: { id: string; title: string; description?: string | null }[];
 };
 
 export type CouncilBluebookOverviewData = {
