@@ -257,6 +257,7 @@ export function CouncilBluebookOverview() {
                   <TableRow>
                     <TableHead>Council member</TableHead>
                     <TableHead>Task</TableHead>
+                    <TableHead>Description</TableHead>
                     <TableHead className="hidden sm:table-cell">Category</TableHead>
                     <TableHead className="hidden md:table-cell">Due</TableHead>
                     <TableHead>Status</TableHead>
@@ -268,16 +269,23 @@ export function CouncilBluebookOverview() {
                 <TableBody>
                   {submissions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center text-muted-foreground">
+                      <TableCell colSpan={9} className="text-center text-muted-foreground">
                         No bluebook submissions for this period.
                       </TableCell>
                     </TableRow>
                   ) : (
                     submissions.map((submission) => (
                       <TableRow key={submission.id}>
-                        <TableCell className="font-medium">{submission.assigneeName}</TableCell>
-                        <TableCell>{submission.task?.title ?? "—"}</TableCell>
-                        <TableCell className="hidden text-muted-foreground sm:table-cell">
+                        <TableCell className="font-medium align-top">{submission.assigneeName}</TableCell>
+                        <TableCell className="align-top">{submission.task?.title ?? "—"}</TableCell>
+                        <TableCell className="max-w-md align-top text-sm text-muted-foreground">
+                          {submission.task?.description ? (
+                            <p className="whitespace-pre-wrap">{submission.task.description}</p>
+                          ) : (
+                            "—"
+                          )}
+                        </TableCell>
+                        <TableCell className="hidden align-top text-muted-foreground sm:table-cell">
                           {submission.task?.category ?? "—"}
                         </TableCell>
                         <TableCell className="hidden text-muted-foreground md:table-cell">

@@ -132,11 +132,12 @@ export function MyCouncilTasks() {
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-foreground">Assigned tasks</h2>
-        <div className="table-scroll rounded-lg border border-border/40">
-          <Table className="ref-table min-w-[560px]">
+          <div className="table-scroll rounded-lg border border-border/40">
+          <Table className="ref-table min-w-[720px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Task</TableHead>
+                <TableHead>Description</TableHead>
                 <TableHead>Points</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
@@ -144,23 +145,25 @@ export function MyCouncilTasks() {
             <TableBody>
               {assignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
                     No tasks assigned for this period.
                   </TableCell>
                 </TableRow>
               ) : (
                 assignments.map((task) => (
                   <TableRow key={task.id}>
-                    <TableCell>
-                      <div className="font-medium">{task.task?.title ?? "Task"}</div>
-                      {task.task?.description && (
-                        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                          {task.task.description}
-                        </p>
+                    <TableCell className="font-medium align-top">
+                      {task.task?.title ?? "Task"}
+                    </TableCell>
+                    <TableCell className="max-w-md align-top text-sm text-muted-foreground">
+                      {task.task?.description ? (
+                        <p className="whitespace-pre-wrap">{task.task.description}</p>
+                      ) : (
+                        "—"
                       )}
                     </TableCell>
-                    <TableCell>{task.task?.maxScore ?? 0}</TableCell>
-                    <TableCell>
+                    <TableCell className="align-top">{task.task?.maxScore ?? 0}</TableCell>
+                    <TableCell className="align-top">
                       <BluebookStatusBadge status={task.status} />
                     </TableCell>
                   </TableRow>

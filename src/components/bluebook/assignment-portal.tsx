@@ -94,11 +94,12 @@ export function AssignmentPortal() {
       <div className="space-y-3">
         <h2 className="text-sm font-medium text-foreground">Current assignments</h2>
         <div className="table-scroll rounded-xl border border-border/50 bg-card">
-          <Table className="ref-table min-w-[480px]">
+          <Table className="ref-table min-w-[720px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Member</TableHead>
                 <TableHead>Task</TableHead>
+                <TableHead>Description</TableHead>
                 <TableHead className="hidden sm:table-cell">Due</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
@@ -106,14 +107,14 @@ export function AssignmentPortal() {
             <TableBody>
               {isFetching && assignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
                     <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-accent" />
                     Loading assignments…
                   </TableCell>
                 </TableRow>
               ) : assignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
                     No assignments yet. Create a task or assign an existing one above.
                   </TableCell>
                 </TableRow>
@@ -121,11 +122,18 @@ export function AssignmentPortal() {
                 assignments.map((a) => (
                   <TableRow key={a.id}>
                     <TableCell>{a.assigneeName}</TableCell>
-                    <TableCell>{a.task?.title ?? "—"}</TableCell>
-                    <TableCell className="hidden sm:table-cell">
+                    <TableCell className="font-medium align-top">{a.task?.title ?? "—"}</TableCell>
+                    <TableCell className="max-w-md align-top text-sm text-muted-foreground">
+                      {a.task?.description ? (
+                        <p className="whitespace-pre-wrap">{a.task.description}</p>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden align-top sm:table-cell">
                       {a.task?.dueDate ? new Date(a.task.dueDate).toLocaleDateString() : "—"}
                     </TableCell>
-                    <TableCell>{a.status}</TableCell>
+                    <TableCell className="align-top">{a.status}</TableCell>
                   </TableRow>
                 ))
               )}

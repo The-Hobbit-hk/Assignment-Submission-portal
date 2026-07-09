@@ -160,24 +160,32 @@ export function CouncilMemberReview({
       )}
 
       <div className="table-scroll rounded-lg border border-border/40">
-        <Table className="ref-table min-w-[640px]">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Task</TableHead>
-              <TableHead>Max points</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Awarded points</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {assignments.map((a) => (
-              <TableRow key={a.id}>
-                <TableCell className="font-medium">{a.task?.title ?? "—"}</TableCell>
-                <TableCell>{a.task?.maxScore ?? 0}</TableCell>
-                <TableCell>
-                  <BluebookStatusBadge status={a.status} />
-                </TableCell>
-                <TableCell>
+          <Table className="ref-table min-w-[720px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Task</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Max points</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Awarded points</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {assignments.map((a) => (
+                <TableRow key={a.id}>
+                  <TableCell className="font-medium align-top">{a.task?.title ?? "—"}</TableCell>
+                  <TableCell className="max-w-md align-top text-sm text-muted-foreground">
+                    {a.task?.description ? (
+                      <p className="whitespace-pre-wrap">{a.task.description}</p>
+                    ) : (
+                      "—"
+                    )}
+                  </TableCell>
+                  <TableCell className="align-top">{a.task?.maxScore ?? 0}</TableCell>
+                  <TableCell className="align-top">
+                    <BluebookStatusBadge status={a.status} />
+                  </TableCell>
+                  <TableCell className="align-top">
                   {isReviewed ? (
                     <span className="font-medium">{scores[a.id] ?? 0}</span>
                   ) : (

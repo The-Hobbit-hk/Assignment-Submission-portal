@@ -96,7 +96,7 @@ export function BluebookContent() {
                 <TableRow className="border-border/40 hover:bg-transparent">
                   <TableHead className="hidden sm:table-cell">Task ID</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead className="hidden lg:table-cell">Description</TableHead>
+                  <TableHead className="hidden md:table-cell">Description</TableHead>
                   <TableHead className="hidden md:table-cell">Type</TableHead>
                   <TableHead>Score</TableHead>
                   <TableHead className="hidden sm:table-cell">Scored</TableHead>
@@ -119,8 +119,10 @@ export function BluebookContent() {
                           {t.title}
                         </Link>
                       </TableCell>
-                      <TableCell className="hidden max-w-[220px] truncate lg:table-cell">
-                        {t.description ?? "—"}
+                      <TableCell className="hidden max-w-md align-top md:table-cell">
+                        <p className="whitespace-pre-wrap text-sm text-muted-foreground">
+                          {t.description ?? "—"}
+                        </p>
                       </TableCell>
                       <TableCell className="hidden lowercase md:table-cell">{t.category}</TableCell>
                       <TableCell>{t.maxScore}</TableCell>
