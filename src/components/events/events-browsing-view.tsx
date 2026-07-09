@@ -294,7 +294,6 @@ function EventGridCard({
             </p>
           )}
           {event.club?.name && <p className="mt-1">{event.club.name}</p>}
-          <p className="mt-1">{event.registrationCount} registered</p>
         </CardContent>
       </Card>
     </Link>

@@ -1,17 +1,15 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, FileText, ImageIcon, Trash2, Upload, UserPlus } from "lucide-react";
+import { ArrowLeft, FileText, ImageIcon, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useDeleteEvent, useEvent, useRegisterEvent, uploadEventFile } from "@/hooks/use-events";
-import { useMembers } from "@/hooks/use-members";
+import { useDeleteEvent, useEvent, uploadEventFile } from "@/hooks/use-events";
 import { PublicEventRegistrationsPanel } from "@/components/events/public-event-registrations-panel";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -20,9 +18,6 @@ export function EventDetail({ eventId }: { eventId: string }) {
   const qc = useQueryClient();
   const { data: event, isLoading } = useEvent(eventId);
   const deleteMutation = useDeleteEvent();
-  const registerMutation = useRegisterEvent(eventId);
-  const { data: membersData } = useMembers({ limit: 100 });
-  const [memberId, setMemberId] = useState("");
   const bannerRef = useRef<HTMLInputElement>(null);
   const minutesRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
@@ -98,33 +93,6 @@ export function EventDetail({ eventId }: { eventId: string }) {
           </CardContent>
         </Card>
       )}
-
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Registrations ({event.registrations?.length ?? 0})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Select value={memberId} onValueChange={setMemberId}>
-              <SelectTrigger className="flex-1"><SelectValue placeholder="Select member" /></SelectTrigger>
-              <SelectContent>
-                {membersData?.data?.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.firstName} {m.lastName}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button disabled={!memberId} onClick={() => registerMutation.mutate(memberId)}><UserPlus className="h-4 w-4" />Register</Button>
-          </div>
-          <div className="space-y-2">
-            {event.registrations?.map((r) => (
-              <div key={r.id} className="flex justify-between rounded-lg border border-border/40 px-3 py-2 text-sm">
-                <span>{r.member.firstName} {r.member.lastName}</span>
-                <Badge variant="outline">{r.status}</Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {(event.type === "DISTRICT" || event.type === "INSTALLATION") && (
         <PublicEventRegistrationsPanel eventId={eventId} />

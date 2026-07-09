@@ -98,19 +98,6 @@ export function useDeleteEvent() {
   });
 }
 
-export function useRegisterEvent(eventId: string) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (memberId: string) =>
-      apiJson(`/api/events/${eventId}/registrations`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ memberId }),
-      }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["events", eventId] }),
-  });
-}
-
 export async function uploadEventFile(eventId: string, type: "banner" | "minutes" | "gallery", file: File, caption?: string) {
   const fd = new FormData();
   fd.append("file", file);
