@@ -17,11 +17,10 @@ import { formErrorMessage, notifyValidation, toast } from "@/lib/toast";
 
 const EVENT_TYPES = [
   { value: "ISD", label: "ISD" },
-  { value: "SERVICE", label: "Service" },
-  { value: "PROFESSIONAL", label: "Professional" },
-  { value: "SOCIAL", label: "Social" },
-  { value: "DISTRICT", label: "District" },
-  { value: "TRAINING", label: "Training" },
+  { value: "CSD", label: "CSD" },
+  { value: "PDD", label: "PDD" },
+  { value: "CMD", label: "CMD" },
+  { value: "Others", label: "Others" },
 ];
 
 function toDatetimeLocalValue(date: Date) {
