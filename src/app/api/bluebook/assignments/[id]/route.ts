@@ -82,6 +82,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: "Assignment deleted." });
   } catch (err) {
+    console.error("DELETE SINGLE ASSIGNMENT ERROR:", err);
     return handleRouteError(err, "Failed to delete assignment.");
   }
 }

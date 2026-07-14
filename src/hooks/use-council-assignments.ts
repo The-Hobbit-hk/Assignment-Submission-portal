@@ -311,3 +311,18 @@ export function useDeleteAssignment() {
     },
   });
 }
+
+export function useBatchDeleteAssignments() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) =>
+      apiJson(`/api/bluebook/assignments`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids }),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bluebook"] });
+    },
+  });
+}

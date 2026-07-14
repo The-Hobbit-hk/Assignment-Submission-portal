@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CreateTaskDialog } from "@/components/bluebook/create-task-dialog";
 import { BluebookCycleForm } from "@/components/bluebook/bluebook-cycle-form";
-import { useAssignTasks, useAssignmentPortal, useDeleteAssignment } from "@/hooks/use-council-assignments";
+import { useAssignTasks, useAssignmentPortal, useDeleteAssignment, useBatchDeleteAssignments } from "@/hooks/use-council-assignments";
 import { notifyValidation, toast } from "@/lib/toast";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 
@@ -19,11 +19,12 @@ export function AssignmentPortal() {
 
   const { data, isFetching, isError, error } = useAssignmentPortal(month, year);
   const assign = useAssignTasks();
-  const deleteMutation = useDeleteAssignment();
+  const batchDeleteMutation = useBatchDeleteAssignments();
 
   const [taskId, setTaskId] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [deletingId, setDeletingId] = useState("");
+  const [selectedAssignments, setSelectedAssignments] = useState<string[]>([]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this assignment?")) {
@@ -31,12 +32,27 @@ export function AssignmentPortal() {
     }
     setDeletingId(id);
     try {
-      await deleteMutation.mutateAsync(id);
+      await batchDeleteMutation.mutateAsync([id]);
       toast.success("Assignment deleted successfully");
+      setSelectedAssignments((prev) => prev.filter((x) => x !== id));
     } catch (err) {
       toast.error("Failed to delete assignment");
     } finally {
       setDeletingId("");
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (!selectedAssignments.length) return;
+    if (!window.confirm(`Are you sure you want to delete ${selectedAssignments.length} selected assignment(s)?`)) {
+      return;
+    }
+    try {
+      await batchDeleteMutation.mutateAsync(selectedAssignments);
+      toast.success("Assignments deleted successfully");
+      setSelectedAssignments([]);
+    } catch (err) {
+      toast.error("Failed to delete assignments");
     }
   };
 
@@ -109,11 +125,48 @@ export function AssignmentPortal() {
       )}
 
       <div className="space-y-3">
-        <h2 className="text-sm font-medium text-foreground">Current assignments</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-foreground">Current assignments</h2>
+          {selectedAssignments.length > 0 && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="h-8"
+              onClick={handleBulkDelete}
+              disabled={batchDeleteMutation.isPending}
+            >
+              {batchDeleteMutation.isPending ? (
+                <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-3.5 w-3.5" />
+              )}
+              Delete Selected ({selectedAssignments.length})
+            </Button>
+          )}
+        </div>
         <div className="table-scroll rounded-xl border border-border/50 bg-card">
           <Table className="ref-table min-w-[720px]">
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <input
+                    type="checkbox"
+                    checked={assignments.length > 0 && selectedAssignments.length === assignments.length}
+                    ref={(el) => {
+                      if (el) {
+                        el.indeterminate = selectedAssignments.length > 0 && selectedAssignments.length < assignments.length;
+                      }
+                    }}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedAssignments(assignments.map((a) => a.id));
+                      } else {
+                        setSelectedAssignments([]);
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-border accent-accent"
+                  />
+                </TableHead>
                 <TableHead>Member</TableHead>
                 <TableHead>Task</TableHead>
                 <TableHead>Description</TableHead>
@@ -125,20 +178,34 @@ export function AssignmentPortal() {
             <TableBody>
               {isFetching && assignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
                     <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-accent" />
                     Loading assignments…
                   </TableCell>
                 </TableRow>
               ) : assignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
                     No assignments yet. Create a task or assign an existing one above.
                   </TableCell>
                 </TableRow>
               ) : (
                 assignments.map((a) => (
-                  <TableRow key={a.id}>
+                  <TableRow key={a.id} className={selectedAssignments.includes(a.id) ? "bg-accent/5" : ""}>
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={selectedAssignments.includes(a.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedAssignments((prev) => [...prev, a.id]);
+                          } else {
+                            setSelectedAssignments((prev) => prev.filter((id) => id !== a.id));
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-border accent-accent"
+                      />
+                    </TableCell>
                     <TableCell>{a.assigneeName}</TableCell>
                     <TableCell className="font-medium align-top">{a.task?.title ?? "—"}</TableCell>
                     <TableCell className="max-w-md align-top text-sm text-muted-foreground">
@@ -158,9 +225,9 @@ export function AssignmentPortal() {
                         size="icon"
                         className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => handleDelete(a.id)}
-                        disabled={deleteMutation.isPending}
+                        disabled={batchDeleteMutation.isPending}
                       >
-                        {deleteMutation.isPending && deletingId === a.id ? (
+                        {batchDeleteMutation.isPending && deletingId === a.id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <Trash2 className="h-4 w-4" />

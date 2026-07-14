@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
 import { serializeCouncilAssignment } from "@/lib/council-bluebook";
 import { DISTRICT_ROLES } from "@/lib/roles";
-import { validationError, handleRouteError } from "@/lib/api-errors";
+import { apiError, validationError, handleRouteError } from "@/lib/api-errors";
 
 const assignSchema = z.object({
   taskId: z.string(),
@@ -66,5 +66,30 @@ export async function POST(request: Request) {
     return NextResponse.json(created, { status: 201 });
   } catch (err) {
     return handleRouteError(err, "Failed to assign tasks.");
+  }
+}
+
+export async function DELETE(request: Request) {
+  const { error } = await requireRole(["DISTRICT_SECRETARY", ...DISTRICT_ROLES]);
+  if (error) return error;
+
+  try {
+    const body = await request.json();
+    const { ids } = body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return apiError("An array of IDs is required.", 400);
+    }
+
+    await prisma.councilBluebookAssignment.deleteMany({
+      where: {
+        id: { in: ids },
+      },
+    });
+
+    return NextResponse.json({ message: "Assignments deleted successfully." });
+  } catch (err) {
+    console.error("BATCH DELETE ASSIGNMENTS ERROR:", err);
+    return handleRouteError(err, "Failed to delete assignments.");
   }
 }
