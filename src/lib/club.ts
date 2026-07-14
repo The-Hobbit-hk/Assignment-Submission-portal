@@ -94,6 +94,7 @@ export function serializeClubListItem(club: ClubWithRelations): ClubListItem {
     eventCount: club._count?.events ?? 0,
     president: resolveClubPresident(club),
     secretary: resolveClubSecretary(club),
+    logo: club.logo,
   };
 }
 

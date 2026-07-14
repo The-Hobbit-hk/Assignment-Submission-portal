@@ -50,6 +50,7 @@ export async function GET(request: Request) {
           eventCount: 0,
           president: null,
           secretary: null,
+          logo: null,
         }))
       : (
           await prisma.club.findMany({

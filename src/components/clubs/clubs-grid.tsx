@@ -1,3 +1,4 @@
+import Image from "next/image";
 "use client";
 
 import Link from "next/link";
@@ -38,8 +39,19 @@ export function ClubsGrid({ clubs, isLoading }: ClubsGridProps) {
           <Card className="h-full transition-colors hover:border-accent/40 hover:bg-muted">
             <CardHeader className="flex flex-row items-start justify-between pb-2">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/15 text-accent">
-                  <Building2 className="h-5 w-5" />
+                <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-accent/15 text-accent">
+                  {club.logo ? (
+                    <Image
+                      src={club.logo}
+                      alt={`${club.name} logo`}
+                      fill
+                      sizes="40px"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <Building2 className="h-5 w-5" />
+                  )}
                 </div>
                 <div>
                   <CardTitle className="text-base">{club.name}</CardTitle>

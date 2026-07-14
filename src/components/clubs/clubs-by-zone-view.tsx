@@ -1,3 +1,4 @@
+import Image from "next/image";
 "use client";
 
 import Link from "next/link";
@@ -52,8 +53,19 @@ export function ClubsByZoneView({
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/15 text-accent">
-                      <Building2 className="h-4 w-4" />
+                    <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-accent/15 text-accent">
+                      {club.logo ? (
+                        <Image
+                          src={club.logo}
+                          alt={`${club.name} logo`}
+                          fill
+                          sizes="36px"
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <Building2 className="h-4 w-4" />
+                      )}
                     </div>
                     <div>
                       <p className="font-medium">{club.name}</p>

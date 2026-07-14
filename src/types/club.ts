@@ -21,11 +21,11 @@ export interface ClubListItem {
     name: string | null;
     email: string;
   } | null;
+  logo: string | null;
 }
 
 export interface ClubDetail extends Omit<ClubListItem, "memberCount" | "eventCount"> {
   description: string | null;
-  logo: string | null;
   createdAt: string;
   updatedAt: string;
 }
