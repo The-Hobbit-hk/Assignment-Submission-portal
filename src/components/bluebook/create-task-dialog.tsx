@@ -209,25 +209,51 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
                   No council members found.
                 </p>
               ) : (
-                members.map((m) => (
+                <>
                   <label
-                    key={m.id}
-                    className={cn(
-                      "flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm transition hover:bg-muted",
-                      selectedMembers.includes(m.id) && "bg-accent/10"
-                    )}
+                    className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm font-semibold border-b border-border/40 pb-2 mb-1 hover:bg-muted"
                   >
                     <input
                       type="checkbox"
-                      checked={selectedMembers.includes(m.id)}
-                      onChange={() => toggleMember(m.id)}
+                      checked={selectedMembers.length === members.length}
+                      ref={(el) => {
+                        if (el) {
+                          el.indeterminate = selectedMembers.length > 0 && selectedMembers.length < members.length;
+                        }
+                      }}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedMembers(members.map((m) => m.id));
+                        } else {
+                          setSelectedMembers([]);
+                        }
+                      }}
                       className="h-4 w-4 rounded border-border accent-accent"
                     />
-                    <span className="min-w-0 flex-1 truncate">
-                      {m.name ?? m.email}
+                    <span className="min-w-0 flex-1 truncate text-foreground font-semibold">
+                      Select All ({members.length})
                     </span>
                   </label>
-                ))
+                  {members.map((m) => (
+                    <label
+                      key={m.id}
+                      className={cn(
+                        "flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm transition hover:bg-muted",
+                        selectedMembers.includes(m.id) && "bg-accent/10"
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedMembers.includes(m.id)}
+                        onChange={() => toggleMember(m.id)}
+                        className="h-4 w-4 rounded border-border accent-accent"
+                      />
+                      <span className="min-w-0 flex-1 truncate">
+                        {m.name ?? m.email}
+                      </span>
+                    </label>
+                  ))}
+                </>
               )}
             </div>
             {selectedMembers.length > 0 && (
