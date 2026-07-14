@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CreateTaskDialog } from "@/components/bluebook/create-task-dialog";
 import { BluebookCycleForm } from "@/components/bluebook/bluebook-cycle-form";
-import { useAssignTasks, useAssignmentPortal } from "@/hooks/use-council-assignments";
+import { useAssignTasks, useAssignmentPortal, useDeleteAssignment } from "@/hooks/use-council-assignments";
 import { notifyValidation, toast } from "@/lib/toast";
 import { QueryErrorState } from "@/components/ui/query-error-state";
 
@@ -19,9 +19,26 @@ export function AssignmentPortal() {
 
   const { data, isFetching, isError, error } = useAssignmentPortal(month, year);
   const assign = useAssignTasks();
+  const deleteMutation = useDeleteAssignment();
 
   const [taskId, setTaskId] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
+  const [deletingId, setDeletingId] = useState("");
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this assignment?")) {
+      return;
+    }
+    setDeletingId(id);
+    try {
+      await deleteMutation.mutateAsync(id);
+      toast.success("Assignment deleted successfully");
+    } catch (err) {
+      toast.error("Failed to delete assignment");
+    } finally {
+      setDeletingId("");
+    }
+  };
 
   const tasks = data?.tasks ?? [];
   const members = data?.members ?? [];
@@ -102,19 +119,20 @@ export function AssignmentPortal() {
                 <TableHead>Description</TableHead>
                 <TableHead className="hidden sm:table-cell">Due</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead className="w-[100px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isFetching && assignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
                     <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin text-accent" />
                     Loading assignments…
                   </TableCell>
                 </TableRow>
               ) : assignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
+                  <TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
                     No assignments yet. Create a task or assign an existing one above.
                   </TableCell>
                 </TableRow>
@@ -131,9 +149,24 @@ export function AssignmentPortal() {
                       )}
                     </TableCell>
                     <TableCell className="hidden align-top sm:table-cell">
-                      {a.task?.dueDate ? new Date(a.task.dueDate).toLocaleDateString() : "—"}
+                      {a.task?.dueDate ? new Date(a.task.dueDate).toLocaleDateString() : ""}
                     </TableCell>
                     <TableCell className="align-top">{a.status}</TableCell>
+                    <TableCell className="text-right align-top">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => handleDelete(a.id)}
+                        disabled={deleteMutation.isPending}
+                      >
+                        {deleteMutation.isPending && deletingId === a.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))
               )}

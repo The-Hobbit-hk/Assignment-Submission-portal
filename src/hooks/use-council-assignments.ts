@@ -298,3 +298,16 @@ export async function uploadCouncilProof(assignmentId: string, file: File) {
     body: fd,
   });
 }
+
+export function useDeleteAssignment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiJson(`/api/bluebook/assignments/${id}`, {
+        method: "DELETE",
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bluebook"] });
+    },
+  });
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/api-auth";
+import { requireAuth, requireRole } from "@/lib/api-auth";
 import { serializeCouncilAssignment } from "@/lib/council-bluebook";
 import { DISTRICT_ROLES, isDistrictSecretary } from "@/lib/roles";
 import { handleRouteError, notFound, forbidden } from "@/lib/api-errors";
@@ -55,5 +55,33 @@ export async function PUT(
     return NextResponse.json(serializeCouncilAssignment(updated));
   } catch (err) {
     return handleRouteError(err, "Failed to update.");
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { error } = await requireRole(["DISTRICT_SECRETARY", ...DISTRICT_ROLES]);
+  if (error) return error;
+
+  const { id } = await params;
+
+  try {
+    const assignment = await prisma.councilBluebookAssignment.findUnique({
+      where: { id },
+    });
+
+    if (!assignment) {
+      return notFound("Not found.");
+    }
+
+    await prisma.councilBluebookAssignment.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ message: "Assignment deleted." });
+  } catch (err) {
+    return handleRouteError(err, "Failed to delete assignment.");
   }
 }
