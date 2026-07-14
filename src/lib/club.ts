@@ -15,18 +15,19 @@ const presidentMemberSelect = {
   email: true,
   phone: true,
   riId: true,
+  role: true,
 } as const;
 
 export const clubListInclude = {
   president: { select: { id: true, name: true, email: true } },
   secretary: { select: { id: true, name: true, email: true } },
   members: {
-    where: { role: "PRESIDENT", status: "ACTIVE" },
-    take: 1,
+    where: { role: { in: ["PRESIDENT" as const, "SECRETARY" as const] }, status: "ACTIVE" as const },
+    take: 2,
     select: presidentMemberSelect,
   },
   _count: { select: { members: true, events: true } },
-} as const;
+};
 
 type ClubWithRelations = Club & {
   president: Pick<User, "id" | "name" | "email"> | null;
@@ -38,6 +39,7 @@ type ClubWithRelations = Club & {
     email: string;
     phone: string | null;
     riId: string | null;
+    role?: string;
   }>;
   _count?: { members: number; events: number };
 };
@@ -60,6 +62,24 @@ function resolveClubPresident(club: ClubWithRelations) {
   };
 }
 
+function resolveClubSecretary(club: ClubWithRelations) {
+  if (club.secretary) {
+    return {
+      id: club.secretary.id,
+      name: club.secretary.name,
+      email: club.secretary.email,
+    };
+  }
+  const secretaryMember = club.members?.find((m) => m.role === "SECRETARY");
+  if (!secretaryMember) return null;
+  const name = `${secretaryMember.firstName} ${secretaryMember.lastName}`.trim();
+  return {
+    id: secretaryMember.id,
+    name: name || null,
+    email: secretaryMember.email,
+  };
+}
+
 export function serializeClubListItem(club: ClubWithRelations): ClubListItem {
   return {
     id: club.id,
@@ -73,13 +93,7 @@ export function serializeClubListItem(club: ClubWithRelations): ClubListItem {
     memberCount: club._count?.members ?? 0,
     eventCount: club._count?.events ?? 0,
     president: resolveClubPresident(club),
-    secretary: club.secretary
-      ? {
-          id: club.secretary.id,
-          name: club.secretary.name,
-          email: club.secretary.email,
-        }
-      : null,
+    secretary: resolveClubSecretary(club),
   };
 }
 
