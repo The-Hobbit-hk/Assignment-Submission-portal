@@ -8,7 +8,7 @@
  * Default password: Rotaract@3131
  */
 
-import { PrismaClient } from "@/generated/prisma/client";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 const DEFAULT_PASSWORD = process.env.SEED_COUNCIL_PASSWORD ?? "Rotaract@3131";
@@ -20,8 +20,6 @@ async function main() {
     console.error("Usage: npx tsx scripts/reset-user-password.ts <email>");
     process.exit(1);
   }
-
-  const prisma = new PrismaClient();
 
   try {
     const user = await prisma.user.findUnique({
@@ -48,7 +46,7 @@ async function main() {
 
     console.log("Password reset to default. User will be prompted to change on next login.");
   } finally {
-    await prisma.\();
+    // prisma disconnect is handled by the lib
   }
 }
 
