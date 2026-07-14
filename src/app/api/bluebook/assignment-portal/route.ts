@@ -89,28 +89,28 @@ export async function POST(request: Request) {
         include: { _count: { select: { submissions: true } } },
       });
 
-      const assignments = [];
-      for (const assigneeId of assigneeIds) {
-        const assignment = await tx.councilBluebookAssignment.upsert({
-          where: { taskId_assigneeId: { taskId: task.id, assigneeId } },
-          create: {
+      const uniqueAssigneeIds = Array.from(new Set(assigneeIds));
+      if (uniqueAssigneeIds.length > 0) {
+        await tx.councilBluebookAssignment.createMany({
+          data: uniqueAssigneeIds.map((assigneeId) => ({
             taskId: task.id,
             assigneeId,
             assignedById: session!.user.id,
             notes: notes ?? null,
-          },
-          update: {
-            notes: notes ?? null,
-            assignedById: session!.user.id,
-          },
-          include: {
-            task: true,
-            assignee: { select: { id: true, name: true, email: true } },
-            assignedBy: { select: { id: true, name: true } },
-          },
+          })),
         });
-        assignments.push(serializeCouncilAssignment(assignment));
       }
+
+      const rawAssignments = await tx.councilBluebookAssignment.findMany({
+        where: { taskId: task.id },
+        include: {
+          task: true,
+          assignee: { select: { id: true, name: true, email: true } },
+          assignedBy: { select: { id: true, name: true } },
+        },
+      });
+
+      const assignments = rawAssignments.map(serializeCouncilAssignment);
 
       return {
         task: serializeTask(task),
