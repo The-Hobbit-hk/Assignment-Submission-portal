@@ -275,6 +275,30 @@ export function useCreateAndAssignTask() {
   });
 }
 
+export type UpdateTaskInput = {
+  id: string;
+  title?: string;
+  description?: string | null;
+  category?: string;
+  maxScore?: number;
+  dueDate?: string;
+};
+
+export function useUpdateTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: UpdateTaskInput) =>
+      apiJson(`/api/bluebook/tasks/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["bluebook"] });
+    },
+  });
+}
+
 export function useAssignTasks() {
   const qc = useQueryClient();
   return useMutation({

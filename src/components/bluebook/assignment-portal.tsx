@@ -1,16 +1,19 @@
 "use client";
 
-import { useState } from "react";
-import { Loader2, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Loader2, Pencil, Trash2 } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CreateTaskDialog } from "@/components/bluebook/create-task-dialog";
-import { BluebookCycleForm } from "@/components/bluebook/bluebook-cycle-form";
-import { useAssignTasks, useAssignmentPortal, useDeleteAssignment, useBatchDeleteAssignments } from "@/hooks/use-council-assignments";
+import { EditTaskDialog, type EditableTask } from "@/components/bluebook/edit-task-dialog";
+import { useAssignTasks, useAssignmentPortal, useBatchDeleteAssignments } from "@/hooks/use-council-assignments";
 import { notifyValidation, toast } from "@/lib/toast";
 import { QueryErrorState } from "@/components/ui/query-error-state";
+
+const PAGE_SIZE = 10;
 
 export function AssignmentPortal() {
   const now = new Date();
@@ -26,6 +29,47 @@ export function AssignmentPortal() {
   const [deletingId, setDeletingId] = useState("");
   const [selectedAssignments, setSelectedAssignments] = useState<string[]>([]);
 
+  const [memberFilter, setMemberFilter] = useState("");
+  const [taskFilter, setTaskFilter] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  const [editTask, setEditTask] = useState<EditableTask | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+
+  const tasks = data?.tasks ?? [];
+  const members = data?.members ?? [];
+  const assignments = useMemo(() => data?.assignments ?? [], [data]);
+  const loadingDropdowns = isFetching && tasks.length === 0 && members.length === 0;
+
+  const filteredAssignments = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return assignments.filter((a) => {
+      if (memberFilter && a.assigneeId !== memberFilter) return false;
+      if (taskFilter && a.taskId !== taskFilter) return false;
+      if (q) {
+        const hay = `${a.task?.title ?? ""} ${a.task?.description ?? ""}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [assignments, memberFilter, taskFilter, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredAssignments.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedAssignments = filteredAssignments.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE
+  );
+
+  useEffect(() => {
+    setPage(1);
+  }, [memberFilter, taskFilter, search]);
+
+  const filteredIds = filteredAssignments.map((a) => a.id);
+  const allFilteredSelected =
+    filteredIds.length > 0 && filteredIds.every((id) => selectedAssignments.includes(id));
+
   const handleDelete = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this assignment?")) {
       return;
@@ -35,7 +79,7 @@ export function AssignmentPortal() {
       await batchDeleteMutation.mutateAsync([id]);
       toast.success("Assignment deleted successfully");
       setSelectedAssignments((prev) => prev.filter((x) => x !== id));
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete assignment");
     } finally {
       setDeletingId("");
@@ -51,15 +95,10 @@ export function AssignmentPortal() {
       await batchDeleteMutation.mutateAsync(selectedAssignments);
       toast.success("Assignments deleted successfully");
       setSelectedAssignments([]);
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete assignments");
     }
   };
-
-  const tasks = data?.tasks ?? [];
-  const members = data?.members ?? [];
-  const assignments = data?.assignments ?? [];
-  const loadingDropdowns = isFetching && tasks.length === 0 && members.length === 0;
 
   const handleAssign = async () => {
     if (!taskId || !assigneeId) {
@@ -71,6 +110,19 @@ export function AssignmentPortal() {
     toast.success("Task assigned successfully");
   };
 
+  const openEdit = (a: (typeof assignments)[number]) => {
+    if (!a.task) return;
+    setEditTask({
+      id: a.task.id,
+      title: a.task.title,
+      description: a.task.description,
+      category: a.task.category,
+      maxScore: a.task.maxScore,
+      dueDate: a.task.dueDate,
+    });
+    setEditOpen(true);
+  };
+
   return (
     <div className="space-y-4">
       <PageHeading
@@ -78,8 +130,6 @@ export function AssignmentPortal() {
         subtitle="Create new bluebook tasks and assign them to council members."
         action={<CreateTaskDialog members={members} month={month} year={year} />}
       />
-
-      <BluebookCycleForm month={month} year={year} />
 
       <div className="space-y-3">
         <h2 className="text-sm font-medium text-foreground">Assign existing task</h2>
@@ -144,24 +194,86 @@ export function AssignmentPortal() {
             </Button>
           )}
         </div>
+
+        <div className="flex flex-wrap items-end gap-3 rounded-xl border border-border/50 bg-card p-4">
+          <div className="min-w-[180px] flex-1 space-y-1">
+            <p className="text-xs text-muted-foreground">Search task</p>
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by task title or description…"
+            />
+          </div>
+          <div className="min-w-[180px] space-y-1">
+            <p className="text-xs text-muted-foreground">Filter by member</p>
+            <Select value={memberFilter || "all"} onValueChange={(v) => setMemberFilter(v === "all" ? "" : v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="All members" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All members</SelectItem>
+                {members.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>{m.name ?? m.email}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="min-w-[180px] space-y-1">
+            <p className="text-xs text-muted-foreground">Filter by task</p>
+            <Select value={taskFilter || "all"} onValueChange={(v) => setTaskFilter(v === "all" ? "" : v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="All tasks" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All tasks</SelectItem>
+                {tasks.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {(memberFilter || taskFilter || search) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9"
+              onClick={() => {
+                setMemberFilter("");
+                setTaskFilter("");
+                setSearch("");
+              }}
+            >
+              Clear filters
+            </Button>
+          )}
+        </div>
+
         <div className="table-scroll rounded-xl border border-border/50 bg-card">
-          <Table className="ref-table min-w-[720px]">
+          <Table className="ref-table min-w-[760px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[50px]">
                   <input
                     type="checkbox"
-                    checked={assignments.length > 0 && selectedAssignments.length === assignments.length}
+                    checked={allFilteredSelected}
                     ref={(el) => {
                       if (el) {
-                        el.indeterminate = selectedAssignments.length > 0 && selectedAssignments.length < assignments.length;
+                        const selectedVisible = filteredIds.filter((id) =>
+                          selectedAssignments.includes(id)
+                        ).length;
+                        el.indeterminate =
+                          selectedVisible > 0 && selectedVisible < filteredIds.length;
                       }
                     }}
                     onChange={(e) => {
                       if (e.target.checked) {
-                        setSelectedAssignments(assignments.map((a) => a.id));
+                        setSelectedAssignments((prev) =>
+                          Array.from(new Set([...prev, ...filteredIds]))
+                        );
                       } else {
-                        setSelectedAssignments([]);
+                        setSelectedAssignments((prev) =>
+                          prev.filter((id) => !filteredIds.includes(id))
+                        );
                       }
                     }}
                     className="h-4 w-4 rounded border-border accent-accent"
@@ -172,7 +284,7 @@ export function AssignmentPortal() {
                 <TableHead>Description</TableHead>
                 <TableHead className="hidden sm:table-cell">Due</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="w-[100px] text-right">Actions</TableHead>
+                <TableHead className="w-[110px] text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -183,14 +295,16 @@ export function AssignmentPortal() {
                     Loading assignments…
                   </TableCell>
                 </TableRow>
-              ) : assignments.length === 0 ? (
+              ) : filteredAssignments.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
-                    No assignments yet. Create a task or assign an existing one above.
+                    {assignments.length === 0
+                      ? "No assignments yet. Create a task or assign an existing one above."
+                      : "No assignments match the current filters."}
                   </TableCell>
                 </TableRow>
               ) : (
-                assignments.map((a) => (
+                pagedAssignments.map((a) => (
                   <TableRow key={a.id} className={selectedAssignments.includes(a.id) ? "bg-accent/5" : ""}>
                     <TableCell>
                       <input
@@ -220,19 +334,32 @@ export function AssignmentPortal() {
                     </TableCell>
                     <TableCell className="align-top">{a.status}</TableCell>
                     <TableCell className="text-right align-top">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        onClick={() => handleDelete(a.id)}
-                        disabled={batchDeleteMutation.isPending}
-                      >
-                        {batchDeleteMutation.isPending && deletingId === a.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => openEdit(a)}
+                          disabled={!a.task}
+                          title="Edit task"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => handleDelete(a.id)}
+                          disabled={batchDeleteMutation.isPending}
+                          title="Delete assignment"
+                        >
+                          {batchDeleteMutation.isPending && deletingId === a.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -240,7 +367,44 @@ export function AssignmentPortal() {
             </TableBody>
           </Table>
         </div>
+
+        {filteredAssignments.length > 0 && (
+          <div className="flex items-center justify-between px-1 text-sm text-muted-foreground">
+            <span>
+              Showing {(currentPage - 1) * PAGE_SIZE + 1}–
+              {Math.min(currentPage * PAGE_SIZE, filteredAssignments.length)} of{" "}
+              {filteredAssignments.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                disabled={currentPage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Prev
+              </Button>
+              <span className="text-foreground">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
+
+      <EditTaskDialog task={editTask} open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }

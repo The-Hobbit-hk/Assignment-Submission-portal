@@ -55,6 +55,7 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [memberSearch, setMemberSearch] = useState("");
 
   const resetForm = () => {
     setTitle("");
@@ -64,8 +65,18 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
     setDueDate("");
     setNotes("");
     setSelectedMembers([]);
+    setMemberSearch("");
     setError("");
   };
+
+  const filteredMembers = members.filter((m) => {
+    const q = memberSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      (m.name ?? "").toLowerCase().includes(q) ||
+      m.email.toLowerCase().includes(q)
+    );
+  });
 
   const toggleMember = (id: string) => {
     setSelectedMembers((prev) =>
@@ -203,10 +214,19 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
 
           <div className="space-y-2">
             <Label>Assign to council members</Label>
+            <Input
+              value={memberSearch}
+              onChange={(e) => setMemberSearch(e.target.value)}
+              placeholder="Search members by name or email…"
+            />
             <div className="max-h-64 space-y-1 overflow-y-auto rounded-lg border border-border/60 bg-muted/50 p-2">
               {members.length === 0 ? (
                 <p className="px-2 py-3 text-sm text-muted-foreground">
                   No council members found.
+                </p>
+              ) : filteredMembers.length === 0 ? (
+                <p className="px-2 py-3 text-sm text-muted-foreground">
+                  No members match &ldquo;{memberSearch}&rdquo;.
                 </p>
               ) : (
                 <>
@@ -215,26 +235,38 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
                   >
                     <input
                       type="checkbox"
-                      checked={selectedMembers.length === members.length}
+                      checked={
+                        filteredMembers.length > 0 &&
+                        filteredMembers.every((m) => selectedMembers.includes(m.id))
+                      }
                       ref={(el) => {
                         if (el) {
-                          el.indeterminate = selectedMembers.length > 0 && selectedMembers.length < members.length;
+                          const selectedVisible = filteredMembers.filter((m) =>
+                            selectedMembers.includes(m.id)
+                          ).length;
+                          el.indeterminate =
+                            selectedVisible > 0 && selectedVisible < filteredMembers.length;
                         }
                       }}
                       onChange={(e) => {
+                        const visibleIds = filteredMembers.map((m) => m.id);
                         if (e.target.checked) {
-                          setSelectedMembers(members.map((m) => m.id));
+                          setSelectedMembers((prev) =>
+                            Array.from(new Set([...prev, ...visibleIds]))
+                          );
                         } else {
-                          setSelectedMembers([]);
+                          setSelectedMembers((prev) =>
+                            prev.filter((id) => !visibleIds.includes(id))
+                          );
                         }
                       }}
                       className="h-4 w-4 rounded border-border accent-accent"
                     />
                     <span className="min-w-0 flex-1 truncate text-foreground font-semibold">
-                      Select All ({members.length})
+                      Select All ({filteredMembers.length})
                     </span>
                   </label>
-                  {members.map((m) => (
+                  {filteredMembers.map((m) => (
                     <label
                       key={m.id}
                       className={cn(

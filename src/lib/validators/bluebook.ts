@@ -23,6 +23,14 @@ export const createAndAssignTaskSchema = createTaskSchema.extend({
   notes: z.string().max(2000).optional(),
 });
 
+export const updateTaskSchema = z.object({
+  title: z.string().min(2).max(200).optional(),
+  description: z.string().max(5000).nullable().optional(),
+  category: z.string().min(1).max(100).optional(),
+  maxScore: z.number().int().min(1).max(1000).optional(),
+  dueDate: z.string().datetime().optional(),
+});
+
 export const reviewSubmissionSchema = z.object({
   allocatedScore: z.number().int().min(0),
   reviewerComment: z.string().max(2000).optional(),
