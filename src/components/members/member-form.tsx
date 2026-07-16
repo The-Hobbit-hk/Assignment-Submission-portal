@@ -228,6 +228,7 @@ export function MemberForm({
                   <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="INACTIVE">Inactive</SelectItem>
                   <SelectItem value="ALUMNI">Alumni</SelectItem>
+                  <SelectItem value="PROSPECTIVE">Prospective</SelectItem>
                 </SelectContent>
               </Select>
             </div>
