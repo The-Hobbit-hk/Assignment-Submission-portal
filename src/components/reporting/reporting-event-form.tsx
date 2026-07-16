@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ReportingFileUpload } from "@/components/reporting/reporting-file-upload";
+import { DateTimeField } from "@/components/ui/date-time-field";
 import { formErrorMessage, notifyValidation, toast } from "@/lib/toast";
 import { CLUB_EVENT_AVENUES } from "@/lib/event-types";
 
@@ -27,10 +28,9 @@ function defaultReportingStart(month?: number, year?: number) {
   const now = new Date();
   const m = month ?? now.getMonth() + 1;
   const y = year ?? now.getFullYear();
-  if (now.getMonth() + 1 === m && now.getFullYear() === y) {
-    return toDatetimeLocalValue(now);
-  }
-  return toDatetimeLocalValue(new Date(y, m - 1, 15, 10, 0));
+  const isCurrent = now.getMonth() + 1 === m && now.getFullYear() === y;
+  const day = isCurrent ? now.getDate() : 15;
+  return toDatetimeLocalValue(new Date(y, m - 1, day, 10, 0));
 }
 
 interface ReportingEventFormProps {
@@ -211,20 +211,18 @@ export function ReportingEventForm({
 
         <div className="space-y-1.5">
           <label className="text-xs text-muted-foreground">Event Start Date</label>
-          <Input
-            type="datetime-local"
+          <DateTimeField
             value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
+            onChange={setStartDate}
             disabled={disabled || loading}
           />
         </div>
 
         <div className="space-y-1.5">
           <label className="text-xs text-muted-foreground">Event End Date</label>
-          <Input
-            type="datetime-local"
+          <DateTimeField
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
+            onChange={setEndDate}
             disabled={disabled || loading}
           />
         </div>

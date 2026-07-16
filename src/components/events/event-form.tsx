@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DateTimeField } from "@/components/ui/date-time-field";
 import type { EventItem } from "@/hooks/use-events";
 import { formErrorMessage, toast } from "@/lib/toast";
 import { ADMIN_EVENT_TYPES, getEventTypeLabel } from "@/lib/event-types";
@@ -84,8 +85,8 @@ export function EventForm({
       <div className="space-y-2"><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} required /></div>
       <div className="space-y-2"><Label>Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={3} /></div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2"><Label>Start</Label><Input type="datetime-local" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required /></div>
-        <div className="space-y-2"><Label>End</Label><Input type="datetime-local" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></div>
+        <div className="space-y-2"><Label>Start</Label><DateTimeField value={form.startDate} onChange={(v) => setForm({ ...form, startDate: v })} /></div>
+        <div className="space-y-2"><Label>End</Label><DateTimeField value={form.endDate} onChange={(v) => setForm({ ...form, endDate: v })} /></div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2"><Label>Location</Label><Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} /></div>
@@ -149,18 +150,16 @@ export function EventForm({
           <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label>Registration opens</Label>
-            <Input
-              type="datetime-local"
+            <DateTimeField
               value={form.registrationOpensAt}
-              onChange={(e) => setForm({ ...form, registrationOpensAt: e.target.value })}
+              onChange={(v) => setForm({ ...form, registrationOpensAt: v })}
             />
           </div>
           <div className="space-y-2">
             <Label>Registration closes</Label>
-            <Input
-              type="datetime-local"
+            <DateTimeField
               value={form.registrationClosesAt}
-              onChange={(e) => setForm({ ...form, registrationClosesAt: e.target.value })}
+              onChange={(v) => setForm({ ...form, registrationClosesAt: v })}
             />
           </div>
           </div>
