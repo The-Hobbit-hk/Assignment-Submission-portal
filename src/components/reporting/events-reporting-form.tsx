@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EventsBrowsingView } from "@/components/events/events-browsing-view";
 import { ReportingFormLayout } from "@/components/reporting/reporting-form-layout";
@@ -10,13 +10,15 @@ import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting"
 import { useEventsReportingPortal } from "@/hooks/use-reporting";
 import { useReportingWindow } from "@/hooks/use-reporting-window";
 import { useSession } from "next-auth/react";
-import { isClubUser } from "@/lib/roles";
+import { canManageEvents, isClubUser } from "@/lib/roles";
 
 export function EventsReportingForm() {
   const { month, year } = getActiveReportPeriod();
 
   const { data: session } = useSession();
-  const clubUser = isClubUser(session?.user?.role ?? "MEMBER");
+  const role = session?.user?.role ?? "MEMBER";
+  const clubUser = isClubUser(role);
+  const canAddDistrictEvent = !clubUser && canManageEvents(role);
   const { data: window } = useReportingWindow(month, year);
   const { data } = useEventsReportingPortal(month, year);
 
@@ -38,12 +40,23 @@ export function EventsReportingForm() {
       banner={<ReportingWindowBanner month={month} year={year} />}
       className="max-w-6xl"
     >
-      <Button variant="ghost" size="sm" className="-mt-2 mb-2 w-fit px-0 text-muted-foreground" asChild>
-        <Link href="/dashboard/reporting">
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to Monthly Reporting
-        </Link>
-      </Button>
+      <div className="-mt-2 mb-2 flex flex-wrap items-center justify-between gap-2">
+        <Button variant="ghost" size="sm" className="w-fit px-0 text-muted-foreground" asChild>
+          <Link href="/dashboard/reporting">
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            Back to Monthly Reporting
+          </Link>
+        </Button>
+
+        {canAddDistrictEvent && (
+          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+            <Link href="/dashboard/events/new">
+              <Plus className="mr-1 h-4 w-4" />
+              Add Event
+            </Link>
+          </Button>
+        )}
+      </div>
 
       {clubUser && !clubId && (
         <p className="text-sm text-destructive">
