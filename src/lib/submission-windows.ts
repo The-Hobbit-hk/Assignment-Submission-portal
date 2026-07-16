@@ -15,7 +15,11 @@ export function isSubmissionWindowsBypassEnabled() {
  * the REPORTING_ALWAYS_OPEN_EMAILS env var (comma-separated).
  */
 const REPORTING_ALWAYS_OPEN_EMAILS = new Set(
-  ["admin@rotaract3131.org", ...(process.env.REPORTING_ALWAYS_OPEN_EMAILS ?? "").split(",")]
+  [
+    "admin@rotaract3131.org",
+    "club.demo@rotaract3131.org",
+    ...(process.env.REPORTING_ALWAYS_OPEN_EMAILS ?? "").split(","),
+  ]
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean)
 );
