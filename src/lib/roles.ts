@@ -2,6 +2,7 @@ import type { UserRole } from "@/types/auth";
 import type { NavItem } from "@/types/navigation";
 import { isProfessionalAssistanceOfficer } from "@/lib/professional-assistance";
 import { isZonalRepresentative } from "@/lib/zonal-reps";
+import { isDistrictTreasurer } from "@/lib/district-treasurer";
 import {
   Award,
   BarChart3,
@@ -15,6 +16,7 @@ import {
   UserCheck,
   UserCircle,
   Users,
+  Wallet,
 } from "lucide-react";
 
 export const CLUB_ROLES: UserRole[] = ["CLUB_PRESIDENT", "CLUB_SECRETARY"];
@@ -78,6 +80,14 @@ export function canViewZoneClubReports(email?: string | null) {
 
 export function canViewClubReportingOverview(role: UserRole, email?: string | null) {
   return canViewAllClubReports(role) || canViewZoneClubReports(email);
+}
+
+/**
+ * District Dues overview — the finance data submitted by clubs in Admin Reporting.
+ * Visible to the DRR (district admin), Super Admin, and the District Treasurer.
+ */
+export function canViewDistrictDues(role: UserRole, email?: string | null) {
+  return DISTRICT_ROLES.includes(role) || isDistrictTreasurer(email);
 }
 
 /** DRR (district admin) — create definitions, assign, and approve citations. */
@@ -185,6 +195,14 @@ export function getNavigationForRole(
       title: "Export",
       href: "/dashboard/reports",
       icon: Briefcase,
+    });
+  }
+
+  if (canViewDistrictDues(role, email)) {
+    reportingChildren.push({
+      title: "District Dues",
+      href: "/dashboard/reporting/district-dues",
+      icon: Wallet,
     });
   }
 

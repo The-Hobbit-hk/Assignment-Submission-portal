@@ -66,11 +66,23 @@ export async function POST(request: Request) {
         resolutionPassed: d.resolutionPassed || null,
         resolutionFileUrl:
           d.resolutionPassed === "yes" ? (d.resolutionFileUrl ?? null) : null,
+        resolutionPassDate:
+          d.resolutionPassed === "yes" && d.resolutionPassDate
+            ? new Date(d.resolutionPassDate)
+            : null,
         districtDuesPaid: d.districtDuesPaid || null,
         districtDuesFileUrl:
           d.districtDuesPaid === "yes" ? (d.districtDuesFileUrl ?? null) : null,
-        bylawsFileUrl: d.bylawsFileUrl ?? null,
-        bylawsPassDate: d.bylawsPassDate ? new Date(d.bylawsPassDate) : null,
+        districtDuesMembersCount:
+          d.districtDuesPaid === "yes" ? (d.districtDuesMembersCount ?? null) : null,
+        districtDuesAmount:
+          d.districtDuesPaid === "yes" ? (d.districtDuesAmount ?? null) : null,
+        bylawsPassed: d.bylawsPassed || null,
+        bylawsFileUrl: d.bylawsPassed === "yes" ? (d.bylawsFileUrl ?? null) : null,
+        bylawsPassDate:
+          d.bylawsPassed === "yes" && d.bylawsPassDate
+            ? new Date(d.bylawsPassDate)
+            : null,
         hostClub: d.hostClub || null,
         districtEventAttendance: d.districtEventAttendance || null,
         newsletterEvent: d.newsletterEvent || null,

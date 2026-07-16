@@ -46,3 +46,37 @@ export function useClubReports(month: number, year: number, zone?: string) {
     },
   });
 }
+
+export type DistrictDuesRow = {
+  club: { id: string; name: string; zone: string | null };
+  districtDuesPaid: string | null;
+  membersCount: number | null;
+  amount: number | null;
+  fileUrl: string | null;
+  status: string;
+  submittedAt: string | null;
+};
+
+export type DistrictDuesResponse = {
+  month: number;
+  year: number;
+  summary: {
+    totalClubs: number;
+    clubsPaid: number;
+    clubsUnpaid: number;
+    clubsPending: number;
+    totalMembers: number;
+    totalAmount: number;
+  };
+  clubs: DistrictDuesRow[];
+};
+
+export function useDistrictDues(month: number, year: number) {
+  return useQuery({
+    queryKey: ["reporting", "district-dues", month, year],
+    queryFn: () =>
+      apiJson<DistrictDuesResponse>(
+        `/api/reporting/district-dues?month=${month}&year=${year}`
+      ),
+  });
+}

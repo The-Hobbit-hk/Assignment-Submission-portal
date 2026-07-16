@@ -305,8 +305,12 @@ model MonthlyReport {
   newMembers              Int?
   resolutionPassed        String?
   resolutionFileUrl       String?
+  resolutionPassDate       DateTime?
   districtDuesPaid        String?
   districtDuesFileUrl     String?
+  districtDuesMembersCount Int?
+  districtDuesAmount       Int?
+  bylawsPassed            String?
   bylawsFileUrl           String?
   bylawsPassDate          DateTime?
   hostClub                String?
