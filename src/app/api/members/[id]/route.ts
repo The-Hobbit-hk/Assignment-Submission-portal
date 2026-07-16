@@ -92,6 +92,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     let data = { ...parsed.data };
 
+    if (data.status === "PROSPECTIVE" && !data.riId && !existing.riId) {
+      data.riId = `PROS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+    }
+
     if (isManager) {
       // Prevent club users from moving a member to another club or
       // self-awarding score points via the update payload.

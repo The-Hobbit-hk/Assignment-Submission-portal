@@ -33,10 +33,11 @@ enum MemberRole {
 }
 
 enum MemberStatus {
-  ACTIVE
-  INACTIVE
-  ALUMNI
-}
+    ACTIVE
+    INACTIVE
+    ALUMNI
+    PROSPECTIVE
+  }
 
 enum EventType {
   SERVICE

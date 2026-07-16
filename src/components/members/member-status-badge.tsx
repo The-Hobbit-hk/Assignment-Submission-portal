@@ -5,6 +5,7 @@ const statusVariants: Record<MemberStatus, "success" | "secondary" | "outline"> 
   ACTIVE: "success",
   INACTIVE: "secondary",
   ALUMNI: "outline",
+  PROSPECTIVE: "outline",
 };
 
 const roleLabels: Record<MemberRole, string> = {

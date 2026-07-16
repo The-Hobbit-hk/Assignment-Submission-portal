@@ -183,11 +183,20 @@ export function MemberForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="riId">RI ID</Label>
-          <Input
-            id="riId"
-            value={form.riId}
-            onChange={(e) => update("riId", e.target.value)}
-          />
+          {form.status === "PROSPECTIVE" ? (
+            <Input
+              id="riId"
+              value="Auto-generated Prospective ID"
+              disabled
+              className="bg-zinc-50 text-zinc-500 italic"
+            />
+          ) : (
+            <Input
+              id="riId"
+              value={form.riId}
+              onChange={(e) => update("riId", e.target.value)}
+            />
+          )}
         </div>
       </div>
 

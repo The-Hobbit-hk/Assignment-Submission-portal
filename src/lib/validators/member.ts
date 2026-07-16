@@ -8,7 +8,7 @@ export const memberRoleEnum = z.enum([
   "MEMBER",
 ]);
 
-export const memberStatusEnum = z.enum(["ACTIVE", "INACTIVE", "ALUMNI"]);
+export const memberStatusEnum = z.enum(["ACTIVE", "INACTIVE", "ALUMNI", "PROSPECTIVE"]);
 
 export const createMemberSchema = z.object({
   clubId: z.string().min(1),
