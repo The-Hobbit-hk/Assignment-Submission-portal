@@ -9,6 +9,7 @@ import {
   resolveEventBannerUrl,
 } from "@/lib/event-display";
 import { prisma } from "@/lib/prisma";
+import { formatIstDateTimeRange } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 
 export default async function PublicEventPage({
@@ -70,23 +71,7 @@ export default async function PublicEventPage({
             <div className="space-y-3 text-sm text-zinc-600">
               <p className="flex items-center gap-2 text-base text-zinc-800">
                 <CalendarDays className="h-5 w-5 text-accent" />
-                {event.startDate.toLocaleDateString("en-IN", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-                {" · "}
-                {event.startDate.toLocaleTimeString("en-IN", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-                {event.endDate
-                  ? ` – ${event.endDate.toLocaleTimeString("en-IN", {
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}`
-                  : ""}
+                {formatIstDateTimeRange(event.startDate, event.endDate)}
               </p>
               {event.location && (
                 <p className="flex items-center gap-2">

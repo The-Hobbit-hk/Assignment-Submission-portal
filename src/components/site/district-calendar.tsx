@@ -12,6 +12,7 @@ import {
   parseCalendarKey,
   resolveEventBannerUrl,
 } from "@/lib/event-display";
+import { formatIstDate, istDateKey } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 
 export type SerializedCalendarEvent = {
@@ -37,15 +38,11 @@ type FilterType = "ALL" | "DISTRICT" | "INSTALLATION";
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"] as const;
 
 function sameDay(a: Date, b: Date) {
-  return (
-    a.getFullYear() === b.getFullYear() &&
-    a.getMonth() === b.getMonth() &&
-    a.getDate() === b.getDate()
-  );
+  return istDateKey(a) === istDateKey(b);
 }
 
 function dateKey(d: Date) {
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  return istDateKey(d);
 }
 
 function buildMonthGrid(year: number, month: number): Date[] {
@@ -87,7 +84,7 @@ function previewUrl(event: SerializedCalendarEvent) {
 }
 
 function formatShortDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-IN", {
+  return formatIstDate(new Date(iso), {
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -171,9 +168,11 @@ function AgendaRow({ event }: { event: SerializedCalendarEvent }) {
         )}
       >
         <span className="text-[9px] font-bold uppercase leading-none">
-          {d.toLocaleDateString("en-IN", { month: "short" })}
+          {formatIstDate(d, { month: "short" })}
         </span>
-        <span className="text-base font-bold leading-none">{d.getDate()}</span>
+        <span className="text-base font-bold leading-none">
+          {formatIstDate(d, { day: "numeric" })}
+        </span>
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
@@ -282,7 +281,7 @@ export function DistrictCalendar({ events }: { events: SerializedCalendarEvent[]
   const groupedAgenda = useMemo(() => {
     const groups = new Map<string, SerializedCalendarEvent[]>();
     for (const event of agendaEvents) {
-      const key = new Date(event.startDate).toLocaleDateString("en-IN", {
+      const key = formatIstDate(new Date(event.startDate), {
         month: "long",
         year: "numeric",
       });

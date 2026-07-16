@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { EventRegistrationButton } from "@/components/site/event-registration-button";
 import type { getPublicCalendarEvents } from "@/lib/public-site-data";
+import { formatIstDate } from "@/lib/timezone";
 
 type CalendarEvent = Awaited<ReturnType<typeof getPublicCalendarEvents>>[number];
 
 function formatMonthKey(date: Date) {
-  return date.toLocaleDateString("en-IN", { month: "long", year: "numeric" });
+  return formatIstDate(date, { month: "long", year: "numeric" });
 }
 
 function formatDate(date: Date) {
-  return date.toLocaleDateString("en-IN", {
+  return formatIstDate(date, {
     weekday: "short",
     day: "numeric",
     month: "short",

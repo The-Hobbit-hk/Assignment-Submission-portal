@@ -9,6 +9,7 @@ import {
   publicEventDescription,
   resolveEventBannerUrl,
 } from "@/lib/event-display";
+import { formatIstDate, istDateKey } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 
 export type PublicEventCardData = {
@@ -29,16 +30,17 @@ export type PublicEventCardData = {
 };
 
 function formatEventDate(start: Date, end: Date | null) {
-  const startLabel = start.toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-  if (!end || end.toDateString() === start.toDateString()) {
+  const opts = {
+    weekday: "short" as const,
+    day: "numeric" as const,
+    month: "short" as const,
+    year: "numeric" as const,
+  };
+  const startLabel = formatIstDate(start, opts);
+  if (!end || istDateKey(end) === istDateKey(start)) {
     return startLabel;
   }
-  const endLabel = end.toLocaleDateString("en-IN", {
+  const endLabel = formatIstDate(end, {
     day: "numeric",
     month: "short",
     year: "numeric",
