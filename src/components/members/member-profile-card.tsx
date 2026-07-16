@@ -79,6 +79,12 @@ export function MemberProfileCard({ memberId }: MemberProfileCardProps) {
             <CardTitle>Profile Details</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
+            {member.status === "PROSPECTIVE" && member.riId && (
+              <div className="sm:col-span-2">
+                <p className="text-xs text-muted-foreground">Prospective ID</p>
+                <p className="font-mono text-sm">{member.riId}</p>
+              </div>
+            )}
             <div>
               <p className="text-xs text-muted-foreground">Email</p>
               <p className="flex items-center gap-2 text-sm">
@@ -95,7 +101,7 @@ export function MemberProfileCard({ memberId }: MemberProfileCardProps) {
                 </p>
               </div>
             )}
-            {member.riId && (
+            {member.riId && member.status !== "PROSPECTIVE" && (
               <div>
                 <p className="text-xs text-muted-foreground">RI ID</p>
                 <p className="text-sm">{member.riId}</p>
