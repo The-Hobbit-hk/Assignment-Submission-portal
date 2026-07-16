@@ -46,9 +46,7 @@ async function findExisting(key: string, title: string) {
     if (legacy) return legacy;
   }
 
-  return prisma.event.findFirst({
-    where: { type: "DISTRICT", clubId: null, title },
-  });
+  return null;
 }
 
 async function main() {
