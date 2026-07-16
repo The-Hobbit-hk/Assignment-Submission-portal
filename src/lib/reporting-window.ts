@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
+import {
+  isReportingAlwaysOpenUser,
+  isSubmissionWindowsBypassEnabled,
+} from "@/lib/submission-windows";
 import {
   getActiveReportPeriod,
   getSubmissionWindowForReportPeriod,
@@ -53,7 +56,11 @@ export async function getReportingPeriod(reportMonth: number, reportYear: number
   return ensureReportingPeriod(reportMonth, reportYear);
 }
 
-export async function isReportingWindowOpen(reportMonth?: number, reportYear?: number) {
+export async function isReportingWindowOpen(
+  reportMonth?: number,
+  reportYear?: number,
+  opts?: { userEmail?: string | null }
+) {
   const now = new Date();
   const active = getActiveReportPeriod(now);
   const m = reportMonth ?? active.month;
@@ -61,7 +68,7 @@ export async function isReportingWindowOpen(reportMonth?: number, reportYear?: n
   const period = await ensureReportingPeriod(m, y);
   const labels = getSubmissionWindowLabel(m, y);
 
-  if (isSubmissionWindowsBypassEnabled()) {
+  if (isSubmissionWindowsBypassEnabled() || isReportingAlwaysOpenUser(opts?.userEmail)) {
     return {
       open: true,
       period,
@@ -95,7 +102,11 @@ export async function isReportingWindowOpen(reportMonth?: number, reportYear?: n
   };
 }
 
-export async function ensureReportingWindow(reportMonth: number, reportYear: number) {
-  const { open, message } = await isReportingWindowOpen(reportMonth, reportYear);
+export async function ensureReportingWindow(
+  reportMonth: number,
+  reportYear: number,
+  opts?: { userEmail?: string | null }
+) {
+  const { open, message } = await isReportingWindowOpen(reportMonth, reportYear, opts);
   return { allowed: open, message };
 }

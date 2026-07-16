@@ -42,7 +42,9 @@ export async function assertClubReportingAccess(
     if (!clubId) {
       return { ok: false as const, status: 403, error: "Club account is not linked to a club." };
     }
-    const { allowed, message } = await ensureReportingWindow(month, year);
+    const { allowed, message } = await ensureReportingWindow(month, year, {
+      userEmail: session.user.email,
+    });
     if (!allowed) {
       return { ok: false as const, status: 403, error: message ?? "Reporting window is closed." };
     }

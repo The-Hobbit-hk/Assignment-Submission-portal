@@ -8,7 +8,7 @@ import {
 import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 
 export async function GET(request: Request) {
-  const { error } = await requireAuth();
+  const { session, error } = await requireAuth();
   if (error) return error;
 
   const { searchParams } = new URL(request.url);
@@ -16,7 +16,9 @@ export async function GET(request: Request) {
   const month = parseInt(searchParams.get("month") ?? String(active.month));
   const year = parseInt(searchParams.get("year") ?? String(active.year));
 
-  const result = await isReportingWindowOpen(month, year);
+  const result = await isReportingWindowOpen(month, year, {
+    userEmail: session!.user.email,
+  });
   const labels = getSubmissionWindowLabel(month, year);
 
   return NextResponse.json({
