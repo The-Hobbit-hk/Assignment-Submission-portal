@@ -72,7 +72,14 @@ export function AppSidebar({ className, onNavigate }: AppSidebarProps) {
       )}
     >
       <div className="flex h-[var(--navbar-height)] items-center border-b border-border/30 px-4">
-        <BrandLogo variant="sidebar" href="/dashboard" onClick={onNavigate} />
+        <BrandLogo
+          variant="full"
+          size="nav"
+          href="/dashboard"
+          onClick={onNavigate}
+          priority
+          className="max-h-9 w-auto"
+        />
       </div>
 
       <Separator className="bg-border/40" />

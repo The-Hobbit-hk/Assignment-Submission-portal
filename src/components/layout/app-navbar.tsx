@@ -40,7 +40,7 @@ export function AppNavbar() {
       </Sheet>
 
       <div className="min-w-0 flex-1 lg:hidden">
-        <BrandLogo variant="sidebar" linked={false} className="max-w-[11rem]" />
+        <BrandLogo variant="full" size="nav" linked={false} className="max-h-9 w-auto" />
       </div>
 
       <p className="hidden max-w-[40%] truncate text-xs text-muted-foreground sm:block sm:max-w-none sm:text-sm lg:ml-auto">
