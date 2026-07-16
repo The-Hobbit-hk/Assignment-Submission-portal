@@ -8,6 +8,7 @@ interface CouncilEntry {
   id: string;
   name: string;
   email: string | null;
+  avatar: string | null;
   clubName: string | null;
   score: number;
   rank: number | null;

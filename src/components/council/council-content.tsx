@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PodiumCard } from "@/components/council/podium-card";
 import { Input } from "@/components/ui/input";
 import {
@@ -207,6 +207,7 @@ export function CouncilContent() {
                 name={entry.name}
                 score={entry.score}
                 clubName={entry.clubName}
+                avatar={entry.avatar}
                 trendDirection={entry.trendDirection}
                 featured={featured}
               />
@@ -280,6 +281,7 @@ export function CouncilContent() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar className="h-9 w-9 border border-border/40">
+                            <AvatarImage src={entry.avatar ?? undefined} alt={entry.name} />
                             <AvatarFallback className="bg-accent/10 text-xs font-semibold text-accent">
                               {memberInitials(entry.name)}
                             </AvatarFallback>
