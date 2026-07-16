@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useClubEvents } from "@/hooks/use-clubs";
+import { getEventTypeLabel } from "@/lib/event-types";
 
 interface ClubEventsListProps {
   clubId: string;
@@ -53,7 +54,7 @@ export function ClubEventsList({ clubId }: ClubEventsListProps) {
                 </p>
                 <div className="mt-1 flex gap-2">
                   <Badge variant="outline" className="text-[10px]">
-                    {event.type}
+                    {getEventTypeLabel(event.type)}
                   </Badge>
                   <Badge
                     variant={

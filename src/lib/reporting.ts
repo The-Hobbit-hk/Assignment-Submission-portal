@@ -103,6 +103,7 @@ export function serializeMonthlyReport(r: MonthlyReport) {
     hostClub: r.hostClub,
     districtEventAttendance: r.districtEventAttendance,
     newsletterEvent: r.newsletterEvent,
+    noEventsDeclared: r.noEventsDeclared,
     submittedAt: r.submittedAt?.toISOString() ?? null,
     updatedAt: r.updatedAt.toISOString(),
   };

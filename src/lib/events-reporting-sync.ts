@@ -22,6 +22,13 @@ export async function submitEventsReportForClub(
   });
 
   if (existing?.status === "SUBMITTED") {
+    // Club now has real events — clear any stale "no events" declaration.
+    if (existing.noEventsDeclared) {
+      return prisma.monthlyReport.update({
+        where: { id: existing.id },
+        data: { noEventsDeclared: false },
+      });
+    }
     return existing;
   }
 
@@ -33,6 +40,7 @@ export async function submitEventsReportForClub(
       submittedBy: { connect: { id: params.submittedByUserId } },
       status: "SUBMITTED",
       submittedAt: new Date(),
+      noEventsDeclared: false,
     }
   );
 }

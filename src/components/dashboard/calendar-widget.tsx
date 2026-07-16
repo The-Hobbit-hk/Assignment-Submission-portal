@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WEEKDAY_LABELS_FULL, WEEKDAY_LABELS_SHORT } from "@/lib/calendar-utils";
+import { getEventTypeLabel } from "@/lib/event-types";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/types/dashboard";
 
@@ -225,7 +226,7 @@ export function CalendarWidget({ events }: CalendarWidgetProps) {
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium text-foreground">{ev.title}</p>
                       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                        {ev.type.replace("_", " ")}
+                        {getEventTypeLabel(ev.type)}
                       </p>
                     </div>
                   </Link>

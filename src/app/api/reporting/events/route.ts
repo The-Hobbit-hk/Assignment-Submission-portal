@@ -55,6 +55,7 @@ export async function POST(request: Request) {
     }
     const clubId = clubResolved.clubId;
     const isSubmit = d.submit === true;
+    const noEventsDeclared = d.noEventsDeclared === true;
 
     const report = await upsertMonthlyReport(
       prisma,
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
         submittedBy: { connect: { id: session!.user.id } },
         status: isSubmit ? "SUBMITTED" : "DRAFT",
         submittedAt: isSubmit ? new Date() : null,
+        noEventsDeclared,
       }
     );
 

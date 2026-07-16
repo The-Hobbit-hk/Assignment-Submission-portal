@@ -47,6 +47,13 @@ enum EventType {
   TRAINING
   ISD
   INSTALLATION
+  PROFESSIONAL_DEVELOPMENT
+  CLUB_SERVICE
+  COMMUNITY_SERVICE
+  INTERNATIONAL_SERVICE
+  DEI
+  PUBLIC_IMAGE
+  ROTARY_RELATIONS
 }
 
 enum EventStatus {
@@ -316,6 +323,7 @@ model MonthlyReport {
   hostClub                String?
   districtEventAttendance String?             @db.Text
   newsletterEvent         String?
+  noEventsDeclared        Boolean             @default(false)
   submittedAt             DateTime?
   createdAt               DateTime            @default(now())
   updatedAt               DateTime            @updatedAt

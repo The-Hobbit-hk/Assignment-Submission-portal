@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDeleteEvent, useEvent, uploadEventFile } from "@/hooks/use-events";
 import { PublicEventRegistrationsPanel } from "@/components/events/public-event-registrations-panel";
+import { getEventTypeLabel } from "@/lib/event-types";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function EventDetail({ eventId }: { eventId: string }) {
@@ -53,7 +54,7 @@ export function EventDetail({ eventId }: { eventId: string }) {
           <CardContent className="space-y-3 text-sm">
             <p>{event.description ?? "No description."}</p>
             <div className="flex flex-wrap gap-2">
-              <Badge>{event.type}</Badge><Badge variant="outline">{event.status}</Badge>
+              <Badge>{getEventTypeLabel(event.type)}</Badge><Badge variant="outline">{event.status}</Badge>
             </div>
             <p><strong>Date:</strong> {new Date(event.startDate).toLocaleString()}</p>
             {event.location && <p><strong>Location:</strong> {event.location}</p>}

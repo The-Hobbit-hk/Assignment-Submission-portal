@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { eventTypeEnum } from "@/lib/validators/event";
 
 const yesNoSchema = z.enum(["yes", "no", ""]).optional();
 
@@ -28,11 +29,12 @@ export const eventsReportSchema = z.object({
   year: z.coerce.number().min(2020).max(2100),
   clubId: z.string().optional(),
   submit: z.boolean().optional(),
+  noEventsDeclared: z.boolean().optional(),
 });
 
 export const reportingEventSchema = z.object({
   title: z.string().min(2).max(200),
-  type: z.enum(["ISD", "SERVICE", "PROFESSIONAL", "SOCIAL", "DISTRICT", "TRAINING"]),
+  type: eventTypeEnum,
   location: z.string().max(200).optional(),
   hostedBy: z.string().max(200).optional(),
   collaborations: z.string().max(2000).optional(),

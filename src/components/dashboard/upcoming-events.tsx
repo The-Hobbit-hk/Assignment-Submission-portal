@@ -3,6 +3,7 @@ import { MapPin } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { UpcomingEvent } from "@/types/dashboard";
+import { getEventTypeLabel } from "@/lib/event-types";
 
 interface UpcomingEventsProps {
   events: UpcomingEvent[];
@@ -55,7 +56,7 @@ export function UpcomingEvents({ events }: UpcomingEventsProps) {
                   )}
                 </div>
                 <Badge variant="outline" className="mt-1.5 text-[10px]">
-                  {event.type}
+                  {getEventTypeLabel(event.type)}
                 </Badge>
               </div>
             </div>

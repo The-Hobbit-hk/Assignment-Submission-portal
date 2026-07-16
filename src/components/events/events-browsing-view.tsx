@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AddReportingEventDialog } from "@/components/reporting/add-reporting-event-dialog";
 import { useEvents } from "@/hooks/use-events";
 import { WEEKDAY_LABELS_FULL, WEEKDAY_LABELS_SHORT } from "@/lib/calendar-utils";
+import { getEventTypeLabel } from "@/lib/event-types";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "grid" | "list" | "calendar";
@@ -38,6 +39,7 @@ interface EventsBrowsingViewProps {
   ownClubId?: string | null;
   addEventDisabled?: boolean;
   showAddEvent?: boolean;
+  showDistrictSection?: boolean;
   districtSectionTitle?: string;
   clubSectionTitle?: string;
   eventLinkBase?: string;
@@ -51,6 +53,7 @@ export function EventsBrowsingView({
   ownClubId,
   addEventDisabled,
   showAddEvent = true,
+  showDistrictSection = true,
   districtSectionTitle = "District Events",
   clubSectionTitle = "Club Events",
   eventLinkBase = "/dashboard/events",
@@ -129,24 +132,26 @@ export function EventsBrowsingView({
         <Skeleton className="h-64 w-full" />
       ) : view === "calendar" ? (
         <CalendarView
-          events={ownClubId ? clubEvents : events}
+          events={ownClubId || !showDistrictSection ? clubEvents : events}
           month={month - 1}
           year={year}
           eventLinkBase={eventLinkBase}
         />
       ) : view === "list" ? (
         <div className="space-y-5">
-          <EventsSection title={districtSectionTitle} count={districtEvents.length}>
-            {districtEvents.length === 0 ? (
-              <EmptySection message="No district events this month." />
-            ) : (
-              <div className="space-y-2">
-                {districtEvents.map((e) => (
-                  <EventListRow key={e.id} event={e} eventLinkBase={eventLinkBase} />
-                ))}
-              </div>
-            )}
-          </EventsSection>
+          {showDistrictSection && (
+            <EventsSection title={districtSectionTitle} count={districtEvents.length}>
+              {districtEvents.length === 0 ? (
+                <EmptySection message="No district events this month." />
+              ) : (
+                <div className="space-y-2">
+                  {districtEvents.map((e) => (
+                    <EventListRow key={e.id} event={e} eventLinkBase={eventLinkBase} />
+                  ))}
+                </div>
+              )}
+            </EventsSection>
+          )}
 
           <EventsSection
             title={clubSectionTitle}
@@ -166,17 +171,19 @@ export function EventsBrowsingView({
         </div>
       ) : (
         <div className="space-y-5">
-          <EventsSection title={districtSectionTitle} count={districtEvents.length}>
-            {districtEvents.length === 0 ? (
-              <EmptySection message="No district events this month." />
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                {districtEvents.map((e) => (
-                  <EventGridCard key={e.id} event={e} eventLinkBase={eventLinkBase} />
-                ))}
-              </div>
-            )}
-          </EventsSection>
+          {showDistrictSection && (
+            <EventsSection title={districtSectionTitle} count={districtEvents.length}>
+              {districtEvents.length === 0 ? (
+                <EmptySection message="No district events this month." />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {districtEvents.map((e) => (
+                    <EventGridCard key={e.id} event={e} eventLinkBase={eventLinkBase} />
+                  ))}
+                </div>
+              )}
+            </EventsSection>
+          )}
 
           <EventsSection
             title={clubSectionTitle}
@@ -275,7 +282,7 @@ function EventGridCard({
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="line-clamp-1 text-base">{event.title}</CardTitle>
             <Badge variant="outline" className="shrink-0 text-[10px]">
-              {event.type}
+              {getEventTypeLabel(event.type)}
             </Badge>
           </div>
         </CardHeader>

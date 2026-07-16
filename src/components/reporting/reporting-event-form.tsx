@@ -14,14 +14,9 @@ import {
 } from "@/components/ui/select";
 import { ReportingFileUpload } from "@/components/reporting/reporting-file-upload";
 import { formErrorMessage, notifyValidation, toast } from "@/lib/toast";
+import { CLUB_EVENT_AVENUES } from "@/lib/event-types";
 
-const EVENT_TYPES = [
-  { value: "ISD", label: "ISD" },
-  { value: "CSD", label: "CSD" },
-  { value: "PDD", label: "PDD" },
-  { value: "CMD", label: "CMD" },
-  { value: "Others", label: "Others" },
-];
+const EVENT_TYPES = CLUB_EVENT_AVENUES;
 
 function toDatetimeLocalValue(date: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -60,7 +55,7 @@ export function ReportingEventForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [title, setTitle] = useState("");
-  const [type, setType] = useState("ISD");
+  const [type, setType] = useState<string>(EVENT_TYPES[0].value);
   const [location, setLocation] = useState("");
   const [hostedBy, setHostedBy] = useState("");
   const [collaborations, setCollaborations] = useState("");

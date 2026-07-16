@@ -24,7 +24,11 @@ export function useAdminReport(filters: ReportFilters) {
 }
 
 export type EventsPortalData = {
-  report: { status: string; submittedAt?: string | null } | null;
+  report: {
+    status: string;
+    submittedAt?: string | null;
+    noEventsDeclared?: boolean;
+  } | null;
   clubEvents: {
     id: string;
     title: string;

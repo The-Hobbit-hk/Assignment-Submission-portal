@@ -8,6 +8,13 @@ export const eventTypeEnum = z.enum([
   "TRAINING",
   "ISD",
   "INSTALLATION",
+  "PROFESSIONAL_DEVELOPMENT",
+  "CLUB_SERVICE",
+  "COMMUNITY_SERVICE",
+  "INTERNATIONAL_SERVICE",
+  "DEI",
+  "PUBLIC_IMAGE",
+  "ROTARY_RELATIONS",
 ]);
 
 export const eventStatusEnum = z.enum([

@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { EventItem } from "@/hooks/use-events";
 import { formErrorMessage, toast } from "@/lib/toast";
+import { ADMIN_EVENT_TYPES, getEventTypeLabel } from "@/lib/event-types";
 
 interface EventFormProps {
   clubs: { id: string; name: string }[];
@@ -34,7 +35,7 @@ export function EventForm({
     startDate: initial?.startDate ? initial.startDate.slice(0, 16) : "",
     endDate: initial?.endDate ? initial.endDate.slice(0, 16) : "",
     location: initial?.location ?? "",
-    type: initial?.type ?? "SERVICE",
+    type: initial?.type ?? "COMMUNITY_SERVICE",
     status: initial?.status ?? "UPCOMING",
     clubId: lockedClub?.id ?? initial?.clubId ?? "",
     maxAttendees: initial?.maxAttendees ?? "",
@@ -106,7 +107,16 @@ export function EventForm({
         <div className="space-y-2"><Label>Type</Label>
           <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>{["SERVICE","PROFESSIONAL","SOCIAL","DISTRICT","TRAINING","ISD","INSTALLATION"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
+            <SelectContent>
+              {(ADMIN_EVENT_TYPES.some((t) => t.value === form.type)
+                ? ADMIN_EVENT_TYPES
+                : [{ value: form.type, label: getEventTypeLabel(form.type) }, ...ADMIN_EVENT_TYPES]
+              ).map((t) => (
+                <SelectItem key={t.value} value={t.value}>
+                  {t.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
         </div>
         <div className="space-y-2"><Label>Status</Label>

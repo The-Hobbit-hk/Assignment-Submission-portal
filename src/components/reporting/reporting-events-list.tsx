@@ -11,6 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getEventTypeLabel } from "@/lib/event-types";
 
 type EventRow = {
   id: string;
@@ -83,7 +84,7 @@ export function ReportingEventsList({
               </TableCell>
               <TableCell className="hidden sm:table-cell">
                 <Badge variant="outline" className="text-[10px]">
-                  {event.type}
+                  {getEventTypeLabel(event.type)}
                 </Badge>
               </TableCell>
               <TableCell className="text-muted-foreground">{event.status}</TableCell>
@@ -109,7 +110,7 @@ export function ReportingEventsListCompact({ events }: { events: EventRow[] }) {
           <div className="min-w-0">
             <p className="font-medium">{event.title}</p>
             <p className="text-xs text-muted-foreground">
-              {new Date(event.startDate).toLocaleDateString()} · {event.type}
+              {new Date(event.startDate).toLocaleDateString()} · {getEventTypeLabel(event.type)}
             </p>
           </div>
         </li>
