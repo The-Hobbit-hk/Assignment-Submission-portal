@@ -181,8 +181,77 @@ export async function syncCancelledInstallationsToDb(cancelledKeys: string[]) {
   }
 }
 
+
+/** Sync time/location updates from Google Calendar active events to the DB. */
+export async function syncActiveInstallationsToDb(activeFeed: GoogleFeedEvent[]) {
+  if (activeFeed.length === 0) return;
+
+  try {
+    const installations = await prisma.event.findMany({
+      where: {
+        type: "INSTALLATION",
+        status: { not: "CANCELLED" },
+        startDate: { gte: rotaryYearStart() },
+      },
+      select: { id: true, title: true, startDate: true, endDate: true, location: true },
+    });
+
+    const feedMap = new Map<string, GoogleFeedEvent>();
+    for (const event of activeFeed) {
+      feedMap.set(calendarEventDedupKey(event.title, event.startDate), event);
+    }
+
+    const updates = [];
+
+    for (const dbEvent of installations) {
+      const key = calendarEventDedupKey(dbEvent.title, dbEvent.startDate);
+      const feedEvent = feedMap.get(key);
+
+      if (feedEvent) {
+        let needsUpdate = false;
+        
+        if (dbEvent.startDate.getTime() !== feedEvent.startDate.getTime()) {
+          needsUpdate = true;
+        }
+        
+        const dbEnd = dbEvent.endDate?.getTime() || null;
+        const feedEnd = feedEvent.endDate?.getTime() || null;
+        if (dbEnd !== feedEnd) {
+          needsUpdate = true;
+        }
+        
+        const dbLoc = (dbEvent.location || "").trim();
+        const feedLoc = (feedEvent.location || "").trim();
+        if (dbLoc !== feedLoc) {
+          needsUpdate = true;
+        }
+
+        if (needsUpdate) {
+          updates.push(
+            prisma.event.update({
+              where: { id: dbEvent.id },
+              data: {
+                startDate: feedEvent.startDate,
+                endDate: feedEvent.endDate,
+                location: feedEvent.location,
+              },
+            })
+          );
+        }
+      }
+    }
+
+    if (updates.length > 0) {
+      await prisma.$transaction(updates);
+    }
+  } catch (error) {
+    console.error("Failed to sync active installations to DB", error);
+  }
+}
+
 export async function fetchGoogleCalendarInstallations(): Promise<GoogleFeedEvent[]> {
   const feed = await fetchGoogleCalendarInstallationFeed();
   await syncCancelledInstallationsToDb(feed.cancelledKeys);
+  await syncActiveInstallationsToDb(feed.active);
   return feed.active;
 }
