@@ -116,15 +116,61 @@ export function AdminReportingForm() {
     }
   };
 
+  const validate = (): string | null => {
+    if (newMembers.trim() === "" || parseInt(newMembers, 10) < 0) {
+      return "Please enter the number of new members (0 if none).";
+    }
+
+    if (resolutionPassed !== "yes" && resolutionPassed !== "no") {
+      return "Please select whether a resolution was passed.";
+    }
+    if (resolutionPassed === "yes" && !resolutionFileUrl) {
+      return "Please upload proof of resolution passed.";
+    }
+    if (resolutionPassed === "yes" && !resolutionPassDate) {
+      return "Please select the resolution date of passing.";
+    }
+
+    if (districtDuesPaid !== "yes" && districtDuesPaid !== "no") {
+      return "Please select whether the club has paid district dues.";
+    }
+    if (districtDuesPaid === "yes") {
+      if (!districtDuesFileUrl) return "Please upload proof of district dues payment.";
+      if (duesMembersCount.trim() === "" || parseInt(duesMembersCount, 10) <= 0) {
+        return "Please enter the number of members the dues were paid for.";
+      }
+      if (duesAmount.trim() === "" || parseInt(duesAmount, 10) <= 0) {
+        return "Please enter the amount paid for district dues.";
+      }
+    }
+
+    if (bylawsPassed !== "yes" && bylawsPassed !== "no") {
+      return "Please select whether the club by-laws were passed.";
+    }
+    if (bylawsPassed === "yes") {
+      if (!bylawsFileUrl) return "Please upload the club by-laws document.";
+      if (!bylawsPassDate) return "Please select the by-laws date of passing.";
+    }
+
+    if (hostClub !== "yes" && hostClub !== "no") {
+      return "Please select whether you were the host club.";
+    }
+    if (districtEventAttendance.trim() === "") {
+      return "Please provide your attendance at district events.";
+    }
+    if (newsletterEvent.trim() === "") {
+      return "Please provide an event for the district newsletter.";
+    }
+
+    return null;
+  };
+
   const handleSubmit = async () => {
     setFormError("");
 
-    if (resolutionPassed === "yes" && !resolutionFileUrl) {
-      setFormError(notifyValidation("Please upload proof of resolution passed."));
-      return;
-    }
-    if (districtDuesPaid === "yes" && !districtDuesFileUrl) {
-      setFormError(notifyValidation("Please upload proof of district dues payment."));
+    const validationMessage = validate();
+    if (validationMessage) {
+      setFormError(notifyValidation(validationMessage));
       return;
     }
 
@@ -132,7 +178,7 @@ export function AdminReportingForm() {
       await save.mutateAsync({
         month,
         year,
-        newMembers: newMembers ? parseInt(newMembers, 10) : undefined,
+        newMembers: parseInt(newMembers, 10),
         resolutionPassed,
         resolutionFileUrl: resolutionPassed === "yes" ? resolutionFileUrl : null,
         resolutionPassDate:
@@ -170,7 +216,7 @@ export function AdminReportingForm() {
   return (
     <ReportingFormLayout
       title="Administration Reporting"
-      subtitle={`Club Administration — Monthly Reporting for ${periodLabel}`}
+      subtitle={`Club Administration — Monthly Reporting for ${periodLabel}. All fields are required.`}
       banner={<ReportingWindowBanner month={month} year={year} />}
     >
       <ReportingSubmittedDialog
@@ -352,7 +398,7 @@ export function AdminReportingForm() {
             />
           </ReportingFieldRow>
 
-          <ReportingFieldRow label="event for district newsletter (optional) :">
+          <ReportingFieldRow label="Event for district newsletter :">
             <Input
               value={newsletterEvent}
               onChange={(e) => setNewsletterEvent(e.target.value)}
