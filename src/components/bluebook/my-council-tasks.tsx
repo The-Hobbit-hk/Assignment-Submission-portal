@@ -130,6 +130,10 @@ export function MyCouncilTasks() {
         </p>
       )}
 
+      <div className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">
+        Please submit a combined report for all tasks.
+      </div>
+
       <section className="space-y-3">
         <h2 className="text-lg font-semibold text-foreground">Assigned tasks</h2>
           <div className="table-scroll rounded-lg border border-border/40">
@@ -220,8 +224,9 @@ export function MyCouncilTasks() {
           <DialogHeader>
             <DialogTitle>Submit Blue Book — {periodLabel}</DialogTitle>
             <DialogDescription>
-              Upload your supporting documents (PDF preferred), add a brief summary, then submit.
-              Your report will be locked until the District Secretary reopens it.
+              Please submit a single combined report covering all your tasks. Upload your supporting
+              documents (PDF preferred), add a brief summary, then submit. Your report will be locked
+              until the District Secretary reopens it.
             </DialogDescription>
           </DialogHeader>
 
