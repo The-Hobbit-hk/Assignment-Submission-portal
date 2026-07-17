@@ -86,6 +86,8 @@ function pruneBuckets(now: number) {
 export const RATE_LIMITS = {
   /** Failed attempts per email — successful logins are not counted. */
   loginFailed: { limit: 8, windowMs: 15 * 60 * 1000 },
+  /** Login POSTs per IP — caps bcrypt CPU burned by credential-stuffing bots. */
+  loginIp: { limit: 30, windowMs: 10 * 60 * 1000 },
   register: { limit: 5, windowMs: 60 * 60 * 1000 },
 } as const;
 

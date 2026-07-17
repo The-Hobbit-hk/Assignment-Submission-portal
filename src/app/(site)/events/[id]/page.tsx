@@ -12,6 +12,14 @@ import { prisma } from "@/lib/prisma";
 import { formatIstDateTimeRange } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 
+// Cache each event page; registration open/closed state is computed client-side.
+export const revalidate = 300;
+
+// Opt in to ISR: pages are rendered on first request, then cached for `revalidate`.
+export function generateStaticParams() {
+  return [];
+}
+
 export default async function PublicEventPage({
   params,
 }: {

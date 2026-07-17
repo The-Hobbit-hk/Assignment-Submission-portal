@@ -1,4 +1,4 @@
-export const revalidate = 120;
+export const revalidate = 600;
 
 import Link from "next/link";
 import { DistrictCalendar } from "@/components/site/district-calendar";

@@ -1,4 +1,4 @@
-export const revalidate = 300;
+export const revalidate = 900;
 
 import { ClubsByZone } from "@/components/site/clubs-by-zone";
 import { PageHero } from "@/components/site/page-hero";

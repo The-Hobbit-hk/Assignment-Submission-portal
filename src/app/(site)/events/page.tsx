@@ -1,4 +1,4 @@
-export const revalidate = 120;
+export const revalidate = 600;
 
 import { PublicEventsList } from "@/components/site/public-events-list";
 import { PageHero } from "@/components/site/page-hero";

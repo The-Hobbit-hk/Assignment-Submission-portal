@@ -12,9 +12,9 @@ import {
 import { prisma } from "@/lib/prisma";
 import { rotaryYearStart } from "@/lib/rotary-year";
 
-const PUBLIC_EVENTS_REVALIDATE = 120;
-const PUBLIC_CLUBS_REVALIDATE = 300;
-const GOOGLE_FEED_REVALIDATE = 180;
+const PUBLIC_EVENTS_REVALIDATE = 600;
+const PUBLIC_CLUBS_REVALIDATE = 900;
+const GOOGLE_FEED_REVALIDATE = 900;
 
 const publicEventSelect = {
   id: true,

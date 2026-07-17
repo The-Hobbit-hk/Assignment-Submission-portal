@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { invalidateUserClaims } from "@/lib/auth";
 import { requireAuth } from "@/lib/api-auth";
 import { validationError, handleRouteError, apiError } from "@/lib/api-errors";
 
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
       where: { id: user.id },
       data: { password: hash, mustChangePassword: false },
     });
+    invalidateUserClaims(user.id);
 
     return NextResponse.json({ success: true });
   } catch (err) {

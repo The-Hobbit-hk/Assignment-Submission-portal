@@ -29,6 +29,15 @@ function checkPostRateLimit(pathname: string, headers: Headers) {
     );
   }
 
+  if (pathname === "/api/auth/callback/credentials") {
+    const ip = getClientIp(headers);
+    return rateLimit(
+      `login-ip:${ip}`,
+      RATE_LIMITS.loginIp.limit,
+      RATE_LIMITS.loginIp.windowMs
+    );
+  }
+
   return { success: true as const };
 }
 
