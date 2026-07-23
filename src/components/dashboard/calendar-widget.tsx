@@ -78,21 +78,104 @@ export function CalendarWidget({ events }: CalendarWidgetProps) {
   const today = new Date();
   const todayKey = istDateKey(today);
 
-  const upcomingInMonth = useMemo(() => {
-    return [...events]
-      .filter((e) => {
-        const key = istDateKey(new Date(e.date));
-        const [y, m] = key.split("-").map(Number);
-        if (y !== viewYear || m !== viewMonth + 1) return false;
-        return key >= todayKey;
-      })
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [events, viewYear, viewMonth, todayKey]);
-
   const isCurrentMonth =
     today.getMonth() === currentDate.getMonth() &&
     today.getFullYear() === currentDate.getFullYear();
 
+  const isFutureMonth =
+    currentDate.getFullYear() > today.getFullYear() ||
+    (currentDate.getFullYear() === today.getFullYear() &&
+      currentDate.getMonth() > today.getMonth());
+
+  const eventsInViewMonth = useMemo(() => {
+    return [...events]
+      .filter((e) => {
+        const key = istDateKey(new Date(e.date));
+        const [y, m] = key.split("-").map(Number);
+        return y === viewYear && m === viewMonth + 1;
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [events, viewYear, viewMonth]);
+
+  /** Remaining / all events for the month currently shown on the grid. */
+  const upcomingInViewMonth = useMemo(() => {
+    if (isFutureMonth) return eventsInViewMonth;
+    if (isCurrentMonth) {
+      return eventsInViewMonth.filter(
+        (e) => istDateKey(new Date(e.date)) >= todayKey
+      );
+    }
+    // Past month — show the month's events for reference.
+    return eventsInViewMonth;
+  }, [eventsInViewMonth, isCurrentMonth, isFutureMonth, todayKey]);
+
+  /** When on the current month, also preview next month's schedule. */
+  const upcomingNextMonth = useMemo(() => {
+    if (!isCurrentMonth) return [];
+    const [ty, tm] = todayKey.split("-").map(Number);
+    const nextMonthDate = new Date(ty, tm, 1); // month is 1-based from todayKey → next month
+    const nextYear = nextMonthDate.getFullYear();
+    const nextMonth = nextMonthDate.getMonth() + 1;
+    return [...events]
+      .filter((e) => {
+        const key = istDateKey(new Date(e.date));
+        const [y, m] = key.split("-").map(Number);
+        return y === nextYear && m === nextMonth;
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [events, isCurrentMonth, todayKey]);
+
+  const nextMonthLabel = useMemo(() => {
+    const [ty, tm] = todayKey.split("-").map(Number);
+    const next = new Date(ty, tm, 1);
+    return next.toLocaleDateString("en-IN", { month: "short" }).toUpperCase();
+  }, [todayKey]);
+
+  function renderUpcomingList(list: CalendarEvent[], limit = 6) {
+    if (list.length === 0) {
+      return (
+        <p className="rounded-lg border border-dashed border-border/50 bg-zinc-50/80 px-3 py-4 text-center text-xs text-muted-foreground">
+          No events in this month.
+        </p>
+      );
+    }
+
+    return (
+      <ul className="space-y-2">
+        {list.slice(0, limit).map((ev) => {
+          const d = new Date(ev.date);
+          return (
+            <li key={ev.id}>
+              <Link
+                href={eventHref(ev)}
+                className="depth-card-interactive flex items-center gap-3 rounded-lg border border-border/40 bg-white/80 px-3 py-2.5"
+              >
+                <div
+                  className={cn(
+                    "flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-gradient-to-br text-[10px] font-bold text-white shadow-sm",
+                    eventGradient(ev.type)
+                  )}
+                >
+                  <span>{formatIstDate(d, { day: "numeric" })}</span>
+                  <span className="text-[8px] font-medium uppercase opacity-90">
+                    {formatIstDate(d, { month: "short" })}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {displayCalendarTitle(ev.title, ev.type)}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {getEventTypeLabel(ev.type)}
+                  </p>
+                </div>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
   return (
     <div className="dashboard-panel">
       <div className="dashboard-panel-header">
@@ -215,46 +298,27 @@ export function CalendarWidget({ events }: CalendarWidgetProps) {
           </div>
         </div>
 
-        {upcomingInMonth.length > 0 && (
-          <div className="mt-4">
+        <div className="mt-4 space-y-5">
+          <div>
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-              Upcoming in {monthShort}
+              {isCurrentMonth
+                ? `Upcoming in ${monthShort}`
+                : isFutureMonth
+                  ? `Upcoming in ${monthShort}`
+                  : `Events in ${monthShort}`}
             </p>
-            <ul className="space-y-2">
-              {upcomingInMonth.slice(0, 4).map((ev) => {
-                const d = new Date(ev.date);
-                return (
-                  <li key={ev.id}>
-                    <Link
-                      href={eventHref(ev)}
-                      className="depth-card-interactive flex items-center gap-3 rounded-lg border border-border/40 bg-white/80 px-3 py-2.5"
-                    >
-                      <div
-                        className={cn(
-                          "flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-gradient-to-br text-[10px] font-bold text-white shadow-sm",
-                          eventGradient(ev.type)
-                        )}
-                      >
-                        <span>{formatIstDate(d, { day: "numeric" })}</span>
-                        <span className="text-[8px] font-medium uppercase opacity-90">
-                          {formatIstDate(d, { month: "short" })}
-                        </span>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-foreground">
-                          {displayCalendarTitle(ev.title, ev.type)}
-                        </p>
-                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                          {getEventTypeLabel(ev.type)}
-                        </p>
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            {renderUpcomingList(upcomingInViewMonth)}
           </div>
-        )}
+
+          {isCurrentMonth && upcomingNextMonth.length > 0 && (
+            <div>
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Upcoming next month · {nextMonthLabel}
+              </p>
+              {renderUpcomingList(upcomingNextMonth)}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
