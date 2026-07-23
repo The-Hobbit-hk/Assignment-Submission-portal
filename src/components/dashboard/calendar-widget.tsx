@@ -5,7 +5,9 @@ import { useMemo, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { WEEKDAY_LABELS_FULL, WEEKDAY_LABELS_SHORT } from "@/lib/calendar-utils";
+import { displayCalendarTitle } from "@/lib/event-display";
 import { getEventTypeLabel } from "@/lib/event-types";
+import { formatIstDate, istDateKey } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 import type { CalendarEvent } from "@/types/dashboard";
 
@@ -26,10 +28,17 @@ function eventGradient(type: string) {
   return EVENT_TYPE_COLORS[type] ?? "from-accent to-rose-500";
 }
 
+function eventHref(event: CalendarEvent) {
+  if (event.type === "DISTRICT" || event.type === "INSTALLATION") {
+    return `/events/${event.id}`;
+  }
+  return `/dashboard/events/${event.id}`;
+}
+
 export function CalendarWidget({ events }: CalendarWidgetProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  const { days, monthLabel, monthShort } = useMemo(() => {
+  const { days, monthLabel, monthShort, viewYear, viewMonth } = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     const firstDay = new Date(year, month, 1).getDay();
@@ -41,42 +50,44 @@ export function CalendarWidget({ events }: CalendarWidgetProps) {
 
     return {
       days,
-      monthLabel: currentDate.toLocaleDateString("en-US", {
+      viewYear: year,
+      viewMonth: month,
+      monthLabel: currentDate.toLocaleDateString("en-IN", {
         month: "long",
         year: "numeric",
       }),
-      monthShort: currentDate.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
+      monthShort: currentDate
+        .toLocaleDateString("en-IN", { month: "short" })
+        .toUpperCase(),
     };
   }, [currentDate]);
 
   const eventsByDay = useMemo(() => {
     const map = new Map<number, CalendarEvent[]>();
-    events.forEach((e) => {
-      const d = new Date(e.date);
-      if (
-        d.getMonth() === currentDate.getMonth() &&
-        d.getFullYear() === currentDate.getFullYear()
-      ) {
-        const day = d.getDate();
-        map.set(day, [...(map.get(day) ?? []), e]);
+    for (const event of events) {
+      const d = new Date(event.date);
+      const key = istDateKey(d);
+      const [y, m, day] = key.split("-").map(Number);
+      if (y === viewYear && m === viewMonth + 1 && day) {
+        map.set(day, [...(map.get(day) ?? []), event]);
       }
-    });
+    }
     return map;
-  }, [events, currentDate]);
+  }, [events, viewYear, viewMonth]);
 
   const today = new Date();
+  const todayKey = istDateKey(today);
 
   const upcomingInMonth = useMemo(() => {
-    const startOfToday = new Date(
-      today.getFullYear(),
-      today.getMonth(),
-      today.getDate()
-    ).getTime();
     return [...events]
-      .filter((e) => new Date(e.date).getTime() >= startOfToday)
+      .filter((e) => {
+        const key = istDateKey(new Date(e.date));
+        const [y, m] = key.split("-").map(Number);
+        if (y !== viewYear || m !== viewMonth + 1) return false;
+        return key >= todayKey;
+      })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [events]);
+  }, [events, viewYear, viewMonth, todayKey]);
 
   const isCurrentMonth =
     today.getMonth() === currentDate.getMonth() &&
@@ -179,18 +190,22 @@ export function CalendarWidget({ events }: CalendarWidgetProps) {
                         )}
                       </div>
                       <div className="mt-1 space-y-0.5">
-                        {dayEvents.slice(0, 2).map((ev) => (
-                          <div
-                            key={ev.id}
-                            className={cn(
-                              "truncate rounded-md bg-gradient-to-r px-1.5 py-0.5 text-[9px] font-medium text-white shadow-sm sm:text-[10px]",
-                              eventGradient(ev.type)
-                            )}
-                            title={ev.title}
-                          >
-                            {ev.title}
-                          </div>
-                        ))}
+                        {dayEvents.slice(0, 2).map((ev) => {
+                          const label = displayCalendarTitle(ev.title, ev.type);
+                          return (
+                            <Link
+                              key={ev.id}
+                              href={eventHref(ev)}
+                              className={cn(
+                                "block truncate rounded-md bg-gradient-to-r px-1.5 py-0.5 text-[9px] font-medium text-white shadow-sm hover:opacity-90 sm:text-[10px]",
+                                eventGradient(ev.type)
+                              )}
+                              title={ev.title}
+                            >
+                              {label}
+                            </Link>
+                          );
+                        })}
                       </div>
                     </>
                   )}
@@ -206,32 +221,37 @@ export function CalendarWidget({ events }: CalendarWidgetProps) {
               Upcoming in {monthShort}
             </p>
             <ul className="space-y-2">
-              {upcomingInMonth.slice(0, 4).map((ev) => (
-                <li key={ev.id}>
-                  <Link
-                    href={`/dashboard/events/${ev.id}`}
-                    className="depth-card-interactive flex items-center gap-3 rounded-lg border border-border/40 bg-white/80 px-3 py-2.5"
-                  >
-                    <div
-                      className={cn(
-                        "flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-gradient-to-br text-[10px] font-bold text-white shadow-sm",
-                        eventGradient(ev.type)
-                      )}
+              {upcomingInMonth.slice(0, 4).map((ev) => {
+                const d = new Date(ev.date);
+                return (
+                  <li key={ev.id}>
+                    <Link
+                      href={eventHref(ev)}
+                      className="depth-card-interactive flex items-center gap-3 rounded-lg border border-border/40 bg-white/80 px-3 py-2.5"
                     >
-                      <span>{new Date(ev.date).getDate()}</span>
-                      <span className="text-[8px] font-medium uppercase opacity-90">
-                        {new Date(ev.date).toLocaleDateString("en-US", { month: "short" })}
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-foreground">{ev.title}</p>
-                      <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                        {getEventTypeLabel(ev.type)}
-                      </p>
-                    </div>
-                  </Link>
-                </li>
-              ))}
+                      <div
+                        className={cn(
+                          "flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-gradient-to-br text-[10px] font-bold text-white shadow-sm",
+                          eventGradient(ev.type)
+                        )}
+                      >
+                        <span>{formatIstDate(d, { day: "numeric" })}</span>
+                        <span className="text-[8px] font-medium uppercase opacity-90">
+                          {formatIstDate(d, { month: "short" })}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {displayCalendarTitle(ev.title, ev.type)}
+                        </p>
+                        <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                          {getEventTypeLabel(ev.type)}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

@@ -38,6 +38,12 @@ export function publicCalendarEventWhere(yearStart: Date): Prisma.EventWhereInpu
         type: "INSTALLATION",
         club: OFFICIAL_DISTRICT_CLUB_FILTER,
       },
+      // Google Calendar–synced installations (created without a club link).
+      {
+        type: "INSTALLATION",
+        clubId: null,
+        description: { contains: "calendar-key:" },
+      },
     ],
   };
 }
@@ -63,6 +69,8 @@ export async function purgeLegacyDemoEvents(prisma: PrismaClient) {
     where: {
       type: "INSTALLATION",
       clubId: null,
+      // Keep Google Calendar–synced installations (no club, but tagged).
+      NOT: { description: { contains: "calendar-key:" } },
     },
   });
 

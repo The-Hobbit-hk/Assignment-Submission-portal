@@ -1,24 +1,15 @@
 import { unstable_cache } from "next/cache";
 import { OFFICIAL_ROTARACT_MEMBER_FILTER } from "@/lib/district-clubs-data";
+import { getPublicCalendarEvents } from "@/lib/public-site-data";
 import { prisma } from "@/lib/prisma";
 import type { DashboardData } from "@/types/dashboard";
 
 async function fetchDashboardOverview(): Promise<
   Pick<DashboardData, "calendarEvents" | "leaderboard">
 > {
-  const now = new Date();
-
-  const [calendarEvents, leaderboardMembers] = await Promise.all([
-    prisma.event.findMany({
-      where: {
-        startDate: {
-          gte: new Date(now.getFullYear(), now.getMonth(), 1),
-          lte: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59),
-        },
-      },
-      select: { id: true, title: true, startDate: true, type: true },
-      orderBy: { startDate: "asc" },
-    }),
+  const [publicEvents, leaderboardMembers] = await Promise.all([
+    // Same source as the public /calendar page (DB + Google Calendar sync).
+    getPublicCalendarEvents(),
     prisma.member.findMany({
       where: { status: "ACTIVE", ...OFFICIAL_ROTARACT_MEMBER_FILTER },
       orderBy: { points: "desc" },
@@ -35,7 +26,7 @@ async function fetchDashboardOverview(): Promise<
   ]);
 
   return {
-    calendarEvents: calendarEvents.map((e) => ({
+    calendarEvents: publicEvents.map((e) => ({
       id: e.id,
       title: e.title,
       date: e.startDate.toISOString(),
@@ -54,8 +45,8 @@ async function fetchDashboardOverview(): Promise<
 
 const getCachedDashboardOverview = unstable_cache(
   fetchDashboardOverview,
-  ["dashboard-overview", "official-clubs-only"],
-  { revalidate: 60 }
+  ["dashboard-overview", "public-calendar-v2"],
+  { revalidate: 120, tags: ["public-events"] }
 );
 
 export async function getDashboardData(): Promise<DashboardData> {
