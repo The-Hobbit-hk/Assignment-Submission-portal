@@ -13,7 +13,10 @@
  * returns an empty feed so the public calendar always falls back to the DB.
  */
 import ical from "node-ical";
-import { calendarEventDedupKey } from "@/lib/calendar-event-dedup";
+import {
+  calendarEventDedupKey,
+  calendarEventTitleKey,
+} from "@/lib/calendar-event-dedup";
 import { prisma } from "@/lib/prisma";
 import { rotaryYearStart } from "@/lib/rotary-year";
 
@@ -182,7 +185,10 @@ export async function syncCancelledInstallationsToDb(cancelledKeys: string[]) {
 }
 
 
-/** Sync time/location updates from Google Calendar active events to the DB. */
+/**
+ * Sync time/location updates from Google Calendar into matching DB rows.
+ * Match by title+day first, then by title alone so rescheduled installations still update.
+ */
 export async function syncActiveInstallationsToDb(activeFeed: GoogleFeedEvent[]) {
   if (activeFeed.length === 0) return;
 
@@ -193,52 +199,76 @@ export async function syncActiveInstallationsToDb(activeFeed: GoogleFeedEvent[])
         status: { not: "CANCELLED" },
         startDate: { gte: rotaryYearStart() },
       },
-      select: { id: true, title: true, startDate: true, endDate: true, location: true },
+      select: {
+        id: true,
+        title: true,
+        startDate: true,
+        endDate: true,
+        location: true,
+        registrationUrl: true,
+        description: true,
+      },
     });
 
-    const feedMap = new Map<string, GoogleFeedEvent>();
+    const byDay = new Map<string, GoogleFeedEvent>();
+    const byTitle = new Map<string, GoogleFeedEvent>();
     for (const event of activeFeed) {
-      feedMap.set(calendarEventDedupKey(event.title, event.startDate), event);
+      byDay.set(calendarEventDedupKey(event.title, event.startDate), event);
+      const titleKey = calendarEventTitleKey(event.title);
+      // First occurrence wins when two feed events share a title (rare).
+      if (!byTitle.has(titleKey)) byTitle.set(titleKey, event);
     }
 
     const updates = [];
 
     for (const dbEvent of installations) {
-      const key = calendarEventDedupKey(dbEvent.title, dbEvent.startDate);
-      const feedEvent = feedMap.get(key);
+      const feedEvent =
+        byDay.get(calendarEventDedupKey(dbEvent.title, dbEvent.startDate)) ??
+        byTitle.get(calendarEventTitleKey(dbEvent.title));
 
-      if (feedEvent) {
-        let needsUpdate = false;
-        
-        if (dbEvent.startDate.getTime() !== feedEvent.startDate.getTime()) {
-          needsUpdate = true;
-        }
-        
-        const dbEnd = dbEvent.endDate?.getTime() || null;
-        const feedEnd = feedEvent.endDate?.getTime() || null;
-        if (dbEnd !== feedEnd) {
-          needsUpdate = true;
-        }
-        
-        const dbLoc = (dbEvent.location || "").trim();
-        const feedLoc = (feedEvent.location || "").trim();
-        if (dbLoc !== feedLoc) {
-          needsUpdate = true;
-        }
+      if (!feedEvent) continue;
 
-        if (needsUpdate) {
-          updates.push(
-            prisma.event.update({
-              where: { id: dbEvent.id },
-              data: {
-                startDate: feedEvent.startDate,
-                endDate: feedEvent.endDate,
-                location: feedEvent.location,
-              },
-            })
-          );
-        }
+      const nextLocation =
+        (feedEvent.location || "").trim() || dbEvent.location || null;
+      const nextUrl =
+        (feedEvent.registrationUrl || "").trim() || dbEvent.registrationUrl || null;
+      const nextDescription =
+        (feedEvent.description || "").trim() || dbEvent.description || null;
+
+      const startChanged =
+        dbEvent.startDate.getTime() !== feedEvent.startDate.getTime();
+      const endChanged =
+        (dbEvent.endDate?.getTime() ?? null) !==
+        (feedEvent.endDate?.getTime() ?? null);
+      const locationChanged =
+        (dbEvent.location || "").trim() !== (nextLocation || "").trim();
+      const urlChanged =
+        (dbEvent.registrationUrl || "").trim() !== (nextUrl || "").trim();
+      const descriptionChanged =
+        (dbEvent.description || "").trim() !== (nextDescription || "").trim();
+
+      if (
+        !startChanged &&
+        !endChanged &&
+        !locationChanged &&
+        !urlChanged &&
+        !descriptionChanged
+      ) {
+        continue;
       }
+
+      updates.push(
+        prisma.event.update({
+          where: { id: dbEvent.id },
+          data: {
+            startDate: feedEvent.startDate,
+            endDate: feedEvent.endDate,
+            location: nextLocation,
+            registrationUrl: nextUrl,
+            description: nextDescription,
+          },
+        })
+      );
     }
 
     if (updates.length > 0) {

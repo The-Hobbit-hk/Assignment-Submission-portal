@@ -1,9 +1,14 @@
 import { unstable_cache } from "next/cache";
-import { calendarEventDedupKey } from "@/lib/calendar-event-dedup";
+import {
+  calendarEventDedupKey,
+  calendarEventTitleKey,
+} from "@/lib/calendar-event-dedup";
 import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
 import {
   fetchGoogleCalendarInstallationFeed,
+  syncActiveInstallationsToDb,
   syncCancelledInstallationsToDb,
+  type GoogleFeedEvent,
 } from "@/lib/google-calendar-feed";
 import {
   publicCalendarEventWhere,
@@ -14,7 +19,8 @@ import { rotaryYearStart } from "@/lib/rotary-year";
 
 const PUBLIC_EVENTS_REVALIDATE = 600;
 const PUBLIC_CLUBS_REVALIDATE = 900;
-const GOOGLE_FEED_REVALIDATE = 900;
+/** Refresh Google Calendar often enough to pick up location/time edits. */
+const GOOGLE_FEED_REVALIDATE = 300;
 
 const publicEventSelect = {
   id: true,
@@ -170,11 +176,44 @@ const getCachedGoogleInstallationFeed = unstable_cache(
   async () => {
     const feed = await fetchGoogleCalendarInstallationFeed();
     await syncCancelledInstallationsToDb(feed.cancelledKeys);
+    // Keep DB copies (event detail pages) aligned with Google edits.
+    await syncActiveInstallationsToDb(feed.active);
     return feed;
   },
   ["public-google-installations"],
   { revalidate: GOOGLE_FEED_REVALIDATE, tags: ["public-events"] }
 );
+
+function applyGoogleUpdatesToDbEvent<
+  T extends {
+    title: string;
+    startDate: Date;
+    endDate?: Date | null;
+    location?: string | null;
+    description?: string | null;
+    registrationUrl?: string | null;
+    type: string;
+  },
+>(event: T, googleByDay: Map<string, GoogleFeedEvent>, googleByTitle: Map<string, GoogleFeedEvent>) {
+  if (event.type !== "INSTALLATION") return event;
+
+  const feed =
+    googleByDay.get(calendarEventDedupKey(event.title, event.startDate)) ??
+    googleByTitle.get(calendarEventTitleKey(event.title));
+
+  if (!feed) return event;
+
+  return {
+    ...event,
+    startDate: feed.startDate,
+    endDate: feed.endDate,
+    // Prefer Google when it has a location; otherwise keep whatever the DB has.
+    location: (feed.location || "").trim() || event.location || null,
+    description: (feed.description || "").trim() || event.description || null,
+    registrationUrl:
+      (feed.registrationUrl || "").trim() || event.registrationUrl || null,
+  };
+}
 
 export async function getPublicCalendarEvents() {
   const [dbEvents, googleFeed] = await Promise.all([
@@ -183,22 +222,34 @@ export async function getPublicCalendarEvents() {
   ]);
 
   const cancelledKeys = new Set(googleFeed.cancelledKeys);
+  const googleByDay = new Map(
+    googleFeed.active.map((event) => [
+      calendarEventDedupKey(event.title, event.startDate),
+      event,
+    ])
+  );
+  const googleByTitle = new Map<string, (typeof googleFeed.active)[number]>();
+  for (const event of googleFeed.active) {
+    const key = calendarEventTitleKey(event.title);
+    if (!googleByTitle.has(key)) googleByTitle.set(key, event);
+  }
 
   const hydratedDb = dbEvents
     .map(hydratePublicEvent)
     .filter(
       (event) => !cancelledKeys.has(calendarEventDedupKey(event.title, event.startDate))
-    );
+    )
+    .map((event) => applyGoogleUpdatesToDbEvent(event, googleByDay, googleByTitle));
 
-  // Prefer the DB copy when an installation exists in both sources.
+  // Prefer the (Google-refreshed) DB copy when an installation exists in both sources.
   const seen = new Set(
-    hydratedDb.map((event) => calendarEventDedupKey(event.title, event.startDate))
+    hydratedDb.map((event) => calendarEventTitleKey(event.title))
   );
 
   const hydratedGoogle = googleFeed.active
     .map(hydratePublicEvent)
     .filter((event) => {
-      const key = calendarEventDedupKey(event.title, event.startDate);
+      const key = calendarEventTitleKey(event.title);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
