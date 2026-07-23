@@ -130,7 +130,7 @@ export async function fetchGoogleCalendarInstallationFeed(): Promise<GoogleCalen
       const end = component.end ? new Date(component.end) : null;
 
       active.push({
-        id: `gcal-${clean(component.uid) ?? key}`,
+        id: googleFeedEventId(clean(component.uid), key),
         title,
         description: clean(component.description),
         startDate: start,
@@ -186,11 +186,17 @@ export async function syncCancelledInstallationsToDb(cancelledKeys: string[]) {
 
 
 /**
- * Sync time/location updates from Google Calendar into matching DB rows.
- * Match by title+day first, then by title alone so rescheduled installations still update.
+ * Sync Google Calendar installations into the DB:
+ * - update matching rows (by title+day, then title)
+ * - create rows for installations that only exist in Google
+ *
+ * Returns a map of Google feed id → DB event id so calendar links use real IDs.
  */
-export async function syncActiveInstallationsToDb(activeFeed: GoogleFeedEvent[]) {
-  if (activeFeed.length === 0) return;
+export async function syncActiveInstallationsToDb(
+  activeFeed: GoogleFeedEvent[]
+): Promise<Map<string, string>> {
+  const googleToDbId = new Map<string, string>();
+  if (activeFeed.length === 0) return googleToDbId;
 
   try {
     const installations = await prisma.event.findMany({
@@ -210,73 +216,103 @@ export async function syncActiveInstallationsToDb(activeFeed: GoogleFeedEvent[])
       },
     });
 
-    const byDay = new Map<string, GoogleFeedEvent>();
-    const byTitle = new Map<string, GoogleFeedEvent>();
-    for (const event of activeFeed) {
-      byDay.set(calendarEventDedupKey(event.title, event.startDate), event);
+    const dbByDay = new Map<string, (typeof installations)[number]>();
+    const dbByTitle = new Map<string, (typeof installations)[number]>();
+    for (const event of installations) {
+      dbByDay.set(calendarEventDedupKey(event.title, event.startDate), event);
       const titleKey = calendarEventTitleKey(event.title);
-      // First occurrence wins when two feed events share a title (rare).
-      if (!byTitle.has(titleKey)) byTitle.set(titleKey, event);
+      if (!dbByTitle.has(titleKey)) dbByTitle.set(titleKey, event);
     }
 
-    const updates = [];
+    const matchedDbIds = new Set<string>();
 
-    for (const dbEvent of installations) {
-      const feedEvent =
-        byDay.get(calendarEventDedupKey(dbEvent.title, dbEvent.startDate)) ??
-        byTitle.get(calendarEventTitleKey(dbEvent.title));
+    for (const feedEvent of activeFeed) {
+      const dayKey = calendarEventDedupKey(feedEvent.title, feedEvent.startDate);
+      const titleKey = calendarEventTitleKey(feedEvent.title);
 
-      if (!feedEvent) continue;
+      let dbEvent = dbByDay.get(dayKey);
+      if (dbEvent && matchedDbIds.has(dbEvent.id)) dbEvent = undefined;
+      if (!dbEvent) {
+        const byTitle = dbByTitle.get(titleKey);
+        if (byTitle && !matchedDbIds.has(byTitle.id)) dbEvent = byTitle;
+      }
 
-      const nextLocation =
-        (feedEvent.location || "").trim() || dbEvent.location || null;
-      const nextUrl =
-        (feedEvent.registrationUrl || "").trim() || dbEvent.registrationUrl || null;
-      const nextDescription =
-        (feedEvent.description || "").trim() || dbEvent.description || null;
+      if (dbEvent) {
+        matchedDbIds.add(dbEvent.id);
+        googleToDbId.set(feedEvent.id, dbEvent.id);
 
-      const startChanged =
-        dbEvent.startDate.getTime() !== feedEvent.startDate.getTime();
-      const endChanged =
-        (dbEvent.endDate?.getTime() ?? null) !==
-        (feedEvent.endDate?.getTime() ?? null);
-      const locationChanged =
-        (dbEvent.location || "").trim() !== (nextLocation || "").trim();
-      const urlChanged =
-        (dbEvent.registrationUrl || "").trim() !== (nextUrl || "").trim();
-      const descriptionChanged =
-        (dbEvent.description || "").trim() !== (nextDescription || "").trim();
+        const nextLocation =
+          (feedEvent.location || "").trim() || dbEvent.location || null;
+        const nextUrl =
+          (feedEvent.registrationUrl || "").trim() ||
+          dbEvent.registrationUrl ||
+          null;
+        const nextDescription = withGoogleCalendarKey(
+          (feedEvent.description || "").trim() || dbEvent.description,
+          feedEvent.id
+        );
 
-      if (
-        !startChanged &&
-        !endChanged &&
-        !locationChanged &&
-        !urlChanged &&
-        !descriptionChanged
-      ) {
+        const needsUpdate =
+          dbEvent.startDate.getTime() !== feedEvent.startDate.getTime() ||
+          (dbEvent.endDate?.getTime() ?? null) !==
+            (feedEvent.endDate?.getTime() ?? null) ||
+          (dbEvent.location || "").trim() !== (nextLocation || "").trim() ||
+          (dbEvent.registrationUrl || "").trim() !== (nextUrl || "").trim() ||
+          (dbEvent.description || "").trim() !== (nextDescription || "").trim();
+
+        if (needsUpdate) {
+          await prisma.event.update({
+            where: { id: dbEvent.id },
+            data: {
+              startDate: feedEvent.startDate,
+              endDate: feedEvent.endDate,
+              location: nextLocation,
+              registrationUrl: nextUrl,
+              description: nextDescription,
+            },
+          });
+        }
         continue;
       }
 
-      updates.push(
-        prisma.event.update({
-          where: { id: dbEvent.id },
-          data: {
-            startDate: feedEvent.startDate,
-            endDate: feedEvent.endDate,
-            location: nextLocation,
-            registrationUrl: nextUrl,
-            description: nextDescription,
-          },
-        })
-      );
-    }
-
-    if (updates.length > 0) {
-      await prisma.$transaction(updates);
+      // Google-only installation — create a DB row so /events/[id] works.
+      const created = await prisma.event.create({
+        data: {
+          title: feedEvent.title,
+          description: withGoogleCalendarKey(feedEvent.description, feedEvent.id),
+          startDate: feedEvent.startDate,
+          endDate: feedEvent.endDate,
+          location: feedEvent.location,
+          registrationUrl: feedEvent.registrationUrl,
+          type: "INSTALLATION",
+          status: "UPCOMING",
+        },
+        select: { id: true },
+      });
+      googleToDbId.set(feedEvent.id, created.id);
+      matchedDbIds.add(created.id);
     }
   } catch (error) {
     console.error("Failed to sync active installations to DB", error);
   }
+
+  return googleToDbId;
+}
+
+function withGoogleCalendarKey(description: string | null, googleFeedId: string) {
+  const key = googleFeedId.replace(/^gcal-/i, "").trim();
+  const cleaned = (description || "")
+    .replace(/calendar-key:[^\s]+/g, "")
+    .trim();
+  if (!key) return cleaned || null;
+  return cleaned ? `${cleaned}\n\ncalendar-key:${key}` : `calendar-key:${key}`;
+}
+
+/** Stable URL-safe id (Google UIDs contain `@` which breaks /events/[id] links). */
+export function googleFeedEventId(uid: string | null, fallbackKey: string) {
+  const raw = (uid || fallbackKey).trim();
+  const safe = raw.replace(/[^a-zA-Z0-9_-]+/g, "-").replace(/^-+|-+$/g, "");
+  return `gcal-${safe || fallbackKey}`;
 }
 
 export async function fetchGoogleCalendarInstallations(): Promise<GoogleFeedEvent[]> {

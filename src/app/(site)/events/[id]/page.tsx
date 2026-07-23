@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CalendarDays, MapPin } from "lucide-react";
 import { EventRegistrationButton } from "@/components/site/event-registration-button";
 import {
@@ -9,7 +9,7 @@ import {
   resolveEventBannerUrl,
   displayEventLocation,
 } from "@/lib/event-display";
-import { prisma } from "@/lib/prisma";
+import { getPublicEventById } from "@/lib/public-event";
 import { formatIstDateTimeRange } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 
@@ -27,19 +27,15 @@ export default async function PublicEventPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-
-  const event = await prisma.event.findFirst({
-    where: {
-      id,
-      type: { in: ["DISTRICT", "INSTALLATION"] },
-    },
-    include: {
-      club: { select: { name: true, zone: true, city: true } },
-      gallery: { orderBy: { createdAt: "asc" }, take: 6 },
-    },
-  });
+  const decoded = decodeURIComponent(id);
+  const event = await getPublicEventById(decoded);
 
   if (!event) notFound();
+
+  // Old calendar links used Google UIDs — send them to the canonical DB id.
+  if (decoded !== event.id && decoded.toLowerCase().startsWith("gcal-")) {
+    redirect(`/events/${event.id}`);
+  }
 
   const seed = parseCalendarKey(event.description) ?? event.id;
   const previewUrl =

@@ -176,11 +176,17 @@ const getCachedGoogleInstallationFeed = unstable_cache(
   async () => {
     const feed = await fetchGoogleCalendarInstallationFeed();
     await syncCancelledInstallationsToDb(feed.cancelledKeys);
-    // Keep DB copies (event detail pages) aligned with Google edits.
-    await syncActiveInstallationsToDb(feed.active);
-    return feed;
+    // Create/update DB rows so /events/[id] links work for installations.
+    const googleToDbId = await syncActiveInstallationsToDb(feed.active);
+    return {
+      ...feed,
+      active: feed.active.map((event) => ({
+        ...event,
+        id: googleToDbId.get(event.id) ?? event.id,
+      })),
+    };
   },
-  ["public-google-installations"],
+  ["public-google-installations-v2"],
   { revalidate: GOOGLE_FEED_REVALIDATE, tags: ["public-events"] }
 );
 
