@@ -95,3 +95,39 @@ export function resolveEventBannerUrl(
 ): string {
   return bannerUrl?.trim() || getDefaultEventBannerUrl(seed);
 }
+
+/** Drop generic placeholders that aren't real venue info. */
+export function displayEventLocation(location: string | null | undefined): string | null {
+  if (!location) return null;
+  const trimmed = location.trim();
+  if (!trimmed) return null;
+  if (/^district\s*3131$/i.test(trimmed)) return null;
+  if (/^(tba|tbd|to be announced|n\/?a)$/i.test(trimmed)) return null;
+  return trimmed;
+}
+
+/** Shorten long Google Maps-style addresses for list/card UI. */
+export function shortEventLocation(
+  location: string | null | undefined,
+  max = 72
+): string | null {
+  const display = displayEventLocation(location);
+  if (!display) return null;
+  if (display.length <= max) return display;
+  const cut = display.slice(0, max);
+  const lastComma = cut.lastIndexOf(",");
+  if (lastComma > 24) return `${cut.slice(0, lastComma).trim()}…`;
+  return `${cut.trim()}…`;
+}
+
+/**
+ * For installation cards, prefer the club name over the long
+ * "Club Installation — Rotaract Club of …" prefix.
+ */
+export function displayCalendarTitle(title: string, type?: string): string {
+  if (type !== "INSTALLATION") return title;
+  const parts = title.split(/\s+[—–-]\s+/);
+  if (parts.length < 2) return title;
+  const clubPart = parts.slice(1).join(" — ").trim();
+  return clubPart || title;
+}

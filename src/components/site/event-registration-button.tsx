@@ -55,7 +55,7 @@ export function EventRegistrationButton({
   const label = isInstallation
     ? installationEnded
       ? "Completed"
-      : "Add to Google Calendar"
+      : "Add to Calendar"
     : registrationLabel(state);
 
   if (!label) {

@@ -8,6 +8,7 @@ import {
   parseCalendarKey,
   publicEventDescription,
   resolveEventBannerUrl,
+  displayEventLocation,
 } from "@/lib/event-display";
 import { formatIstDate, istDateKey } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ export function PublicEventCard({ event }: { event: PublicEventCardData }) {
   const gradient = getEventPreviewGradient(seed);
   const lifecycle = getEventLifecycle(event);
   const blurb = publicEventDescription(event.description);
+  const location = displayEventLocation(event.location);
 
   return (
     <article className="group depth-card depth-card-interactive overflow-hidden rounded-2xl border border-zinc-200/80 bg-white">
@@ -99,10 +101,10 @@ export function PublicEventCard({ event }: { event: PublicEventCardData }) {
             <CalendarDays className="h-4 w-4 shrink-0 text-accent" />
             {formatEventDate(event.startDate, event.endDate)}
           </p>
-          {event.location && (
+          {location && (
             <p className="flex items-center gap-2">
               <MapPin className="h-4 w-4 shrink-0 text-accent" />
-              {event.location}
+              {location}
             </p>
           )}
         </div>

@@ -7,6 +7,7 @@ import {
   parseCalendarKey,
   publicEventDescription,
   resolveEventBannerUrl,
+  displayEventLocation,
 } from "@/lib/event-display";
 import { prisma } from "@/lib/prisma";
 import { formatIstDateTimeRange } from "@/lib/timezone";
@@ -45,6 +46,7 @@ export default async function PublicEventPage({
     event.gallery[0]?.url ?? resolveEventBannerUrl(event.bannerUrl, seed);
   const gradient = getEventPreviewGradient(seed);
   const blurb = publicEventDescription(event.description);
+  const location = displayEventLocation(event.location);
 
   return (
     <>
@@ -81,10 +83,10 @@ export default async function PublicEventPage({
                 <CalendarDays className="h-5 w-5 text-accent" />
                 {formatIstDateTimeRange(event.startDate, event.endDate)}
               </p>
-              {event.location && (
+              {location && (
                 <p className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-accent" />
-                  {event.location}
+                  {location}
                 </p>
               )}
               {event.club && (

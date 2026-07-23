@@ -10,9 +10,11 @@ import {
   getEventLifecycle,
   getEventPreviewGradient,
   parseCalendarKey,
+  displayCalendarTitle,
   resolveEventBannerUrl,
+  shortEventLocation,
 } from "@/lib/event-display";
-import { formatIstDate, istDateKey } from "@/lib/timezone";
+import { formatIstDate, formatIstTime, istDateKey } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 
 export type SerializedCalendarEvent = {
@@ -95,38 +97,58 @@ function SpotlightCard({ event }: { event: SerializedCalendarEvent }) {
   const seed = parseCalendarKey(event.description) ?? event.id;
   const gradient = getEventPreviewGradient(seed);
   const lifecycle = getEventLifecycle(toLifecycleEvent(event));
+  const title = displayCalendarTitle(event.title, event.type);
+  const location = shortEventLocation(event.location, 56);
+  const start = new Date(event.startDate);
+  const timeLabel = formatIstTime(start);
 
   return (
-    <article className="group flex w-[220px] shrink-0 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:border-accent/40 hover:shadow-md sm:w-[240px]">
-      <Link href={`/events/${event.id}`} className="relative block h-24 overflow-hidden">
+    <article className="group flex w-[280px] shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm transition hover:border-accent/40 hover:shadow-md sm:w-[300px]">
+      <Link href={`/events/${event.id}`} className="relative block h-28 overflow-hidden sm:h-32">
         <Image
           src={previewUrl(event)}
           alt=""
           fill
-          sizes="240px"
+          sizes="300px"
           className={cn(
             "object-cover transition duration-300 group-hover:scale-105",
             lifecycle === "completed" && "grayscale-[0.4]"
           )}
         />
-        <div className={cn("absolute inset-0 bg-gradient-to-t opacity-75", gradient)} />
+        <div className={cn("absolute inset-0 bg-gradient-to-t from-black/50 via-transparent opacity-90", gradient)} />
         <span
           className={cn(
-            "absolute left-2 top-2 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white",
+            "absolute left-3 top-3 rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white",
             typeColor(event.type)
           )}
         >
           {typeLabel(event.type)}
         </span>
       </Link>
-      <div className="flex flex-1 flex-col gap-1 p-3">
-        <p className="text-[11px] font-medium text-accent">{formatShortDate(event.startDate)}</p>
+      <div className="flex flex-1 flex-col gap-2 p-4">
+        <p className="text-xs font-medium text-accent">
+          {formatShortDate(event.startDate)}
+          <span className="text-zinc-400"> · </span>
+          <span className="text-zinc-600">{timeLabel}</span>
+        </p>
         <Link
           href={`/events/${event.id}`}
-          className="line-clamp-2 text-sm font-semibold leading-snug text-zinc-900 hover:text-accent"
+          className="line-clamp-3 text-[15px] font-semibold leading-snug text-zinc-900 hover:text-accent"
+          title={event.title}
         >
-          {event.title}
+          {title}
         </Link>
+        {location ? (
+          <p className="flex items-start gap-1.5 text-xs leading-snug text-zinc-500" title={event.location ?? undefined}>
+            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-400" />
+            <span className="line-clamp-2">{location}</span>
+          </p>
+        ) : (
+          <p className="flex items-center gap-1.5 text-xs text-zinc-400">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            Location to be announced
+          </p>
+        )}
         <div className="mt-auto pt-2">
           <EventRegistrationButton
             event={{
@@ -147,7 +169,7 @@ function SpotlightCard({ event }: { event: SerializedCalendarEvent }) {
                 ? new Date(event.registrationClosesAt)
                 : null,
             }}
-            className="px-2.5 py-1 text-[10px]"
+            className="w-full justify-center px-3 py-2 text-[11px]"
           />
         </div>
       </div>
@@ -158,48 +180,53 @@ function SpotlightCard({ event }: { event: SerializedCalendarEvent }) {
 function AgendaRow({ event }: { event: SerializedCalendarEvent }) {
   const lifecycle = getEventLifecycle(toLifecycleEvent(event));
   const d = new Date(event.startDate);
+  const title = displayCalendarTitle(event.title, event.type);
+  const location = shortEventLocation(event.location, 80);
+  const timeLabel = formatIstTime(d);
 
   return (
-    <li className="flex gap-3 rounded-lg border border-zinc-100 bg-white p-3 transition hover:border-accent/25 hover:bg-rose-50/30">
+    <li className="flex gap-3 rounded-xl border border-zinc-100 bg-white p-3.5 transition hover:border-accent/25 hover:bg-rose-50/30 sm:gap-4 sm:p-4">
       <div
         className={cn(
-          "flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-lg text-center",
+          "flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl text-center",
           lifecycle === "completed" ? "bg-zinc-100 text-zinc-500" : "bg-accent/10 text-accent"
         )}
       >
         <span className="text-[9px] font-bold uppercase leading-none">
           {formatIstDate(d, { month: "short" })}
         </span>
-        <span className="text-base font-bold leading-none">
+        <span className="text-lg font-bold leading-none">
           {formatIstDate(d, { day: "numeric" })}
         </span>
       </div>
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={cn(
-              "rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white",
+              "rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-white",
               typeColor(event.type)
             )}
           >
             {typeLabel(event.type)}
           </span>
+          <span className="text-xs font-medium text-zinc-500">{timeLabel}</span>
           {event.club && (
-            <span className="truncate text-xs text-zinc-500">{event.club.name}</span>
+            <span className="truncate text-xs text-zinc-400">{event.club.name}</span>
           )}
         </div>
         <Link
           href={`/events/${event.id}`}
-          className="mt-1 block truncate font-semibold text-zinc-900 hover:text-accent"
+          className="block text-[15px] font-semibold leading-snug text-zinc-900 hover:text-accent"
+          title={event.title}
         >
-          {event.title}
+          <span className="line-clamp-2">{title}</span>
         </Link>
-        {event.location && (
-          <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-zinc-500">
-            <MapPin className="h-3 w-3 shrink-0" />
-            {event.location}
+        {location ? (
+          <p className="flex items-start gap-1.5 text-xs leading-snug text-zinc-500" title={event.location ?? undefined}>
+            <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span className="line-clamp-2">{location}</span>
           </p>
-        )}
+        ) : null}
       </div>
       <div className="hidden shrink-0 self-center sm:block">
         <EventRegistrationButton
@@ -221,7 +248,7 @@ function AgendaRow({ event }: { event: SerializedCalendarEvent }) {
               ? new Date(event.registrationClosesAt)
               : null,
           }}
-          className="px-3 py-1.5 text-[10px]"
+          className="px-3 py-1.5 text-[11px]"
         />
       </div>
     </li>
@@ -359,7 +386,7 @@ export function DistrictCalendar({ events }: { events: SerializedCalendarEvent[]
               All district events →
             </Link>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:thin]">
             {spotlight.map((event) => (
               <SpotlightCard key={event.id} event={event} />
             ))}
