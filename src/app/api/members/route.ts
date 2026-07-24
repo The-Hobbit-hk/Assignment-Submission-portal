@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { getClubUserClubId } from "@/lib/club-access";
 import { canManageClubMembers, canReassignMemberPrivilegedFields } from "@/lib/roles";
 import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
-import { buildMemberWhere, serializeMemberListItem } from "@/lib/member";
+import { buildMemberWhere, serializeMemberListItem, generateProspectiveId } from "@/lib/member";
 import { createMemberSchema, memberQuerySchema } from "@/lib/validators/member";
 import { logActivity } from "@/lib/activity";
 import { validationError, handleRouteError, apiError, forbidden } from "@/lib/api-errors";
@@ -100,6 +100,11 @@ export async function POST(request: Request) {
       return apiError("A member with this email already exists in this club.", 409);
     }
 
+    const riId =
+      data.status === "PROSPECTIVE"
+        ? data.riId?.trim() || generateProspectiveId()
+        : data.riId;
+
     const member = await prisma.member.create({
       data: {
         clubId,
@@ -109,7 +114,7 @@ export async function POST(request: Request) {
         phone: data.phone,
         role: data.role,
         status: data.status,
-        riId: data.riId,
+        riId,
         profession: data.profession,
         bio: data.bio,
         gender: data.gender,

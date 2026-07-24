@@ -182,13 +182,15 @@ export function MemberForm({
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="riId">RI ID</Label>
+          <Label htmlFor="riId">
+            {form.status === "PROSPECTIVE" ? "Prospective ID" : "RI ID"}
+          </Label>
           {form.status === "PROSPECTIVE" ? (
             <Input
               id="riId"
-              value="Auto-generated Prospective ID"
+              value={form.riId || "Auto-generated on save"}
               disabled
-              className="bg-zinc-50 text-zinc-500 italic"
+              className="bg-zinc-50 font-mono text-zinc-700"
             />
           ) : (
             <Input

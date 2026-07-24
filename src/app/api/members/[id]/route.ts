@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { canAccessMemberRecord } from "@/lib/club-access";
 import { canReassignMemberPrivilegedFields } from "@/lib/roles";
-import { serializeMemberDetail } from "@/lib/member";
+import { serializeMemberDetail, generateProspectiveId } from "@/lib/member";
 import { updateMemberSchema, MEMBER_SELF_EDITABLE_FIELDS } from "@/lib/validators/member";
 import { logActivity } from "@/lib/activity";
 import { validationError, handleRouteError, notFound, forbidden } from "@/lib/api-errors";
@@ -54,6 +54,16 @@ export async function GET(_request: Request, { params }: RouteParams) {
       return forbidden();
     }
 
+    // Backfill Prospective ID for older records created before auto-generation.
+    if (member.status === "PROSPECTIVE" && !member.riId) {
+      const updated = await prisma.member.update({
+        where: { id: member.id },
+        data: { riId: generateProspectiveId() },
+        include: { club: { select: { id: true, name: true } } },
+      });
+      return NextResponse.json(serializeMemberDetail(updated));
+    }
+
     return NextResponse.json(serializeMemberDetail(member));
   } catch (err) {
     return handleRouteError(err, "Failed to fetch member.");
@@ -93,7 +103,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     let data = { ...parsed.data };
 
     if (data.status === "PROSPECTIVE" && !data.riId && !existing.riId) {
-      data.riId = `PROS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      data.riId = generateProspectiveId();
     }
 
     if (isManager) {

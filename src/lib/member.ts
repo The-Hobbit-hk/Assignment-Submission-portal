@@ -9,6 +9,11 @@ import type { MemberDetail, MemberListItem } from "@/types/member";
 
 type MemberWithClub = Member & { club: Pick<Club, "id" | "name"> };
 
+/** e.g. PROS-A3F9K2 — used when status is Prospective and no RI ID was provided. */
+export function generateProspectiveId() {
+  return `PROS-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+}
+
 export function serializeMemberListItem(member: MemberWithClub): MemberListItem {
   return {
     id: member.id,

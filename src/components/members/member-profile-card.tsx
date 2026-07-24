@@ -79,10 +79,12 @@ export function MemberProfileCard({ memberId }: MemberProfileCardProps) {
             <CardTitle>Profile Details</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
-            {member.status === "PROSPECTIVE" && member.riId && (
+            {member.status === "PROSPECTIVE" && (
               <div className="sm:col-span-2">
                 <p className="text-xs text-muted-foreground">Prospective ID</p>
-                <p className="font-mono text-sm">{member.riId}</p>
+                <p className="font-mono text-sm font-semibold tracking-wide">
+                  {member.riId || "Generating…"}
+                </p>
               </div>
             )}
             <div>
