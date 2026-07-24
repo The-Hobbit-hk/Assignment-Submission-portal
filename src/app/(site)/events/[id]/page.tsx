@@ -9,16 +9,23 @@ import {
   resolveEventBannerUrl,
   displayEventLocation,
 } from "@/lib/event-display";
-import { getPublicEventById } from "@/lib/public-event";
+import {
+  getPublicEventById,
+  listPublicEventStaticParams,
+} from "@/lib/public-event";
 import { formatIstDateTimeRange } from "@/lib/timezone";
 import { cn } from "@/lib/utils";
 
-// Cache each event page; registration open/closed state is computed client-side.
-export const revalidate = 300;
+// Cache event pages — must stay DB-only (no Google ICS fetch on this route).
+export const revalidate = 600;
 
-// Opt in to ISR: pages are rendered on first request, then cached for `revalidate`.
-export function generateStaticParams() {
-  return [];
+export async function generateStaticParams() {
+  try {
+    return await listPublicEventStaticParams();
+  } catch {
+    // Build without DB should not fail the whole deploy.
+    return [];
+  }
 }
 
 export default async function PublicEventPage({
@@ -30,7 +37,17 @@ export default async function PublicEventPage({
   const decoded = decodeURIComponent(id);
   const event = await getPublicEventById(decoded);
 
-  if (!event) notFound();
+  if (!event) {
+    // Legacy gcal links with no DB row yet — send users to calendar (where sync runs)
+    // instead of fetching/parsing Google ICS on this hot route.
+    if (
+      decoded.toLowerCase().startsWith("gcal-") ||
+      decoded.toLowerCase().includes("@google.com")
+    ) {
+      redirect("/calendar");
+    }
+    notFound();
+  }
 
   // Old calendar links used Google UIDs — send them to the canonical DB id.
   if (decoded !== event.id && decoded.toLowerCase().startsWith("gcal-")) {

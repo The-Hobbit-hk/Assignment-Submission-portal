@@ -225,6 +225,7 @@ export async function syncActiveInstallationsToDb(
     }
 
     const matchedDbIds = new Set<string>();
+    const writes: Promise<unknown>[] = [];
 
     for (const feedEvent of activeFeed) {
       const dayKey = calendarEventDedupKey(feedEvent.title, feedEvent.startDate);
@@ -261,36 +262,50 @@ export async function syncActiveInstallationsToDb(
           (dbEvent.description || "").trim() !== (nextDescription || "").trim();
 
         if (needsUpdate) {
-          await prisma.event.update({
-            where: { id: dbEvent.id },
-            data: {
-              startDate: feedEvent.startDate,
-              endDate: feedEvent.endDate,
-              location: nextLocation,
-              registrationUrl: nextUrl,
-              description: nextDescription,
-            },
-          });
+          writes.push(
+            prisma.event.update({
+              where: { id: dbEvent.id },
+              data: {
+                startDate: feedEvent.startDate,
+                endDate: feedEvent.endDate,
+                location: nextLocation,
+                registrationUrl: nextUrl,
+                description: nextDescription,
+              },
+            })
+          );
         }
         continue;
       }
 
-      // Google-only installation — create a DB row so /events/[id] works.
-      const created = await prisma.event.create({
-        data: {
-          title: feedEvent.title,
-          description: withGoogleCalendarKey(feedEvent.description, feedEvent.id),
-          startDate: feedEvent.startDate,
-          endDate: feedEvent.endDate,
-          location: feedEvent.location,
-          registrationUrl: feedEvent.registrationUrl,
-          type: "INSTALLATION",
-          status: "UPCOMING",
-        },
-        select: { id: true },
-      });
-      googleToDbId.set(feedEvent.id, created.id);
-      matchedDbIds.add(created.id);
+      // Create Google-only installations in parallel (batched below).
+      writes.push(
+        prisma.event
+          .create({
+            data: {
+              title: feedEvent.title,
+              description: withGoogleCalendarKey(
+                feedEvent.description,
+                feedEvent.id
+              ),
+              startDate: feedEvent.startDate,
+              endDate: feedEvent.endDate,
+              location: feedEvent.location,
+              registrationUrl: feedEvent.registrationUrl,
+              type: "INSTALLATION",
+              status: "UPCOMING",
+            },
+            select: { id: true },
+          })
+          .then((created) => {
+            googleToDbId.set(feedEvent.id, created.id);
+            matchedDbIds.add(created.id);
+          })
+      );
+    }
+
+    if (writes.length > 0) {
+      await Promise.all(writes);
     }
   } catch (error) {
     console.error("Failed to sync active installations to DB", error);

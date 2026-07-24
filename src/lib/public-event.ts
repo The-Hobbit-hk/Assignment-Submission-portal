@@ -1,10 +1,7 @@
-import { prisma } from "@/lib/prisma";
-import {
-  fetchGoogleCalendarInstallationFeed,
-  googleFeedEventId,
-  syncActiveInstallationsToDb,
-} from "@/lib/google-calendar-feed";
+import { unstable_cache } from "next/cache";
 import { parseCalendarKey } from "@/lib/event-display";
+import { prisma } from "@/lib/prisma";
+import { rotaryYearStart } from "@/lib/rotary-year";
 
 const publicEventInclude = {
   club: { select: { name: true, zone: true, city: true } },
@@ -19,12 +16,19 @@ function normalizeGoogleKey(raw: string) {
     .toLowerCase();
 }
 
+function isLegacyGoogleId(id: string) {
+  const lower = id.toLowerCase();
+  return lower.startsWith("gcal-") || lower.includes("@google.com");
+}
+
 /**
- * Resolve a public district/installation event by DB id, or by a legacy
- * Google Calendar feed id (`gcal-…` / `…@google.com`).
+ * DB-only lookup. Never fetches Google Calendar ICS here — that was burning
+ * Fluid Active CPU on every /events/[id] miss (unique gcal URLs × full sync).
+ * Installations are upserted when /calendar refreshes its cached feed.
  */
-export async function getPublicEventById(id: string) {
-  const decoded = decodeURIComponent(id);
+async function lookupPublicEventById(id: string) {
+  const decoded = decodeURIComponent(id).trim();
+  if (!decoded) return null;
 
   const fromDb = await prisma.event.findFirst({
     where: {
@@ -35,50 +39,74 @@ export async function getPublicEventById(id: string) {
   });
   if (fromDb) return fromDb;
 
-  // Legacy calendar links used Google UIDs that were never stored as Event.id.
-  if (!decoded.toLowerCase().startsWith("gcal-") && !decoded.includes("@google.com")) {
-    return null;
-  }
+  if (!isLegacyGoogleId(decoded)) return null;
 
-  const feed = await fetchGoogleCalendarInstallationFeed();
-  const googleToDbId = await syncActiveInstallationsToDb(feed.active);
-
-  const feedEvent =
-    feed.active.find((event) => event.id === decoded) ??
-    feed.active.find(
-      (event) =>
-        normalizeGoogleKey(event.id) === normalizeGoogleKey(decoded) ||
-        normalizeGoogleKey(googleFeedEventId(decoded, decoded)) ===
-          normalizeGoogleKey(event.id)
-    );
-
-  if (feedEvent) {
-    const dbId = googleToDbId.get(feedEvent.id);
-    if (dbId) {
-      return prisma.event.findFirst({
-        where: { id: dbId, type: "INSTALLATION" },
-        include: publicEventInclude,
-      });
-    }
-  }
-
-  // Fallback: description calendar-key written during sync.
   const key = normalizeGoogleKey(decoded);
   if (!key) return null;
 
+  // Prefer a narrow LIKE on the stored calendar-key rather than loading 200 rows.
   const candidates = await prisma.event.findMany({
     where: {
       type: "INSTALLATION",
-      description: { contains: "calendar-key:" },
+      description: { contains: `calendar-key:${key}` },
     },
     include: publicEventInclude,
-    take: 200,
+    take: 5,
   });
 
-  return (
+  const exact =
     candidates.find((event) => {
       const stored = parseCalendarKey(event.description);
       return stored ? normalizeGoogleKey(stored) === key : false;
+    }) ?? null;
+
+  if (exact) return exact;
+
+  // Older keys may still contain `@` before we sanitized feed ids.
+  const looseKey = key.replace(/-google-com$/i, "");
+  if (!looseKey || looseKey === key) return null;
+
+  const loose = await prisma.event.findMany({
+    where: {
+      type: "INSTALLATION",
+      description: { contains: "calendar-key:" },
+      startDate: { gte: rotaryYearStart() },
+    },
+    include: publicEventInclude,
+    take: 80,
+  });
+
+  return (
+    loose.find((event) => {
+      const stored = parseCalendarKey(event.description);
+      if (!stored) return false;
+      const normalized = normalizeGoogleKey(stored);
+      return normalized === key || normalized.startsWith(looseKey);
     }) ?? null
   );
+}
+
+const getCachedPublicEventById = unstable_cache(
+  lookupPublicEventById,
+  ["public-event-by-id-v2"],
+  { revalidate: 600, tags: ["public-events"] }
+);
+
+export async function getPublicEventById(id: string) {
+  return getCachedPublicEventById(decodeURIComponent(id).trim());
+}
+
+/** Warm ISR for known district/installation pages at build time. */
+export async function listPublicEventStaticParams() {
+  const events = await prisma.event.findMany({
+    where: {
+      type: { in: ["DISTRICT", "INSTALLATION"] },
+      status: { not: "CANCELLED" },
+      startDate: { gte: rotaryYearStart() },
+    },
+    select: { id: true },
+    orderBy: { startDate: "asc" },
+    take: 200,
+  });
+  return events.map((event) => ({ id: event.id }));
 }

@@ -19,8 +19,8 @@ import { rotaryYearStart } from "@/lib/rotary-year";
 
 const PUBLIC_EVENTS_REVALIDATE = 600;
 const PUBLIC_CLUBS_REVALIDATE = 900;
-/** Refresh Google Calendar often enough to pick up location/time edits. */
-const GOOGLE_FEED_REVALIDATE = 300;
+/** Google ICS parse + DB sync is expensive — refresh at most every 15 minutes. */
+const GOOGLE_FEED_REVALIDATE = 900;
 
 const publicEventSelect = {
   id: true,
@@ -186,7 +186,7 @@ const getCachedGoogleInstallationFeed = unstable_cache(
       })),
     };
   },
-  ["public-google-installations-v2"],
+  ["public-google-installations-v3"],
   { revalidate: GOOGLE_FEED_REVALIDATE, tags: ["public-events"] }
 );
 
