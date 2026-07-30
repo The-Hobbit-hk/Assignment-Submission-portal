@@ -2,12 +2,13 @@ import type { BluebookCycle, CouncilBluebookReport } from "@/generated/prisma/cl
 import { getReportingPeriodLabel } from "@/lib/reporting";
 import { isCycleOpen } from "@/lib/bluebook-labels";
 import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
+import { istWallTime, lastDayOfMonth } from "@/lib/timezone";
 
-/** Blue Book is open from the 1st through the last day of the cycle month. */
+/** Blue Book is open from 1st 12:00 am IST through last day 11:59:59 pm IST. */
 export function getBluebookCycleWindow(month: number, year: number) {
-  const opensAt = new Date(year, month - 1, 1, 0, 0, 0, 0);
-  // Day 0 of next month = last day of this month.
-  const closesAt = new Date(year, month, 0, 23, 59, 59, 999);
+  const lastDay = lastDayOfMonth(year, month);
+  const opensAt = istWallTime(year, month, 1, 0, 0, 0, 0);
+  const closesAt = istWallTime(year, month, lastDay, 23, 59, 59, 999);
   return { opensAt, closesAt };
 }
 

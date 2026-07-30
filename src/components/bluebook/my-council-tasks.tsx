@@ -24,6 +24,7 @@ import {
 import { reportStatusLabel } from "@/lib/bluebook-labels";
 import { getReportingPeriodLabel } from "@/lib/reporting";
 import { getCurrentRotaryYear, rotaryMonthOptions } from "@/lib/rotary-year";
+import { formatIstDateTime } from "@/lib/timezone";
 import { toast } from "@/lib/toast";
 
 export function MyCouncilTasks() {
@@ -119,7 +120,7 @@ export function MyCouncilTasks() {
         <p className="text-sm text-muted-foreground">
           Submission deadline (last day of the month):{" "}
           <strong className="text-foreground">
-            {new Date(data.cycle.closesAt).toLocaleString("en-IN")}
+            {formatIstDateTime(new Date(data.cycle.closesAt))}
           </strong>
           {stats?.submissionClosed && !stats?.testingMode && (
             <span className="ml-2 font-medium text-destructive">· Submission Closed</span>
