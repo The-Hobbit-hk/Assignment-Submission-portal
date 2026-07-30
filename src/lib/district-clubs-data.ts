@@ -129,7 +129,7 @@ const Z6: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Pune Renaissance", riClubId: "218199", city: "Pune" },
   { name: "Rotaract Club of Pune Vishwam", riClubId: "8826725", sponsoringClub: "Pune Laxmi Road (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Pune Wisdom", riClubId: "8824638", sponsoringClub: "Pune Wisdom (Rotary Club)", city: "Pune" },
-  { name: "Rotaract Club of Roar NIBM", riClubId: "8827434", sponsoringClub: "Pune Pristine Paradise (Rotaract Club)", city: "Pune" },
+  { name: "Rotaract Club of Roar NIBM", riClubId: "8827434", sponsoringClub: "Rotary Club of Poona", city: "Pune" },
   { name: "Rotaract Club of Genba Sopanrao Moze College of Engineering", riClubId: "8826700", sponsoringClub: "Poona West (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Sinhgad Institute of Management and Computer Application", riClubId: "8825382", sponsoringClub: "Pune Heritage (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Pune Baner", riClubId: "8825923", sponsoringClub: "Pune Baner (Rotary Club)", charterDate: "18 September 2024", city: "Baner" },
