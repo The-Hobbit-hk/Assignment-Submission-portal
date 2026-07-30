@@ -3,6 +3,14 @@ import { getReportingPeriodLabel } from "@/lib/reporting";
 import { isCycleOpen } from "@/lib/bluebook-labels";
 import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 
+/** Blue Book is open from the 1st through the last day of the cycle month. */
+export function getBluebookCycleWindow(month: number, year: number) {
+  const opensAt = new Date(year, month - 1, 1, 0, 0, 0, 0);
+  // Day 0 of next month = last day of this month.
+  const closesAt = new Date(year, month, 0, 23, 59, 59, 999);
+  return { opensAt, closesAt };
+}
+
 export function serializeCycle(cycle: BluebookCycle) {
   const now = new Date();
   return {
@@ -60,22 +68,39 @@ export async function getOrCreateCycle(
           closesAt: Date;
         };
       }) => Promise<BluebookCycle>;
+      update: (args: {
+        where: { id: string };
+        data: { opensAt: Date; closesAt: Date; title?: string };
+      }) => Promise<BluebookCycle>;
     };
   },
   month: number,
   year: number
 ) {
+  const { opensAt, closesAt } = getBluebookCycleWindow(month, year);
+  const title = `Blue Book — ${getReportingPeriodLabel(month, year)}`;
+
   const existing = await prisma.bluebookCycle.findUnique({
     where: { month_year: { month, year } },
   });
-  if (existing) return existing;
 
-  const opensAt = new Date(year, month - 1, 1, 0, 0, 0, 0);
-  const closesAt = new Date(year, month - 1, 10, 23, 59, 59, 999);
+  if (existing) {
+    // Keep existing cycles aligned with the end-of-month rule.
+    if (
+      existing.opensAt.getTime() !== opensAt.getTime() ||
+      existing.closesAt.getTime() !== closesAt.getTime()
+    ) {
+      return prisma.bluebookCycle.update({
+        where: { id: existing.id },
+        data: { opensAt, closesAt },
+      });
+    }
+    return existing;
+  }
 
   return prisma.bluebookCycle.create({
     data: {
-      title: `Blue Book — ${getReportingPeriodLabel(month, year)}`,
+      title,
       month,
       year,
       opensAt,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth, requireRole } from "@/lib/api-auth";
-import { serializeCycle } from "@/lib/bluebook-cycle";
+import { getBluebookCycleWindow, serializeCycle } from "@/lib/bluebook-cycle";
 import { createBluebookCycleSchema } from "@/lib/validators/bluebook-cycle";
 import { canAssignBluebook } from "@/lib/roles";
 import { handleRouteError, apiError, forbidden } from "@/lib/api-errors";
@@ -35,7 +35,11 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const { session, error } = await requireRole(["DISTRICT_SECRETARY", "DISTRICT_ADMIN", "SUPER_ADMIN"]);
+  const { session, error } = await requireRole([
+    "DISTRICT_SECRETARY",
+    "DISTRICT_ADMIN",
+    "SUPER_ADMIN",
+  ]);
   if (error) return error;
   if (!canAssignBluebook(session!.user.role)) {
     return forbidden();
@@ -43,20 +47,22 @@ export async function POST(request: Request) {
 
   try {
     const body = createBluebookCycleSchema.parse(await request.json());
+    // Always enforce end-of-month deadline regardless of client payload.
+    const { opensAt, closesAt } = getBluebookCycleWindow(body.month, body.year);
     const cycle = await prisma.bluebookCycle.upsert({
       where: { month_year: { month: body.month, year: body.year } },
       create: {
         title: body.title,
         month: body.month,
         year: body.year,
-        opensAt: new Date(body.opensAt),
-        closesAt: new Date(body.closesAt),
+        opensAt,
+        closesAt,
         isActive: body.isActive ?? true,
       },
       update: {
         title: body.title,
-        opensAt: new Date(body.opensAt),
-        closesAt: new Date(body.closesAt),
+        opensAt,
+        closesAt,
         isActive: body.isActive ?? true,
       },
     });

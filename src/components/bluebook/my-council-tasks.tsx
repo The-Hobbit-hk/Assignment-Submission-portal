@@ -117,7 +117,7 @@ export function MyCouncilTasks() {
 
       {data?.cycle && (
         <p className="text-sm text-muted-foreground">
-          Submission deadline:{" "}
+          Submission deadline (last day of the month):{" "}
           <strong className="text-foreground">
             {new Date(data.cycle.closesAt).toLocaleString("en-IN")}
           </strong>

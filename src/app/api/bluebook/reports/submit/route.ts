@@ -23,7 +23,9 @@ export async function POST(request: Request) {
       !isSubmissionWindowsBypassEnabled() &&
       (!cycle.isActive || !isCycleOpen(cycle.closesAt, cycle.opensAt))
     ) {
-      return forbidden("Submission window is closed.");
+      return forbidden(
+        "Submission window is closed. Blue Book submissions are only accepted until the last day of the month."
+      );
     }
 
     const assignments = await prisma.councilBluebookAssignment.findMany({

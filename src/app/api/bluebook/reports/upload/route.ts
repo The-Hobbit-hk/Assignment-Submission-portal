@@ -2,9 +2,10 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
 import { getOrCreateCycle, serializeReport } from "@/lib/bluebook-cycle";
-import { isAllowedBluebookFile } from "@/lib/bluebook-labels";
+import { isAllowedBluebookFile, isCycleOpen } from "@/lib/bluebook-labels";
 import { saveUpload } from "@/lib/upload";
 import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
+import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 import { handleRouteError, apiError, forbidden } from "@/lib/api-errors";
 
 const MAX_BLUEBOOK_BYTES = 8 * 1024 * 1024;
@@ -25,6 +26,16 @@ export async function POST(request: Request) {
 
   try {
     const cycle = await getOrCreateCycle(prisma, month, year);
+
+    if (
+      !isSubmissionWindowsBypassEnabled() &&
+      (!cycle.isActive || !isCycleOpen(cycle.closesAt, cycle.opensAt))
+    ) {
+      return forbidden(
+        "Submission window is closed. Blue Book submissions are only accepted until the last day of the month."
+      );
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     if (!file) {
