@@ -74,7 +74,7 @@ export function useEventsReport(filters: ReportFilters) {
 
 export async function uploadAdminReportFile(
   file: File,
-  field: "resolution" | "districtDues" | "bylaws",
+  field: "resolution" | "districtDues" | "bylaws" | "masterBudget",
   month: number,
   year: number,
   clubId?: string

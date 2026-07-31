@@ -320,6 +320,9 @@ model MonthlyReport {
   bylawsPassed            String?
   bylawsFileUrl           String?
   bylawsPassDate          DateTime?
+  masterBudgetPassed      String?
+  masterBudgetFileUrl     String?
+  masterBudgetPassDate    DateTime?
   hostClub                String?
   districtEventAttendance String?             @db.Text
   newsletterEvent         String?

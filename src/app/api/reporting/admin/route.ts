@@ -83,6 +83,13 @@ export async function POST(request: Request) {
           d.bylawsPassed === "yes" && d.bylawsPassDate
             ? new Date(d.bylawsPassDate)
             : null,
+        masterBudgetPassed: d.masterBudgetPassed || null,
+        masterBudgetFileUrl:
+          d.masterBudgetPassed === "yes" ? (d.masterBudgetFileUrl ?? null) : null,
+        masterBudgetPassDate:
+          d.masterBudgetPassed === "yes" && d.masterBudgetPassDate
+            ? new Date(d.masterBudgetPassDate)
+            : null,
         hostClub: d.hostClub || null,
         districtEventAttendance: d.districtEventAttendance || null,
         newsletterEvent: d.newsletterEvent || null,

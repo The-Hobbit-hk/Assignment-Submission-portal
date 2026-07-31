@@ -29,7 +29,7 @@ const links = [
     href: "/dashboard/reporting/admin",
     title: "Admin Reporting",
     description:
-      "Submit monthly club administration, finance, and bylaws.",
+      "Submit monthly club administration, finance, bylaws, and master budget.",
     icon: ClipboardList,
     accent: "from-indigo-500 to-violet-500",
     iconBg: "bg-indigo-500/10 text-indigo-600",

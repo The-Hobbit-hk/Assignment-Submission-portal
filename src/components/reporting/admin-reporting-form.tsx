@@ -49,6 +49,9 @@ export function AdminReportingForm() {
   const [bylawsPassed, setBylawsPassed] = useState("");
   const [bylawsFileUrl, setBylawsFileUrl] = useState<string | null>(null);
   const [bylawsPassDate, setBylawsPassDate] = useState("");
+  const [masterBudgetPassed, setMasterBudgetPassed] = useState("");
+  const [masterBudgetFileUrl, setMasterBudgetFileUrl] = useState<string | null>(null);
+  const [masterBudgetPassDate, setMasterBudgetPassDate] = useState("");
   const [hostClub, setHostClub] = useState("");
   const [districtEventAttendance, setDistrictEventAttendance] = useState("");
   const [newsletterEvent, setNewsletterEvent] = useState("");
@@ -85,6 +88,13 @@ export function AdminReportingForm() {
       setBylawsPassDate(
         data.bylawsPassDate ? new Date(data.bylawsPassDate).toISOString().slice(0, 10) : ""
       );
+      setMasterBudgetPassed(data.masterBudgetPassed ?? "");
+      setMasterBudgetFileUrl(data.masterBudgetFileUrl ?? null);
+      setMasterBudgetPassDate(
+        data.masterBudgetPassDate
+          ? new Date(data.masterBudgetPassDate).toISOString().slice(0, 10)
+          : ""
+      );
       setHostClub(data.hostClub ?? "");
       setDistrictEventAttendance(data.districtEventAttendance ?? "");
       setNewsletterEvent(data.newsletterEvent ?? "");
@@ -113,6 +123,14 @@ export function AdminReportingForm() {
     if (value !== "yes") {
       setBylawsFileUrl(null);
       setBylawsPassDate("");
+    }
+  };
+
+  const handleMasterBudgetChange = (value: string) => {
+    setMasterBudgetPassed(value);
+    if (value !== "yes") {
+      setMasterBudgetFileUrl(null);
+      setMasterBudgetPassDate("");
     }
   };
 
@@ -150,6 +168,14 @@ export function AdminReportingForm() {
     if (bylawsPassed === "yes") {
       if (!bylawsFileUrl) return "Please upload the club by-laws document.";
       if (!bylawsPassDate) return "Please select the by-laws date of passing.";
+    }
+
+    if (masterBudgetPassed !== "yes" && masterBudgetPassed !== "no") {
+      return "Please select whether the club master budget was passed.";
+    }
+    if (masterBudgetPassed === "yes") {
+      if (!masterBudgetFileUrl) return "Please upload the club master budget document.";
+      if (!masterBudgetPassDate) return "Please select the master budget date of passing.";
     }
 
     if (hostClub !== "yes" && hostClub !== "no") {
@@ -198,6 +224,12 @@ export function AdminReportingForm() {
         bylawsPassDate:
           bylawsPassed === "yes" && bylawsPassDate
             ? new Date(bylawsPassDate).toISOString()
+            : null,
+        masterBudgetPassed,
+        masterBudgetFileUrl: masterBudgetPassed === "yes" ? masterBudgetFileUrl : null,
+        masterBudgetPassDate:
+          masterBudgetPassed === "yes" && masterBudgetPassDate
+            ? new Date(masterBudgetPassDate).toISOString()
             : null,
         hostClub,
         districtEventAttendance,
@@ -373,6 +405,47 @@ export function AdminReportingForm() {
                   type="date"
                   value={bylawsPassDate}
                   onChange={(e) => setBylawsPassDate(e.target.value)}
+                  className="border-border/60 bg-transparent"
+                  disabled={reportingClosed}
+                />
+              </ReportingFieldRow>
+            </>
+          )}
+        </ReportingSection>
+
+        <ReportingSection title="Club Master Budget">
+          <ReportingFieldRow label="Master budget passed :">
+            <YesNoSelect value={masterBudgetPassed} onChange={handleMasterBudgetChange} />
+          </ReportingFieldRow>
+
+          {masterBudgetPassed === "yes" && (
+            <>
+              <ReportingFieldRow label="Upload Doc Here (Max 5MB) :">
+                <ReportingFileUpload
+                  label="Club master budget document"
+                  fileUrl={masterBudgetFileUrl}
+                  disabled={reportingClosed}
+                  accept=".pdf,.jpg,.jpeg,.png,.webp"
+                  hint="PDF or image, max 5MB"
+                  onUpload={async (file) => {
+                    const report = await uploadAdminReportFile(
+                      file,
+                      "masterBudget",
+                      month,
+                      year
+                    );
+                    setMasterBudgetFileUrl(report.masterBudgetFileUrl ?? null);
+                    await refetch();
+                  }}
+                  onClear={() => setMasterBudgetFileUrl(null)}
+                />
+              </ReportingFieldRow>
+
+              <ReportingFieldRow label="Date Pass On :">
+                <Input
+                  type="date"
+                  value={masterBudgetPassDate}
+                  onChange={(e) => setMasterBudgetPassDate(e.target.value)}
                   className="border-border/60 bg-transparent"
                   disabled={reportingClosed}
                 />

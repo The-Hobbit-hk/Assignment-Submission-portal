@@ -8,12 +8,13 @@ import { upsertMonthlyReport } from "@/lib/reporting-store";
 import { saveUpload } from "@/lib/upload";
 import { handleRouteError, apiError } from "@/lib/api-errors";
 
-const fieldSchema = z.enum(["resolution", "districtDues", "bylaws"]);
+const fieldSchema = z.enum(["resolution", "districtDues", "bylaws", "masterBudget"]);
 
 const MAX_BYTES: Record<string, number> = {
   resolution: 5 * 1024 * 1024,
   districtDues: 5 * 1024 * 1024,
   bylaws: 5 * 1024 * 1024,
+  masterBudget: 5 * 1024 * 1024,
 };
 
 export async function POST(request: Request) {
@@ -52,7 +53,9 @@ export async function POST(request: Request) {
         ? { resolutionFileUrl: url }
         : field === "districtDues"
           ? { districtDuesFileUrl: url }
-          : { bylawsFileUrl: url };
+          : field === "bylaws"
+            ? { bylawsFileUrl: url }
+            : { masterBudgetFileUrl: url };
 
     const report = await upsertMonthlyReport(
       prisma,
