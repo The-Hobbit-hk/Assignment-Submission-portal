@@ -41,8 +41,11 @@ export async function GET(request: Request) {
     ]);
 
     const serialized = assignments.map(serializeCouncilAssignment);
-    const totalPossiblePoints = serialized.reduce((s, a) => s + (a.task?.maxScore ?? 0), 0);
-    const totalAwardedPoints = serialized.reduce((s, a) => s + a.allocatedScore, 0);
+    const tasksCompleted = serialized.filter((a) => a.status === "APPROVED").length;
+    const completionPercent =
+      serialized.length === 0
+        ? null
+        : Math.round((tasksCompleted / serialized.length) * 100);
     const cycleData = serializeCycle(cycle);
     const reportData = report ? serializeReport(report) : null;
     const isLocked = reportData != null && reportData.status !== "DRAFT";
@@ -60,8 +63,11 @@ export async function GET(request: Request) {
       })),
       stats: {
         totalTasks: serialized.length,
-        totalPossiblePoints,
-        totalAwardedPoints,
+        tasksCompleted,
+        completionPercent,
+        // Legacy aliases
+        totalPossiblePoints: serialized.length,
+        totalAwardedPoints: tasksCompleted,
         submissionDeadline: cycleData.closesAt,
         submissionOpen: windowOpen && !isLocked,
         submissionClosed: !windowOpen || isLocked,

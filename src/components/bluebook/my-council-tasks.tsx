@@ -110,8 +110,17 @@ export function MyCouncilTasks() {
       {stats && (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Tasks assigned" value={String(stats.totalTasks)} />
-          <StatCard label="Possible points" value={String(stats.totalPossiblePoints)} />
-          <StatCard label="Points awarded" value={String(stats.totalAwardedPoints)} />
+          <StatCard label="Tasks completed" value={String(stats.tasksCompleted ?? stats.totalAwardedPoints)} />
+          <StatCard
+            label="Completion"
+            value={
+              stats.completionPercent != null
+                ? `${stats.completionPercent}%`
+                : stats.totalTasks > 0
+                  ? "0%"
+                  : "—"
+            }
+          />
           <StatCard label="Submission status" value={submissionLabel} accent />
         </div>
       )}
@@ -143,14 +152,13 @@ export function MyCouncilTasks() {
               <TableRow>
                 <TableHead>Task</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Points</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {assignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground">
+                  <TableCell colSpan={3} className="text-center text-muted-foreground">
                     No tasks assigned for this period.
                   </TableCell>
                 </TableRow>
@@ -167,7 +175,6 @@ export function MyCouncilTasks() {
                         "—"
                       )}
                     </TableCell>
-                    <TableCell className="align-top">{task.task?.maxScore ?? 0}</TableCell>
                     <TableCell className="align-top">
                       <BluebookStatusBadge status={task.status} />
                     </TableCell>

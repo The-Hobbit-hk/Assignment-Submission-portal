@@ -6,7 +6,6 @@ import { ArrowLeft, CheckCircle2, ExternalLink, Save } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { BluebookStatusBadge } from "@/components/bluebook/bluebook-status-badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +15,7 @@ import {
   useReviewCouncilMember,
 } from "@/hooks/use-council-assignments";
 import { toast } from "@/lib/toast";
+import { cn } from "@/lib/utils";
 
 export function CouncilMemberReview({
   memberId,
@@ -29,16 +29,17 @@ export function CouncilMemberReview({
   const { data, isLoading } = useCouncilMemberReview(memberId, month, year);
   const review = useReviewCouncilMember(memberId);
   const reopen = useReopenCouncilReport();
-  const [scores, setScores] = useState<Record<string, number>>({});
+  const [completed, setCompleted] = useState<Record<string, boolean>>({});
   const [comment, setComment] = useState("");
 
   useEffect(() => {
     if (!data) return;
-    const initial: Record<string, number> = {};
+    const initial: Record<string, boolean> = {};
     for (const a of data.assignments) {
-      initial[a.id] = a.allocatedScore;
+      initial[a.id] =
+        a.status === "APPROVED" || (a.status !== "REJECTED" && a.allocatedScore > 0);
     }
-    setScores(initial);
+    setCompleted(initial);
     setComment(data.report?.reviewerComment ?? "");
   }, [data]);
 
@@ -50,10 +51,10 @@ export function CouncilMemberReview({
   const { member, assignments, report, totals } = data;
   const isReviewed = report?.status === "APPROVED";
   const canEdit = !isReviewed && Boolean(report?.submittedAt);
-  const liveAwarded = assignments.reduce((s, a) => s + (scores[a.id] ?? 0), 0);
+  const liveCompleted = assignments.filter((a) => completed[a.id]).length;
   const livePct =
-    totals.pointsPossible > 0
-      ? Math.round((liveAwarded / totals.pointsPossible) * 100)
+    assignments.length > 0
+      ? Math.round((liveCompleted / assignments.length) * 100)
       : null;
 
   const saveReview = (markReviewed: boolean) => {
@@ -63,14 +64,14 @@ export function CouncilMemberReview({
         year,
         scores: assignments.map((a) => ({
           assignmentId: a.id,
-          allocatedScore: scores[a.id] ?? 0,
+          completed: Boolean(completed[a.id]),
         })),
         reviewerComment: comment,
         markReviewed,
       },
       {
         onSuccess: () => {
-          toast.success(markReviewed ? "Review saved and locked" : "Scores saved");
+          toast.success(markReviewed ? "Review saved and locked" : "Completion saved");
         },
       }
     );
@@ -96,7 +97,8 @@ export function CouncilMemberReview({
           <div>
             <p className="font-semibold text-green-800 dark:text-green-400">Review completed</p>
             <p className="mt-1 text-sm text-green-700/90 dark:text-green-500/90">
-              Final score: {totals.pointsAwarded} / {totals.pointsPossible}
+              Completion: {totals.tasksCompleted ?? totals.pointsAwarded} /{" "}
+              {totals.tasksAssigned ?? totals.pointsPossible} tasks
               {totals.percentageScore != null && ` (${totals.percentageScore}%)`}
               {report?.reviewedAt &&
                 ` · Reviewed on ${new Date(report.reviewedAt).toLocaleString("en-IN")}`}
@@ -115,16 +117,15 @@ export function CouncilMemberReview({
           </p>
         </div>
         <div className="depth-card rounded-xl p-4">
-          <p className="text-xs text-muted-foreground">Total possible</p>
-          <p className="mt-1 text-2xl font-bold">{totals.pointsPossible}</p>
+          <p className="text-xs text-muted-foreground">Tasks completed</p>
+          <p className="mt-1 text-2xl font-bold">
+            {liveCompleted} / {assignments.length}
+          </p>
         </div>
         <div className="depth-card rounded-xl p-4">
-          <p className="text-xs text-muted-foreground">Score (live)</p>
+          <p className="text-xs text-muted-foreground">Completion (live)</p>
           <p className="mt-1 text-2xl font-bold text-accent">
-            {liveAwarded}
-            {livePct != null && (
-              <span className="ml-2 text-base font-normal text-muted-foreground">({livePct}%)</span>
-            )}
+            {livePct != null ? `${livePct}%` : "—"}
           </p>
         </div>
       </div>
@@ -160,49 +161,55 @@ export function CouncilMemberReview({
       )}
 
       <div className="table-scroll rounded-lg border border-border/40">
-          <Table className="ref-table min-w-[720px]">
-            <TableHeader>
-              <TableRow>
-                <TableHead>Task</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Max points</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Awarded points</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {assignments.map((a) => (
-                <TableRow key={a.id}>
-                  <TableCell className="font-medium align-top">{a.task?.title ?? "—"}</TableCell>
-                  <TableCell className="max-w-md align-top text-sm text-muted-foreground">
-                    {a.task?.description ? (
-                      <p className="whitespace-pre-wrap">{a.task.description}</p>
-                    ) : (
-                      "—"
-                    )}
-                  </TableCell>
-                  <TableCell className="align-top">{a.task?.maxScore ?? 0}</TableCell>
-                  <TableCell className="align-top">
-                    <BluebookStatusBadge status={a.status} />
-                  </TableCell>
-                  <TableCell className="align-top">
-                  {isReviewed ? (
-                    <span className="font-medium">{scores[a.id] ?? 0}</span>
+        <Table className="ref-table min-w-[720px]">
+          <TableHeader>
+            <TableRow>
+              <TableHead>Task</TableHead>
+              <TableHead>Description</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Completed</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {assignments.map((a) => (
+              <TableRow key={a.id}>
+                <TableCell className="font-medium align-top">{a.task?.title ?? "—"}</TableCell>
+                <TableCell className="max-w-md align-top text-sm text-muted-foreground">
+                  {a.task?.description ? (
+                    <p className="whitespace-pre-wrap">{a.task.description}</p>
                   ) : (
-                    <Input
-                      type="number"
-                      min={0}
-                      max={a.task?.maxScore ?? 100}
-                      value={scores[a.id] ?? 0}
-                      disabled={!canEdit}
-                      onChange={(e) =>
-                        setScores((prev) => ({
-                          ...prev,
-                          [a.id]: parseInt(e.target.value, 10) || 0,
-                        }))
-                      }
-                      className="w-24"
-                    />
+                    "—"
+                  )}
+                </TableCell>
+                <TableCell className="align-top">
+                  <BluebookStatusBadge status={a.status} />
+                </TableCell>
+                <TableCell className="align-top">
+                  {isReviewed ? (
+                    <span
+                      className={cn(
+                        "font-medium",
+                        completed[a.id] ? "text-green-700" : "text-muted-foreground"
+                      )}
+                    >
+                      {completed[a.id] ? "Yes" : "No"}
+                    </span>
+                  ) : (
+                    <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-[hsl(var(--accent))]"
+                        checked={Boolean(completed[a.id])}
+                        disabled={!canEdit}
+                        onChange={(e) =>
+                          setCompleted((prev) => ({
+                            ...prev,
+                            [a.id]: e.target.checked,
+                          }))
+                        }
+                      />
+                      {completed[a.id] ? "Complete" : "Incomplete"}
+                    </label>
                   )}
                 </TableCell>
               </TableRow>
@@ -232,7 +239,7 @@ export function CouncilMemberReview({
               onClick={() => saveReview(false)}
             >
               <Save className="h-4 w-4" />
-              {review.isPending ? "Saving…" : "Save scores"}
+              {review.isPending ? "Saving…" : "Save completion"}
             </Button>
             <Button
               className="bg-accent text-accent-foreground"

@@ -202,7 +202,7 @@ export function CouncilBluebookOverview() {
                     <TableHead>Tasks assigned</TableHead>
                     <TableHead>Submission status</TableHead>
                     <TableHead>Review status</TableHead>
-                    <TableHead>Points awarded</TableHead>
+                    <TableHead>Completion</TableHead>
                     <TableHead />
                   </TableRow>
                 </TableHeader>
@@ -225,7 +225,7 @@ export function CouncilBluebookOverview() {
                         <TableCell>{row.reviewStatusLabel}</TableCell>
                         <TableCell>
                           {row.assignedCount > 0
-                            ? `${row.pointsAwarded} / ${row.pointsPossible}${
+                            ? `${row.tasksCompleted} / ${row.assignedCount}${
                                 row.percentageScore != null ? ` (${row.percentageScore}%)` : ""
                               }`
                             : "—"}
@@ -262,7 +262,7 @@ export function CouncilBluebookOverview() {
                     <TableHead className="hidden md:table-cell">Due</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="hidden lg:table-cell">Submitted</TableHead>
-                    <TableHead className="hidden lg:table-cell">Score</TableHead>
+                    <TableHead className="hidden lg:table-cell">Completed</TableHead>
                     <TableHead className="hidden xl:table-cell">Proof</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -302,9 +302,11 @@ export function CouncilBluebookOverview() {
                             : "—"}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
-                          {submission.allocatedScore > 0
-                            ? `${submission.allocatedScore} / ${submission.task?.maxScore ?? "—"}`
-                            : "—"}
+                          {submission.status === "APPROVED"
+                            ? "Yes"
+                            : submission.status === "REJECTED"
+                              ? "No"
+                              : "—"}
                         </TableCell>
                         <TableCell className="hidden xl:table-cell">
                           {submission.proofUrl ? (

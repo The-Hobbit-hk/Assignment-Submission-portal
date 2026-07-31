@@ -4,6 +4,23 @@ import { serializeCouncilAssignment } from "@/lib/council-bluebook";
 
 export type SerializedCouncilAssignment = ReturnType<typeof serializeCouncilAssignment>;
 
+/** A task counts as complete once the District Secretary marks it approved. */
+export function isTaskCompleted(status: BluebookSubmissionStatus | string) {
+  return status === "APPROVED";
+}
+
+/**
+ * Fair ranking metric: completed tasks ÷ assigned tasks.
+ * Example: 4/4 = 100%, 10/14 = 71%.
+ */
+export function taskCompletionPercent(
+  assignments: { status: string }[]
+): number | null {
+  if (assignments.length === 0) return null;
+  const done = assignments.filter((a) => isTaskCompleted(a.status)).length;
+  return Math.round((done / assignments.length) * 100);
+}
+
 export type CouncilMemberBluebookRow = {
   member: { id: string; name: string | null; email: string };
   assignments: SerializedCouncilAssignment[];
@@ -18,7 +35,9 @@ export type CouncilMemberBluebookRow = {
   reviewStatusLabel: string;
   pointsAwarded: number;
   pointsPossible: number;
+  /** Task completion % (approved ÷ assigned). Primary ranking metric. */
   percentageScore: number | null;
+  tasksCompleted: number;
 };
 
 export type CouncilBluebookSummary = {
@@ -66,8 +85,7 @@ export function buildCouncilMemberRows(
       0
     );
     const pointsAwarded = memberAssignments.reduce((sum, a) => sum + a.allocatedScore, 0);
-    const percentageScore =
-      pointsPossible > 0 ? Math.round((pointsAwarded / pointsPossible) * 100) : null;
+    const percentageScore = taskCompletionPercent(memberAssignments);
 
     const hasAssignments = memberAssignments.length > 0;
     const submissionStatusLabel = reportStatusLabel(reportStatus ?? "DRAFT", hasAssignments);
@@ -100,6 +118,7 @@ export function buildCouncilMemberRows(
       pointsAwarded,
       pointsPossible,
       percentageScore,
+      tasksCompleted: approvedCount,
     };
   });
 }

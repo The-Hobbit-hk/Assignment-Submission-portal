@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { serializeCouncilAssignment } from "@/lib/council-bluebook";
+import { taskCompletionPercent } from "@/lib/council-bluebook-status";
 import { getOrCreateCycle, serializeCycle, serializeReport } from "@/lib/bluebook-cycle";
 import { reviewCouncilMemberSchema } from "@/lib/validators/bluebook-cycle";
 import { ensureCouncilScoresSynced } from "@/lib/council";
@@ -34,8 +35,9 @@ async function loadReview(memberId: string, month: number, year: number) {
   if (!member) return null;
 
   const serialized = assignments.map(serializeCouncilAssignment);
-  const pointsPossible = serialized.reduce((s, a) => s + (a.task?.maxScore ?? 0), 0);
-  const pointsAwarded = serialized.reduce((s, a) => s + a.allocatedScore, 0);
+  const tasksAssigned = serialized.length;
+  const tasksCompleted = serialized.filter((a) => a.status === "APPROVED").length;
+  const percentageScore = taskCompletionPercent(serialized);
 
   return {
     month,
@@ -45,10 +47,12 @@ async function loadReview(memberId: string, month: number, year: number) {
     report: report ? serializeReport(report) : null,
     assignments: serialized,
     totals: {
-      pointsPossible,
-      pointsAwarded,
-      percentageScore:
-        pointsPossible > 0 ? Math.round((pointsAwarded / pointsPossible) * 100) : null,
+      tasksAssigned,
+      tasksCompleted,
+      percentageScore,
+      // Kept for older clients; prefer tasksAssigned / tasksCompleted.
+      pointsPossible: tasksAssigned,
+      pointsAwarded: tasksCompleted,
     },
   };
 }
@@ -107,14 +111,19 @@ export async function PUT(
         include: { task: true },
       });
       if (!assignment?.task) continue;
-      const capped = Math.min(row.allocatedScore, assignment.task.maxScore);
+
+      const completed = row.completed;
       await prisma.councilBluebookAssignment.update({
         where: { id: row.assignmentId },
         data: {
-          allocatedScore: capped,
+          // Store 1/0 so legacy fields still reflect completion.
+          allocatedScore: completed ? 1 : 0,
           reviewerComment: body.reviewerComment ?? assignment.reviewerComment,
           ...(body.markReviewed
-            ? { status: "APPROVED" as const, reviewedAt: now }
+            ? {
+                status: completed ? ("APPROVED" as const) : ("REJECTED" as const),
+                reviewedAt: now,
+              }
             : {}),
         },
       });
@@ -138,28 +147,19 @@ export async function PUT(
           reviewerComment: body.reviewerComment ?? undefined,
         },
       });
-
-      await prisma.councilBluebookAssignment.updateMany({
-        where: {
-          assigneeId: memberId,
-          task: { month: body.month, year: body.year },
-          status: "SUBMITTED",
-        },
-        data: { status: "APPROVED", reviewedAt: now },
-      });
     }
 
     const updatedAssignments = await prisma.councilBluebookAssignment.findMany({
       where: { assigneeId: memberId, task: { month: body.month, year: body.year } },
-      select: { allocatedScore: true },
+      select: { status: true },
     });
-    const totalAwarded = updatedAssignments.reduce((sum, a) => sum + a.allocatedScore, 0);
+    const completionPct = taskCompletionPercent(updatedAssignments) ?? 0;
     await prisma.member.updateMany({
       where: {
         userId: memberId,
         club: { charterNumber: DISTRICT_COUNCIL_CLUB.riClubId },
       },
-      data: { points: totalAwarded },
+      data: { points: completionPct },
     });
 
     await ensureCouncilScoresSynced(prisma, body.month, body.year, true);

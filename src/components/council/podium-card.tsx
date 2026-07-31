@@ -125,10 +125,10 @@ export function PodiumCard({
         <div className="mt-4 flex items-center gap-2">
           <div className="rounded-xl bg-accent/10 px-4 py-2">
             <p className={cn("font-bold text-accent", featured ? "text-2xl" : "text-xl")}>
-              {score}
+              {score}%
             </p>
             <p className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-              points
+              completion
             </p>
           </div>
           {trendingUp && (

@@ -7,11 +7,21 @@ import {
 } from "@/lib/district-clubs-data";
 import { rotaryYearMonths, rotaryYearOfMonth } from "@/lib/rotary-year";
 
+/** Club leaderboard badges (absolute Blue Book points). */
 export function getBadge(score: number): string | null {
   if (score >= 400) return "Gold";
   if (score >= 300) return "Silver";
   if (score >= 200) return "Bronze";
   if (score >= 100) return "Rising Star";
+  return null;
+}
+
+/** Council member badges — score is task-completion % (0–100). */
+export function getCompletionBadge(score: number): string | null {
+  if (score >= 90) return "Gold";
+  if (score >= 75) return "Silver";
+  if (score >= 60) return "Bronze";
+  if (score >= 40) return "Rising Star";
   return null;
 }
 
@@ -42,7 +52,7 @@ export async function syncCouncilScores(
   const prevMonth = month === 1 ? 12 : month - 1;
   const prevYear = month === 1 ? year - 1 : year;
 
-  const [clubs, bluebookByClub, memberPointsByClub, members, councilBluebookByUser, prevScores] =
+  const [clubs, bluebookByClub, memberPointsByClub, members, councilAssignments, prevScores] =
     await Promise.all([
       prisma.club.findMany({
         where: { ...OFFICIAL_DISTRICT_CLUB_FILTER, status: "ACTIVE" },
@@ -62,10 +72,9 @@ export async function syncCouncilScores(
         where: { ...COUNCIL_MEMBER_FILTER },
         select: { id: true, userId: true, points: true },
       }),
-      prisma.councilBluebookAssignment.groupBy({
-        by: ["assigneeId"],
+      prisma.councilBluebookAssignment.findMany({
         where: { task: { month, year } },
-        _sum: { allocatedScore: true },
+        select: { assigneeId: true, status: true },
       }),
       prisma.councilScore.findMany({
         where: { month: prevMonth, year: prevYear },
@@ -82,9 +91,22 @@ export async function syncCouncilScores(
   const prevMap = new Map(
     prevScores.map((p) => [`${p.entityType}:${p.entityId}`, p.score])
   );
-  const councilBluebookMap = new Map(
-    councilBluebookByUser.map((row) => [row.assigneeId, row._sum.allocatedScore ?? 0])
-  );
+
+  const assignmentsByUser = new Map<string, { status: string }[]>();
+  for (const row of councilAssignments) {
+    const list = assignmentsByUser.get(row.assigneeId) ?? [];
+    list.push({ status: row.status });
+    assignmentsByUser.set(row.assigneeId, list);
+  }
+
+  const councilCompletionMap = new Map<string, number>();
+  for (const [assigneeId, list] of assignmentsByUser) {
+    const done = list.filter((a) => a.status === "APPROVED").length;
+    councilCompletionMap.set(
+      assigneeId,
+      list.length === 0 ? 0 : Math.round((done / list.length) * 100)
+    );
+  }
 
   const clubScores = clubs
     .map((club) => {
@@ -115,7 +137,7 @@ export async function syncCouncilScores(
   const scoredMembers = members
     .map((m) => ({
       id: m.id,
-      score: m.userId ? (councilBluebookMap.get(m.userId) ?? 0) : 0,
+      score: m.userId ? (councilCompletionMap.get(m.userId) ?? 0) : 0,
     }))
     .sort((a, b) => b.score - a.score);
 
@@ -128,7 +150,7 @@ export async function syncCouncilScores(
       year,
       score: m.score,
       rank: i + 1,
-      badge: getBadge(m.score),
+      badge: getCompletionBadge(m.score),
       trend: m.score - (prevMap.get(`MEMBER:${m.id}`) ?? 0),
     })
   );
@@ -277,28 +299,48 @@ export async function fetchCouncilLeaderboard(
       include: councilInclude,
     });
 
-    const grouped = new Map<string, { representative: (typeof rows)[number]; score: number; trend: number }>();
+    const grouped = new Map<
+      string,
+      { representative: (typeof rows)[number]; score: number; trend: number; months: number }
+    >();
     for (const row of rows) {
       const existing = grouped.get(row.entityId);
       if (existing) {
         existing.score += row.score;
         existing.trend += row.trend;
+        existing.months += 1;
         // Keep the most recent row for its relation data / id.
         if (row.year > existing.representative.year || (row.year === existing.representative.year && row.month > existing.representative.month)) {
           existing.representative = row;
         }
       } else {
-        grouped.set(row.entityId, { representative: row, score: row.score, trend: row.trend });
+        grouped.set(row.entityId, {
+          representative: row,
+          score: row.score,
+          trend: row.trend,
+          months: 1,
+        });
       }
     }
 
     const ranked = [...grouped.values()]
+      .map((group) => {
+        // Members store completion % — average across months; clubs keep summed points.
+        const score =
+          entityType === "MEMBER" && group.months > 0
+            ? Math.round(group.score / group.months)
+            : group.score;
+        return { ...group, score };
+      })
       .sort((a, b) => b.score - a.score)
       .map((group, index) => ({
         ...group.representative,
         score: group.score,
         trend: group.trend,
-        badge: getBadge(group.score),
+        badge:
+          entityType === "MEMBER"
+            ? getCompletionBadge(group.score)
+            : getBadge(group.score),
         rank: index + 1,
       }));
 

@@ -144,11 +144,10 @@ export async function getCouncilBluebookReportData(month?: number, year?: number
     "Council Member",
     "Email",
     "Tasks Assigned",
+    "Tasks Completed",
     "Submission Status",
     "Review Status",
-    "Points Awarded",
-    "Points Possible",
-    "Score %",
+    "Completion %",
   ];
   const memberRowsData = memberRows
     .filter((row) => row.assignedCount > 0)
@@ -156,33 +155,30 @@ export async function getCouncilBluebookReportData(month?: number, year?: number
       row.member.name ?? row.member.email,
       row.member.email,
       row.assignedCount,
+      row.tasksCompleted,
       row.submissionStatusLabel,
       row.reviewStatusLabel,
-      row.pointsAwarded,
-      row.pointsPossible,
       row.percentageScore != null ? `${row.percentageScore}%` : "—",
     ]);
 
   const categoryMap = new Map<
     string,
-    { tasks: number; awarded: number; possible: number }
+    { tasks: number; completed: number }
   >();
   for (const a of assignments) {
     const cat = a.task.category;
-    const entry = categoryMap.get(cat) ?? { tasks: 0, awarded: 0, possible: 0 };
+    const entry = categoryMap.get(cat) ?? { tasks: 0, completed: 0 };
     entry.tasks += 1;
-    entry.awarded += a.allocatedScore;
-    entry.possible += a.task.maxScore;
+    if (a.status === "APPROVED") entry.completed += 1;
     categoryMap.set(cat, entry);
   }
 
-  const deptHeaders = ["Department", "Tasks", "Points Awarded", "Points Possible", "Score %"];
+  const deptHeaders = ["Department", "Tasks", "Completed", "Completion %"];
   const deptRows = [...categoryMap.entries()].map(([cat, stats]) => [
     cat,
     stats.tasks,
-    stats.awarded,
-    stats.possible,
-    stats.possible > 0 ? `${Math.round((stats.awarded / stats.possible) * 100)}%` : "—",
+    stats.completed,
+    stats.tasks > 0 ? `${Math.round((stats.completed / stats.tasks) * 100)}%` : "—",
   ]);
 
   const analyticsHeaders = ["Metric", "Value"];

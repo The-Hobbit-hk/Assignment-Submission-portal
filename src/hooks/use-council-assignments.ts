@@ -45,6 +45,8 @@ export type MyCouncilTasksData = {
   assignments: SerializedCouncilAssignment[];
   stats: {
     totalTasks: number;
+    tasksCompleted: number;
+    completionPercent: number | null;
     totalPossiblePoints: number;
     totalAwardedPoints: number;
     submissionDeadline: string;
@@ -70,9 +72,11 @@ export type CouncilReviewData = {
   } | null;
   assignments: SerializedCouncilAssignment[];
   totals: {
-    pointsPossible: number;
-    pointsAwarded: number;
+    tasksAssigned: number;
+    tasksCompleted: number;
     percentageScore: number | null;
+    pointsPossible?: number;
+    pointsAwarded?: number;
   };
 };
 
@@ -131,7 +135,7 @@ export function useReviewCouncilMember(memberId: string) {
     mutationFn: (data: {
       month: number;
       year: number;
-      scores: { assignmentId: string; allocatedScore: number }[];
+      scores: { assignmentId: string; completed: boolean }[];
       reviewerComment?: string;
       markReviewed?: boolean;
     }) =>

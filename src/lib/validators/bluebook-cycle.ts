@@ -21,7 +21,8 @@ export const reviewCouncilMemberSchema = z.object({
   scores: z.array(
     z.object({
       assignmentId: z.string(),
-      allocatedScore: z.number().int().min(0),
+      /** Task marked complete (counts toward completion %). */
+      completed: z.boolean(),
     })
   ),
   reviewerComment: z.string().max(5000).optional(),

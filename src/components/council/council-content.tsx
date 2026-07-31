@@ -149,7 +149,7 @@ export function CouncilContent() {
                 Council Live Scores
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Blue Book points for council members · {periodLabel}
+                Task completion % for council members · {periodLabel}
               </p>
             </div>
           </div>
@@ -174,11 +174,11 @@ export function CouncilContent() {
           </div>
           <div className="rounded-xl border border-border/40 bg-card/60 px-4 py-3 backdrop-blur-sm">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Top score
+              Top completion
             </p>
             <p className="mt-1 text-2xl font-bold text-amber-600">
               {isLoading ? "—" : topScore}
-              <span className="ml-1 text-sm font-medium text-muted-foreground">pts</span>
+              <span className="ml-1 text-sm font-medium text-muted-foreground">%</span>
             </p>
           </div>
           <div className="rounded-xl border border-border/40 bg-card/60 px-4 py-3 backdrop-blur-sm">
@@ -219,7 +219,7 @@ export function CouncilContent() {
           <Trophy className="mb-3 h-10 w-10 text-muted-foreground/40" aria-hidden />
           <p className="font-medium text-foreground">No scores yet</p>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-            Rankings appear once council Blue Book tasks are reviewed and points are allocated.
+            Rankings appear once council Blue Book tasks are reviewed. Score is completed tasks ÷ assigned tasks.
           </p>
         </div>
       )}
@@ -260,7 +260,7 @@ export function CouncilContent() {
                     <TableHead className="w-16">Rank</TableHead>
                     <TableHead>Member</TableHead>
                     <TableHead className="hidden sm:table-cell">Club</TableHead>
-                    <TableHead className="text-right">Score</TableHead>
+                    <TableHead className="text-right">Completion</TableHead>
                     <TableHead className="hidden lg:table-cell">Email</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -298,7 +298,7 @@ export function CouncilContent() {
                       </TableCell>
                       <TableCell className="text-right">
                         <span className="inline-flex min-w-[3rem] justify-center rounded-lg bg-accent/10 px-2.5 py-1 text-sm font-bold text-accent">
-                          {entry.score}
+                          {entry.score}%
                         </span>
                       </TableCell>
                       <TableCell className="hidden max-w-[200px] truncate text-muted-foreground lg:table-cell">
