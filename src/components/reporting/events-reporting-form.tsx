@@ -8,7 +8,7 @@ import { EventsBrowsingView } from "@/components/events/events-browsing-view";
 import { ReportingFormLayout } from "@/components/reporting/reporting-form-layout";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
 import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting";
-import { getCurrentRotaryYear, rotaryMonthOptions } from "@/lib/rotary-year";
+import { getCurrentRotaryYear, rotaryMonthOptions, withMonthOption } from "@/lib/rotary-year";
 import { useEventsReportingPortal, useSaveEventsReport } from "@/hooks/use-reporting";
 import { useReportingWindow } from "@/hooks/use-reporting-window";
 import { useSession } from "next-auth/react";
@@ -17,10 +17,13 @@ import { formErrorMessage } from "@/lib/toast";
 
 export function EventsReportingForm() {
   const active = getActiveReportPeriod();
-  const monthOptions = rotaryMonthOptions(getCurrentRotaryYear().startYear, {
-    long: true,
-    withYear: true,
-  });
+  const optionOpts = { long: true, withYear: true } as const;
+  const monthOptions = withMonthOption(
+    rotaryMonthOptions(getCurrentRotaryYear().startYear, optionOpts),
+    active.month,
+    active.year,
+    optionOpts
+  );
   const [period, setPeriod] = useState(() => `${active.month}-${active.year}`);
   const [month, year] = period.split("-").map(Number);
 

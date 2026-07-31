@@ -117,3 +117,26 @@ export function rotaryMonthOptions(
     label: opts.withYear ? `${names[month - 1]} ${year}` : names[month - 1],
   }));
 }
+
+/**
+ * Ensure a (month, year) appears in a select list.
+ * Needed when the active report period is still the previous Rotary year's
+ * June while the dropdown only lists the new year (Jul–Jun).
+ */
+export function withMonthOption(
+  options: RotaryMonthOption[],
+  month: number,
+  year: number,
+  opts: { long?: boolean; withYear?: boolean } = {}
+): RotaryMonthOption[] {
+  const value = `${month}-${year}`;
+  if (options.some((o) => o.value === value)) return options;
+  const names = opts.long ? MONTH_LONG : MONTH_SHORT;
+  const extra: RotaryMonthOption = {
+    month,
+    year,
+    value,
+    label: opts.withYear ? `${names[month - 1]} ${year}` : names[month - 1],
+  };
+  return [extra, ...options];
+}

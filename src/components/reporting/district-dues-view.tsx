@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDistrictDues } from "@/hooks/use-reporting-window";
 import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting";
-import { getCurrentRotaryYear, rotaryMonthOptions } from "@/lib/rotary-year";
+import { getCurrentRotaryYear, rotaryMonthOptions, withMonthOption } from "@/lib/rotary-year";
 import { CheckCircle2, Clock, Download, ExternalLink, XCircle } from "lucide-react";
 
 const inr = new Intl.NumberFormat("en-IN", {
@@ -52,10 +52,13 @@ function DuesStatus({ paid }: { paid: string | null }) {
 
 export function DistrictDuesView() {
   const active = getActiveReportPeriod();
-  const monthOptions = rotaryMonthOptions(getCurrentRotaryYear().startYear, {
-    long: true,
-    withYear: true,
-  });
+  const optionOpts = { long: true, withYear: true } as const;
+  const monthOptions = withMonthOption(
+    rotaryMonthOptions(getCurrentRotaryYear().startYear, optionOpts),
+    active.month,
+    active.year,
+    optionOpts
+  );
   const [period, setPeriod] = useState(() => `${active.month}-${active.year}`);
   const [month, year] = period.split("-").map(Number);
 

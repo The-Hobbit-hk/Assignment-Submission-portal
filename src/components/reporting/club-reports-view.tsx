@@ -15,7 +15,7 @@ import {
   getSubmissionWindowLabel,
 } from "@/lib/reporting";
 import { DISTRICT_ZONE_META } from "@/lib/district-clubs-data";
-import { getCurrentRotaryYear, rotaryMonthOptions } from "@/lib/rotary-year";
+import { getCurrentRotaryYear, rotaryMonthOptions, withMonthOption } from "@/lib/rotary-year";
 import { CheckCircle2, Download, XCircle } from "lucide-react";
 import type { UserRole } from "@/types/auth";
 
@@ -38,10 +38,15 @@ function SummaryCard({
 
 export function ClubReportsView() {
   const active = getActiveReportPeriod();
-  const monthOptions = rotaryMonthOptions(getCurrentRotaryYear().startYear, {
-    long: true,
-    withYear: true,
-  });
+  const optionOpts = { long: true, withYear: true } as const;
+  // Active period can be June of the prior calendar year while the Rotary-year
+  // dropdown only lists Jul–Jun of the new year — include it or the select lies.
+  const monthOptions = withMonthOption(
+    rotaryMonthOptions(getCurrentRotaryYear().startYear, optionOpts),
+    active.month,
+    active.year,
+    optionOpts
+  );
   const [period, setPeriod] = useState(() => `${active.month}-${active.year}`);
   const [month, year] = period.split("-").map(Number);
   const [zone, setZone] = useState("");
