@@ -65,20 +65,24 @@ function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAss
         <p className="text-sm text-muted-foreground">Awaiting DRR review.</p>
       ) : editable ? (
         <>
-          <Textarea
-            placeholder="Club notes (optional)"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-          />
+          <ol className="list-decimal space-y-1 pl-4 text-xs text-muted-foreground">
+            <li>Upload a proof document (required).</li>
+            <li>Add optional notes, then click Submit for review.</li>
+          </ol>
           <ReportingFileUpload
-            label="Proof document"
+            label="1. Proof document"
             fileUrl={proofUrl}
             onUpload={async (file) => {
               const updated = await uploadCitationProof(assignment.id, file);
               setProofUrl(updated.proofUrl);
             }}
             onClear={() => setProofUrl(null)}
+          />
+          <Textarea
+            placeholder="2. Club notes (optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={3}
           />
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={saveDraft} disabled={update.isPending}>
@@ -87,9 +91,14 @@ function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAss
             </Button>
             <Button size="sm" onClick={submit} disabled={update.isPending || !proofUrl}>
               <Send className="h-4 w-4" />
-              Submit for review
+              3. Submit for review
             </Button>
           </div>
+          {!proofUrl && (
+            <p className="text-xs text-muted-foreground">
+              Submit stays disabled until a proof file is uploaded.
+            </p>
+          )}
         </>
       ) : null}
     </div>
@@ -115,7 +124,7 @@ export function CitationsMyContent() {
             </p>
             <h1 className="font-display text-xl font-bold sm:text-2xl">My Citations</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Upload proof and submit assigned citations for DRR approval.
+              Tap a citation to open it, upload proof, then submit for DRR approval.
             </p>
           </div>
         </div>
@@ -129,16 +138,29 @@ export function CitationsMyContent() {
         </div>
       ) : (
         <div className="space-y-3">
-          {active.map((assignment) => (
-            <div key={assignment.id}>
-              <div onClick={() => setExpandedId(expandedId === assignment.id ? null : assignment.id)}>
-                <CitationAssignmentCard assignment={assignment} />
+          <p className="text-xs text-muted-foreground sm:text-sm">
+            {active.length} assigned · Select any row below to upload proof and submit.
+          </p>
+          {active.map((assignment) => {
+            const isOpen = expandedId === assignment.id;
+            return (
+              <div key={assignment.id}>
+                <button
+                  type="button"
+                  className="w-full text-left"
+                  aria-expanded={isOpen}
+                  onClick={() => setExpandedId(isOpen ? null : assignment.id)}
+                >
+                  <CitationAssignmentCard
+                    assignment={assignment}
+                    interactive
+                    expanded={isOpen}
+                  />
+                </button>
+                {isOpen && <CitationSubmitPanel assignment={assignment} />}
               </div>
-              {expandedId === assignment.id && (
-                <CitationSubmitPanel assignment={assignment} />
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
