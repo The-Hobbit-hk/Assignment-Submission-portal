@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
-import { assignmentInclude, serializeCitationAssignment } from "@/lib/citations";
+import { assignmentInclude, isCitationEditable, serializeCitationAssignment } from "@/lib/citations";
 import { canSubmitCitations } from "@/lib/roles";
 import { saveUpload } from "@/lib/upload";
 import { apiError, forbidden, notFound, handleRouteError } from "@/lib/api-errors";
@@ -32,6 +32,9 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
     if (assignment.status === "APPROVED") {
       return apiError("Approved citations cannot be edited.", 400);
+    }
+    if (!isCitationEditable(assignment.status, assignment.dueDate)) {
+      return apiError("This citation is past its deadline and can no longer be updated.", 400);
     }
 
     const formData = await request.formData();

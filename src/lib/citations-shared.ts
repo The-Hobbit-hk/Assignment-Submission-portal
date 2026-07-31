@@ -174,7 +174,7 @@ export function citationStatusLabel(status: CitationAssignmentStatus | string): 
     SUBMITTED: "Submitted",
     APPROVED: "Approved",
     REJECTED: "Rejected",
-    EXPIRED: "Expired",
+    EXPIRED: "Incomplete",
   };
   return labels[status] ?? status;
 }
@@ -187,4 +187,39 @@ export function formatCitationTitle(title: string): string {
 export function citationTitleSortKey(title: string): number {
   const match = title.match(/^(\d+)\./);
   return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
+}
+
+export function isCitationPastDue(
+  dueDate: string | Date | null | undefined,
+  now: Date = new Date()
+): boolean {
+  if (!dueDate) return false;
+  return now.getTime() > new Date(dueDate).getTime();
+}
+
+/** Past-due assignments that were never submitted/approved become Incomplete. */
+export function effectiveCitationStatus(
+  status: CitationAssignmentStatus | string,
+  dueDate: string | Date | null | undefined,
+  now: Date = new Date()
+): CitationAssignmentStatus | string {
+  if (
+    isCitationPastDue(dueDate, now) &&
+    (status === "ASSIGNED" ||
+      status === "DRAFT" ||
+      status === "REJECTED" ||
+      status === "EXPIRED")
+  ) {
+    return "EXPIRED";
+  }
+  return status;
+}
+
+export function isCitationEditable(
+  status: CitationAssignmentStatus | string,
+  dueDate: string | Date | null | undefined,
+  now: Date = new Date()
+): boolean {
+  const effective = effectiveCitationStatus(status, dueDate, now);
+  return effective === "ASSIGNED" || effective === "DRAFT" || effective === "REJECTED";
 }

@@ -12,6 +12,7 @@ import {
 } from "@/lib/district-clubs-data";
 import {
   type CitationStandingEntry,
+  effectiveCitationStatus,
   resolvePeriodLabel,
   validatePeriodForCadence,
 } from "@/lib/citations-shared";
@@ -27,7 +28,10 @@ export type {
 export {
   buildPeriodKey,
   citationStatusLabel,
+  effectiveCitationStatus,
   getQuarter,
+  isCitationEditable,
+  isCitationPastDue,
   resolvePeriodLabel,
   validatePeriodForCadence,
 } from "@/lib/citations-shared";
@@ -72,7 +76,7 @@ export function serializeCitationAssignment(row: AssignmentWithRelations) {
     quarter: row.quarter,
     rotaryYearLabel: row.rotaryYearLabel,
     dueDate: row.dueDate?.toISOString() ?? null,
-    status: row.status,
+    status: effectiveCitationStatus(row.status, row.dueDate) as typeof row.status,
     proofUrl: row.proofUrl,
     clubNotes: row.clubNotes,
     submittedAt: row.submittedAt?.toISOString() ?? null,

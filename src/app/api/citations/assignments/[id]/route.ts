@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import {
   assignmentInclude,
+  isCitationEditable,
   serializeCitationAssignment,
 } from "@/lib/citations";
 import { canSubmitCitations, DISTRICT_ROLES } from "@/lib/roles";
@@ -76,6 +77,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     if (assignment.status === "APPROVED") {
       return apiError("Approved citations cannot be edited.", 400);
+    }
+    if (!isCitationEditable(assignment.status, assignment.dueDate)) {
+      return apiError("This citation is past its deadline and can no longer be submitted.", 400);
     }
 
     const data: {

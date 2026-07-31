@@ -16,6 +16,7 @@ import {
 import {
   citationTitleSortKey,
   formatCitationTitle,
+  isCitationEditable,
   type SerializedCitationAssignment,
 } from "@/lib/citations-shared";
 import { toast } from "@/lib/toast";
@@ -25,10 +26,8 @@ function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAss
   const [notes, setNotes] = useState(assignment.clubNotes ?? "");
   const [proofUrl, setProofUrl] = useState<string | null>(assignment.proofUrl);
 
-  const editable =
-    assignment.status === "ASSIGNED" ||
-    assignment.status === "DRAFT" ||
-    assignment.status === "REJECTED";
+  const editable = isCitationEditable(assignment.status, assignment.dueDate);
+  const incomplete = assignment.status === "EXPIRED";
 
   const saveDraft = () => {
     update.mutate(
@@ -69,6 +68,10 @@ function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAss
         </p>
       ) : assignment.status === "SUBMITTED" ? (
         <p className="text-sm text-muted-foreground">Awaiting DRR review.</p>
+      ) : incomplete ? (
+        <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+          Deadline passed — marked Incomplete. Submission is disabled.
+        </p>
       ) : editable ? (
         <>
           <ol className="list-decimal space-y-1 pl-4 text-xs text-muted-foreground">
@@ -115,17 +118,15 @@ export function CitationsMyContent() {
   const { data: assignments, isLoading } = useCitationAssignments();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const active = (assignments ?? [])
-    .filter((a) => a.status !== "EXPIRED")
-    .slice()
-    .sort((a, b) => {
-      const dueA = a.dueDate ? new Date(a.dueDate).getTime() : Number.POSITIVE_INFINITY;
-      const dueB = b.dueDate ? new Date(b.dueDate).getTime() : Number.POSITIVE_INFINITY;
-      if (dueA !== dueB) return dueA - dueB;
-      return (
-        citationTitleSortKey(a.definition.title) - citationTitleSortKey(b.definition.title)
-      );
-    });
+  const active = (assignments ?? []).slice().sort((a, b) => {
+    const incompleteA = a.status === "EXPIRED" ? 1 : 0;
+    const incompleteB = b.status === "EXPIRED" ? 1 : 0;
+    if (incompleteA !== incompleteB) return incompleteA - incompleteB;
+    const dueA = a.dueDate ? new Date(a.dueDate).getTime() : Number.POSITIVE_INFINITY;
+    const dueB = b.dueDate ? new Date(b.dueDate).getTime() : Number.POSITIVE_INFINITY;
+    if (dueA !== dueB) return dueA - dueB;
+    return citationTitleSortKey(a.definition.title) - citationTitleSortKey(b.definition.title);
+  });
 
   return (
     <div className="space-y-6">

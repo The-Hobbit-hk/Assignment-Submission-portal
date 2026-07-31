@@ -5,6 +5,7 @@ import { Calendar, ChevronRight } from "lucide-react";
 import { CitationStatusBadge } from "@/components/citations/citation-status-badge";
 import {
   formatCitationTitle,
+  isCitationEditable,
   type SerializedCitationAssignment,
 } from "@/lib/citations-shared";
 import { cn } from "@/lib/utils";
@@ -30,16 +31,18 @@ export function CitationAssignmentCard({
   className,
 }: CitationAssignmentCardProps) {
   const clickable = Boolean(href) || interactive;
+  const incomplete = assignment.status === "EXPIRED";
+  const canSubmit = isCitationEditable(assignment.status, assignment.dueDate);
   const hint =
     actionHint ??
     (interactive
       ? expanded
         ? "Close"
-        : assignment.status === "ASSIGNED" ||
-            assignment.status === "DRAFT" ||
-            assignment.status === "REJECTED"
-          ? "Open to submit"
-          : "View details"
+        : incomplete
+          ? "View details"
+          : canSubmit
+            ? "Open to submit"
+            : "View details"
       : undefined);
 
   const content = (
@@ -48,12 +51,18 @@ export function CitationAssignmentCard({
         "depth-card-interactive flex items-start justify-between gap-3 rounded-xl border border-border/40 p-4",
         clickable && "group cursor-pointer",
         expanded && "border-accent/40 bg-accent/5",
+        incomplete && "opacity-75",
         className
       )}
     >
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="font-semibold text-foreground group-hover:text-accent">
+          <p
+            className={cn(
+              "font-semibold group-hover:text-accent",
+              incomplete ? "text-muted-foreground" : "text-foreground"
+            )}
+          >
             {formatCitationTitle(assignment.definition.title)}
           </p>
           <CitationStatusBadge status={assignment.status} />
@@ -70,9 +79,15 @@ export function CitationAssignmentCard({
           )}
         </p>
         {assignment.dueDate && (
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+          <p
+            className={cn(
+              "flex items-center gap-1 text-xs",
+              incomplete ? "text-destructive" : "text-muted-foreground"
+            )}
+          >
             <Calendar className="h-3 w-3" />
-            Due {new Date(assignment.dueDate).toLocaleDateString("en-IN")}
+            {incomplete ? "Deadline passed · " : "Due "}
+            {new Date(assignment.dueDate).toLocaleDateString("en-IN")}
           </p>
         )}
         {assignment.reviewerComment && assignment.status === "REJECTED" && (
@@ -82,7 +97,12 @@ export function CitationAssignmentCard({
       {clickable && (
         <div className="mt-0.5 flex shrink-0 flex-col items-end gap-1">
           {hint && (
-            <span className="text-[11px] font-medium text-accent group-hover:underline">
+            <span
+              className={cn(
+                "text-[11px] font-medium group-hover:underline",
+                incomplete ? "text-muted-foreground" : "text-accent"
+              )}
+            >
               {hint}
             </span>
           )}
