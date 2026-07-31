@@ -66,12 +66,15 @@ export function ReportingWindowBanner({
             <>
               Reporting for <span className="font-medium">{data.reportLabel}</span> is open until{" "}
               {data.closesAt
-                ? new Date(data.closesAt).toLocaleDateString("en-IN", {
+                ? new Date(data.closesAt).toLocaleString("en-IN", {
+                    timeZone: "Asia/Kolkata",
                     day: "numeric",
                     month: "long",
                     year: "numeric",
-                  })
-                : "the 10th"}
+                    hour: "numeric",
+                    minute: "2-digit",
+                  }) + " IST"
+                : "the 10th (11:59 pm IST)"}
               . Complete both events and admin reporting before the deadline.
             </>
           ) : (

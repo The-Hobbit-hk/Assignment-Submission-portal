@@ -29,7 +29,7 @@ export function ReportingClosedDialog({
           <DialogTitle className="text-center">Reporting window is closed</DialogTitle>
           <DialogDescription className="text-center text-sm leading-relaxed">
             {message ??
-              "Submissions are accepted only from the 1st to the 10th of each month. Please return when the window opens."}
+              "Submissions are accepted only from the 1st (12:00 am) to the 10th (11:59 pm) IST of each month. Please return when the window opens."}
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-center pt-2">

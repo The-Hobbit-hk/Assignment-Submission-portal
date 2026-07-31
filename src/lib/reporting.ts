@@ -1,4 +1,5 @@
 import type { MonthlyReport } from "@/generated/prisma/client";
+import { formatIstDate, istCalendarParts, istWallTime } from "@/lib/timezone";
 
 const MONTHS = [
   "January", "February", "March", "April", "May", "June",
@@ -30,29 +31,37 @@ export function getSubmissionWindowForReportPeriod(reportMonth: number, reportYe
   return { month: windowMonth, year: windowYear };
 }
 
-/** Active report period (e.g. July 1–10 → June). */
+/**
+ * Active report period in IST (e.g. 1–10 Aug IST → July reports).
+ * Uses Asia/Kolkata so Vercel UTC hosts don't flip the month early/late.
+ */
 export function getActiveReportPeriod(now = new Date()) {
-  const windowMonth = now.getMonth() + 1;
-  const windowYear = now.getFullYear();
+  const { month: windowMonth, year: windowYear } = istCalendarParts(now);
   return getReportPeriodForWindow(windowMonth, windowYear);
+}
+
+/** Submission window: 1st 00:00:00.000 IST → 10th 23:59:59.999 IST. */
+export function getReportingWindowDates(windowMonth: number, windowYear: number) {
+  const opensAt = istWallTime(windowYear, windowMonth, 1, 0, 0, 0, 0);
+  const closesAt = istWallTime(windowYear, windowMonth, 10, 23, 59, 59, 999);
+  return { opensAt, closesAt };
 }
 
 export function getSubmissionWindowLabel(reportMonth: number, reportYear: number) {
   const { month, year } = getSubmissionWindowForReportPeriod(reportMonth, reportYear);
-  const opensAt = new Date(year, month - 1, 1, 0, 0, 0, 0);
-  const closesAt = new Date(year, month - 1, 10, 23, 59, 59, 999);
+  const { opensAt, closesAt } = getReportingWindowDates(month, year);
   return {
     reportLabel: getReportingPeriodLabel(reportMonth, reportYear),
     windowMonth: month,
     windowYear: year,
     opensAt,
     closesAt,
-    openLabel: opensAt.toLocaleDateString("en-IN", {
+    openLabel: formatIstDate(opensAt, {
       day: "numeric",
       month: "long",
       year: "numeric",
     }),
-    closeLabel: closesAt.toLocaleDateString("en-IN", {
+    closeLabel: formatIstDate(closesAt, {
       day: "numeric",
       month: "long",
       year: "numeric",

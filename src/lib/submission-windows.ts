@@ -2,6 +2,8 @@
  * When true, Blue Book and monthly reporting submission windows stay open.
  * Defaults to CLOSED (deadlines enforced) for production — set
  * BYPASS_SUBMISSION_WINDOWS=true only to re-open everything for testing.
+ *
+ * Production (Vercel): leave unset or false so the 1st–10th IST window is enforced.
  */
 export function isSubmissionWindowsBypassEnabled() {
   const v = process.env.BYPASS_SUBMISSION_WINDOWS?.trim().toLowerCase();

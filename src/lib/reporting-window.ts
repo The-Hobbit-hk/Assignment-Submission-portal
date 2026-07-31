@@ -5,23 +5,19 @@ import {
 } from "@/lib/submission-windows";
 import {
   getActiveReportPeriod,
+  getReportingWindowDates,
   getSubmissionWindowForReportPeriod,
   getSubmissionWindowLabel,
 } from "@/lib/reporting";
+import { formatIstDateTime } from "@/lib/timezone";
 
 export {
   getActiveReportPeriod,
   getReportPeriodForWindow,
+  getReportingWindowDates,
   getSubmissionWindowForReportPeriod,
   getSubmissionWindowLabel,
 } from "@/lib/reporting";
-
-/** Submission window calendar dates: 1st through 10th of a month. */
-export function getReportingWindowDates(windowMonth: number, windowYear: number) {
-  const opensAt = new Date(windowYear, windowMonth - 1, 1, 0, 0, 0, 0);
-  const closesAt = new Date(windowYear, windowMonth - 1, 10, 23, 59, 59, 999);
-  return { opensAt, closesAt };
-}
 
 export async function ensureReportingPeriod(reportMonth: number, reportYear: number) {
   const { month: windowMonth, year: windowYear } = getSubmissionWindowForReportPeriod(
@@ -97,8 +93,8 @@ export async function isReportingWindowOpen(
     message: open
       ? null
       : now < period.opensAt
-        ? `Reporting for ${labels.reportLabel} opens on ${labels.openLabel} (1st of the month following the report period).`
-        : `Reporting for ${labels.reportLabel} closed on ${labels.closeLabel}. Submissions are accepted only from the 1st to the 10th of the month after the report period.`,
+        ? `Reporting for ${labels.reportLabel} opens on ${formatIstDateTime(period.opensAt)} IST (1st of the month following the report period).`
+        : `Reporting for ${labels.reportLabel} closed on ${formatIstDateTime(period.closesAt)} IST. Submissions are accepted only from the 1st (12:00 am) to the 10th (11:59 pm) IST of the month after the report period.`,
   };
 }
 

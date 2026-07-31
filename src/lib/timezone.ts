@@ -77,3 +77,20 @@ export function formatIstDateTimeRange(start: Date, end?: Date | null) {
 export function istDateKey(date: Date) {
   return date.toLocaleDateString("en-CA", IST); // YYYY-MM-DD
 }
+
+/** Year / month / day in Asia/Kolkata (month is 1–12). */
+export function istCalendarParts(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    ...IST,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const num = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((p) => p.type === type)?.value);
+  return {
+    year: num("year"),
+    month: num("month"),
+    day: num("day"),
+  };
+}
