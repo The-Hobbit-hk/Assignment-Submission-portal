@@ -62,7 +62,7 @@ export async function GET(request: Request) {
           leaderboard.limit
         ),
       },
-      { maxAge: 120 }
+      { maxAge: 30 }
     );
   } catch (err) {
     return handleRouteError(err, "Failed.");

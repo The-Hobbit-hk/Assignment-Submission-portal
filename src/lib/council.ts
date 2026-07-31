@@ -277,6 +277,9 @@ export async function fetchCouncilLeaderboard(
                     {
                       lastName: { contains: search, mode: "insensitive" as const },
                     },
+                    {
+                      email: { contains: search, mode: "insensitive" as const },
+                    },
                   ],
                 }
               : {}),

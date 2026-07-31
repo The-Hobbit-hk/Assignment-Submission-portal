@@ -95,7 +95,7 @@ export function CouncilContent() {
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(100);
   const month = now.getMonth() + 1;
   const year = now.getFullYear();
 
@@ -171,6 +171,9 @@ export function CouncilContent() {
               <Users className="h-5 w-5 text-accent" aria-hidden />
               {isLoading ? "—" : total}
             </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Same council roster as Blue Book overview
+            </p>
           </div>
           <div className="rounded-xl border border-border/40 bg-card/60 px-4 py-3 backdrop-blur-sm">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -238,7 +241,7 @@ export function CouncilContent() {
               aria-hidden
             />
             <Input
-              placeholder="Search by name..."
+              placeholder="Search by name or email…"
               className="border-border/60 bg-card pl-9"
               value={search}
               onChange={(e) => {
@@ -330,7 +333,7 @@ export function CouncilContent() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {[10, 20, 50].map((n) => (
+                    {[25, 50, 100].map((n) => (
                       <SelectItem key={n} value={String(n)}>
                         {n}
                       </SelectItem>
