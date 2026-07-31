@@ -24,6 +24,7 @@ import { useAssignCitations } from "@/hooks/use-citations";
 import { useClubsList } from "@/hooks/use-clubs";
 import { siteConfig } from "@/config/site";
 import type { SerializedCitationDefinition } from "@/lib/citations-shared";
+import { formatCitationTitle } from "@/lib/citations-shared";
 import type { CitationCadence } from "@/generated/prisma/client";
 import { ROTARY_MONTH_ORDER, rotaryQuarterOfMonth } from "@/lib/rotary-year";
 import { cn } from "@/lib/utils";
@@ -119,7 +120,7 @@ export function CitationAssignDialog({ definition }: CitationAssignDialogProps) 
         <DialogHeader>
           <DialogTitle>Assign citation</DialogTitle>
           <DialogDescription>
-            {definition.title} · {definition.points} pts · {periodPreview}
+            {formatCitationTitle(definition.title)} · {definition.points} pts · {periodPreview}
           </DialogDescription>
         </DialogHeader>
 

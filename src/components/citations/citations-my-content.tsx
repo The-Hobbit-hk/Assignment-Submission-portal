@@ -13,7 +13,11 @@ import {
   useUpdateCitationAssignment,
   uploadCitationProof,
 } from "@/hooks/use-citations";
-import type { SerializedCitationAssignment } from "@/lib/citations-shared";
+import {
+  citationTitleSortKey,
+  formatCitationTitle,
+  type SerializedCitationAssignment,
+} from "@/lib/citations-shared";
 import { toast } from "@/lib/toast";
 
 function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAssignment }) {
@@ -43,7 +47,9 @@ function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAss
   return (
     <div className="depth-card mt-2 space-y-4 rounded-xl border border-border/40 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-semibold">{assignment.definition.title}</p>
+        <p className="text-sm font-semibold">
+          {formatCitationTitle(assignment.definition.title)}
+        </p>
         <CitationStatusBadge status={assignment.status} />
       </div>
       <p className="text-xs text-muted-foreground">
@@ -109,7 +115,17 @@ export function CitationsMyContent() {
   const { data: assignments, isLoading } = useCitationAssignments();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const active = (assignments ?? []).filter((a) => a.status !== "EXPIRED");
+  const active = (assignments ?? [])
+    .filter((a) => a.status !== "EXPIRED")
+    .slice()
+    .sort((a, b) => {
+      const dueA = a.dueDate ? new Date(a.dueDate).getTime() : Number.POSITIVE_INFINITY;
+      const dueB = b.dueDate ? new Date(b.dueDate).getTime() : Number.POSITIVE_INFINITY;
+      if (dueA !== dueB) return dueA - dueB;
+      return (
+        citationTitleSortKey(a.definition.title) - citationTitleSortKey(b.definition.title)
+      );
+    });
 
   return (
     <div className="space-y-6">

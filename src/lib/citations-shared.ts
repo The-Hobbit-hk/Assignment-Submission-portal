@@ -178,3 +178,13 @@ export function citationStatusLabel(status: CitationAssignmentStatus | string): 
   };
   return labels[status] ?? status;
 }
+
+/** Strip leading "01. " style criteria numbers from display titles. */
+export function formatCitationTitle(title: string): string {
+  return title.replace(/^\d+\.\s*/, "").trim() || title;
+}
+
+export function citationTitleSortKey(title: string): number {
+  const match = title.match(/^(\d+)\./);
+  return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
+}

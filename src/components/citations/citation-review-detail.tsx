@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle2, ExternalLink } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { CitationStatusBadge } from "@/components/citations/citation-status-badge";
+import { formatCitationTitle } from "@/lib/citations-shared";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
@@ -53,7 +54,7 @@ export function CitationReviewDetail({ assignmentId }: { assignmentId: string })
       </Button>
 
       <PageHeading
-        title={data.definition.title}
+        title={formatCitationTitle(data.definition.title)}
         subtitle={`${data.club.name} · ${data.periodLabel} · ${data.definition.points} pts`}
       />
 

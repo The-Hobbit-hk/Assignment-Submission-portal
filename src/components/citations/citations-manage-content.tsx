@@ -20,6 +20,7 @@ import {
   useCitationDefinitions,
   useUpdateCitationDefinition,
 } from "@/hooks/use-citations";
+import { formatCitationTitle } from "@/lib/citations-shared";
 import { toast } from "@/lib/toast";
 
 export function CitationsManageContent() {
@@ -87,7 +88,7 @@ export function CitationsManageContent() {
                   definitions!.map((def) => (
                     <TableRow key={def.id}>
                       <TableCell>
-                        <p className="font-medium">{def.title}</p>
+                        <p className="font-medium">{formatCitationTitle(def.title)}</p>
                         {def.description && (
                           <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
                             {def.description}

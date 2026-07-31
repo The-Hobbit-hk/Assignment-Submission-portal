@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { Calendar, ChevronRight } from "lucide-react";
 import { CitationStatusBadge } from "@/components/citations/citation-status-badge";
-import type { SerializedCitationAssignment } from "@/lib/citations-shared";
+import {
+  formatCitationTitle,
+  type SerializedCitationAssignment,
+} from "@/lib/citations-shared";
 import { cn } from "@/lib/utils";
 
 interface CitationAssignmentCardProps {
@@ -51,7 +54,7 @@ export function CitationAssignmentCard({
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="font-semibold text-foreground group-hover:text-accent">
-            {assignment.definition.title}
+            {formatCitationTitle(assignment.definition.title)}
           </p>
           <CitationStatusBadge status={assignment.status} />
         </div>
