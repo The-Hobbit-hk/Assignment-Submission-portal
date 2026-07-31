@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/generated/prisma/client";
+import type { PrismaClient, UserRole } from "@/generated/prisma/client";
 import bcrypt from "bcryptjs";
 import {
   COUNCIL_PASSWORD,
@@ -6,6 +6,9 @@ import {
   DISTRICT_COUNCIL_CLUB,
   type CouncilUserSeed,
 } from "@/lib/council-roster-data";
+
+/** Do not downgrade these when re-importing the roster. */
+const PRESERVE_ROLES = new Set<UserRole>(["SUPER_ADMIN", "DISTRICT_ADMIN"]);
 
 export async function ensureDistrictCouncilClub(prisma: PrismaClient) {
   return prisma.club.upsert({
@@ -31,19 +34,30 @@ export async function upsertCouncilUser(
   councilUser: CouncilUserSeed,
   passwordHash: string
 ) {
-  return prisma.user.upsert({
-    where: { email: councilUser.email.toLowerCase().trim() },
-    create: {
+  const email = councilUser.email.toLowerCase().trim();
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, role: true },
+  });
+
+  if (!existing) {
+    return prisma.user.create({
+      data: {
+        name: councilUser.name,
+        email,
+        password: passwordHash,
+        role: councilUser.role,
+        mustChangePassword: true,
+      },
+    });
+  }
+
+  const keepRole = PRESERVE_ROLES.has(existing.role);
+  return prisma.user.update({
+    where: { id: existing.id },
+    data: {
       name: councilUser.name,
-      email: councilUser.email.toLowerCase().trim(),
-      password: passwordHash,
-      role: councilUser.role,
-      // Force a password reset on the very first login for seeded accounts.
-      mustChangePassword: true,
-    },
-    update: {
-      name: councilUser.name,
-      role: councilUser.role,
+      ...(keepRole ? {} : { role: councilUser.role }),
     },
   });
 }
@@ -56,7 +70,7 @@ export async function upsertCouncilMember(
   _index: number
 ) {
   const email = councilUser.email.toLowerCase().trim();
-  const data = {
+  const profile = {
     firstName: councilUser.name,
     lastName: "",
     email,
@@ -65,7 +79,7 @@ export async function upsertCouncilMember(
     homeClub: councilUser.club,
     role: "MEMBER" as const,
     status: "ACTIVE" as const,
-    points: 0,
+    ...(councilUser.photo ? { avatar: councilUser.photo } : {}),
   };
 
   // A user can hold only one member record (userId is unique) and it may currently live
@@ -75,15 +89,15 @@ export async function upsertCouncilMember(
   if (existing) {
     return prisma.member.update({
       where: { id: existing.id },
-      data: { ...data, clubId },
+      data: { ...profile, clubId },
     });
   }
 
   // No record tied to this user yet — reuse a stray council-club record if one exists.
   return prisma.member.upsert({
     where: { email_clubId: { email, clubId } },
-    create: { ...data, clubId, userId },
-    update: { ...data, userId },
+    create: { ...profile, clubId, userId, points: 0 },
+    update: { ...profile, userId },
   });
 }
 
@@ -115,5 +129,15 @@ export async function importCouncilRoster(prisma: PrismaClient) {
     members++;
   }
 
-  return { users, members, clubId: councilClub.id };
+  const rosterEmails = COUNCIL_USERS.map((u) => u.email.toLowerCase().trim());
+  const deactivated = await prisma.member.updateMany({
+    where: {
+      clubId: councilClub.id,
+      status: "ACTIVE",
+      email: { notIn: rosterEmails },
+    },
+    data: { status: "INACTIVE" },
+  });
+
+  return { users, members, clubId: councilClub.id, deactivated: deactivated.count };
 }

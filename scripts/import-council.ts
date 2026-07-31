@@ -12,7 +12,7 @@ import { importCouncilRoster } from "../src/lib/council-seed";
 config({ path: ".env.local" });
 config();
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DIRECT_URL || process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error("Set DATABASE_URL in .env.local");
@@ -26,7 +26,8 @@ const prisma = new PrismaClient({
 async function main() {
   const result = await importCouncilRoster(prisma);
   console.log(
-    `Council roster import complete: ${result.users} users, ${result.members} member profiles.`
+    `Council roster import complete: ${result.users} users, ${result.members} member profiles` +
+      (result.deactivated ? `, ${result.deactivated} stale profile(s) deactivated.` : ".")
   );
   console.log(`Default password for council logins: ${COUNCIL_PASSWORD}`);
 }
