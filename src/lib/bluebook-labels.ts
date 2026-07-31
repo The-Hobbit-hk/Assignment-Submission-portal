@@ -55,6 +55,10 @@ export const BLUEBOOK_ALLOWED_MIME = [
   "image/webp",
 ] as const;
 
+/** Keep under Vercel's ~4.5 MB serverless request body limit. */
+export const MAX_BLUEBOOK_UPLOAD_BYTES = 4 * 1024 * 1024;
+export const MAX_BLUEBOOK_UPLOAD_LABEL = "4 MB";
+
 export function isAllowedBluebookFile(file: File) {
   return (
     BLUEBOOK_ALLOWED_MIME.includes(file.type as (typeof BLUEBOOK_ALLOWED_MIME)[number]) ||

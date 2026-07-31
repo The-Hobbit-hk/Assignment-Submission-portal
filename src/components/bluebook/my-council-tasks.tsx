@@ -21,11 +21,17 @@ import {
   useMyCouncilTasks,
   useSubmitCouncilReport,
 } from "@/hooks/use-council-assignments";
-import { reportStatusLabel } from "@/lib/bluebook-labels";
+import { reportStatusLabel, MAX_BLUEBOOK_UPLOAD_BYTES, MAX_BLUEBOOK_UPLOAD_LABEL } from "@/lib/bluebook-labels";
 import { getReportingPeriodLabel } from "@/lib/reporting";
 import { getCurrentRotaryYear, rotaryMonthOptions } from "@/lib/rotary-year";
 import { formatIstDateTime } from "@/lib/timezone";
-import { toast } from "@/lib/toast";
+import { reportError, toast } from "@/lib/toast";
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export function MyCouncilTasks() {
   const now = new Date();
@@ -64,13 +70,48 @@ export function MyCouncilTasks() {
     setSubmitOpen(true);
   };
 
+  const addPendingFiles = (files: FileList | File[]) => {
+    const accepted: File[] = [];
+    for (const file of Array.from(files)) {
+      if (file.size > MAX_BLUEBOOK_UPLOAD_BYTES) {
+        toast.error(
+          `"${file.name}" is ${formatFileSize(file.size)}. Max size is ${MAX_BLUEBOOK_UPLOAD_LABEL}.`
+        );
+        continue;
+      }
+      accepted.push(file);
+    }
+    if (accepted.length > 0) {
+      setPendingFiles((prev) => [...prev, ...accepted]);
+    }
+  };
+
   const handleSubmit = async () => {
     setUploading(true);
     try {
       for (const file of pendingFiles) {
-        await uploadCouncilReportProof(month, year, file);
+        if (file.size > MAX_BLUEBOOK_UPLOAD_BYTES) {
+          toast.error(
+            `"${file.name}" is too large. Max size is ${MAX_BLUEBOOK_UPLOAD_LABEL}.`
+          );
+          return;
+        }
+        try {
+          await uploadCouncilReportProof(month, year, file);
+        } catch (err) {
+          reportError(
+            err,
+            `Could not upload "${file.name}". Please try a smaller file (max ${MAX_BLUEBOOK_UPLOAD_LABEL}).`
+          );
+          return;
+        }
       }
-      await submitReport.mutateAsync(notes);
+      try {
+        await submitReport.mutateAsync(notes);
+      } catch {
+        // MutationCache already shows the error toast.
+        return;
+      }
       setSubmitOpen(false);
       setNotes("");
       setPendingFiles([]);
@@ -248,7 +289,9 @@ export function MyCouncilTasks() {
               >
                 <Upload className="h-8 w-8 text-accent" />
                 <span>Click to upload PDF, DOCX, or images</span>
-                <span className="text-xs">Multiple files allowed</span>
+                <span className="text-xs">
+                  Multiple files allowed · max {MAX_BLUEBOOK_UPLOAD_LABEL} each
+                </span>
               </button>
               <input
                 ref={fileRef}
@@ -259,16 +302,34 @@ export function MyCouncilTasks() {
                 onChange={(e) => {
                   const files = e.target.files;
                   if (!files?.length) return;
-                  setPendingFiles((prev) => [...prev, ...Array.from(files)]);
+                  addPendingFiles(files);
                   e.target.value = "";
                 }}
               />
               {pendingFiles.length > 0 && (
                 <ul className="space-y-1 text-sm">
                   {pendingFiles.map((file, i) => (
-                    <li key={`${file.name}-${i}`} className="flex items-center gap-2 text-foreground">
-                      <FileText className="h-4 w-4 shrink-0 text-accent" />
-                      {file.name}
+                    <li
+                      key={`${file.name}-${i}`}
+                      className="flex items-center justify-between gap-2 text-foreground"
+                    >
+                      <span className="flex min-w-0 items-center gap-2">
+                        <FileText className="h-4 w-4 shrink-0 text-accent" />
+                        <span className="truncate">{file.name}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {formatFileSize(file.size)}
+                        </span>
+                      </span>
+                      <button
+                        type="button"
+                        className="shrink-0 text-xs text-muted-foreground hover:text-destructive"
+                        disabled={uploading}
+                        onClick={() =>
+                          setPendingFiles((prev) => prev.filter((_, idx) => idx !== i))
+                        }
+                      >
+                        Remove
+                      </button>
                     </li>
                   ))}
                 </ul>

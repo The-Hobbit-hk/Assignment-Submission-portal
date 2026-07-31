@@ -58,5 +58,15 @@ export function handleRouteError(
     return apiError("Invalid JSON in request body.", 400);
   }
 
+  if (error instanceof Error && error.message.trim()) {
+    const msg = error.message;
+    if (/too large|exceeds maximum size|payload/i.test(msg)) {
+      return apiError(msg, 413);
+    }
+    if (/not allowed|invalid|required|not found|not configured/i.test(msg)) {
+      return apiError(msg, 400);
+    }
+  }
+
   return apiError(fallback, 500);
 }

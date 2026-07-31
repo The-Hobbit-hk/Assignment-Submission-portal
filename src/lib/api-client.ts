@@ -16,7 +16,7 @@ const STATUS_MESSAGES: Record<number, string> = {
   403: "You don't have permission to do this.",
   404: "The requested item was not found.",
   409: "This action conflicts with existing data.",
-  413: "The file is too large.",
+  413: "This file is too large. Please upload a smaller file (max 4 MB).",
   422: "Some fields are invalid. Please review and try again.",
   429: "Too many requests. Please wait a moment and try again.",
   500: "Something went wrong. Please try again.",
@@ -44,6 +44,25 @@ function messageFromDetails(details: unknown): string | null {
   return null;
 }
 
+function messageFromUnknownErrorField(error: unknown): string | null {
+  if (typeof error === "string" && error.trim()) return error.trim();
+  if (!error || typeof error !== "object") return null;
+  const record = error as Record<string, unknown>;
+  if (typeof record.message === "string" && record.message.trim()) {
+    return record.message.trim();
+  }
+  if (typeof record.code === "string" && /PAYLOAD_TOO_LARGE|ENTITY_TOO_LARGE/i.test(record.code)) {
+    return STATUS_MESSAGES[413];
+  }
+  return null;
+}
+
+function isPayloadTooLargePayload(data: Record<string, unknown>, status: number): boolean {
+  if (status === 413) return true;
+  const blob = JSON.stringify(data);
+  return /FUNCTION_PAYLOAD_TOO_LARGE|Request Entity Too Large|ENTITY_TOO_LARGE/i.test(blob);
+}
+
 export async function parseApiErrorResponse(
   res: Response,
   fallback?: string
@@ -52,27 +71,50 @@ export async function parseApiErrorResponse(
     fallback ?? STATUS_MESSAGES[res.status] ?? "Something went wrong. Please try again.";
 
   try {
-    const data = (await res.json()) as {
-      error?: unknown;
-      message?: unknown;
-      details?: unknown;
-    };
-
-    if (typeof data.error === "string" && data.error.trim()) {
-      return data.error;
+    const text = await res.text();
+    if (!text.trim()) {
+      return res.status === 413 ? STATUS_MESSAGES[413] : defaultMessage;
     }
 
-    if (typeof data.message === "string" && data.message.trim()) {
-      return data.message;
-    }
+    try {
+      const data = JSON.parse(text) as Record<string, unknown>;
 
-    const detailsMessage = messageFromDetails(data.details);
-    if (detailsMessage) return detailsMessage;
+      if (isPayloadTooLargePayload(data, res.status)) {
+        return STATUS_MESSAGES[413];
+      }
+
+      const nestedError = messageFromUnknownErrorField(data.error);
+      if (nestedError) {
+        if (/Request Entity Too Large|too large|PAYLOAD_TOO_LARGE/i.test(nestedError)) {
+          return STATUS_MESSAGES[413];
+        }
+        return nestedError;
+      }
+
+      if (typeof data.message === "string" && data.message.trim()) {
+        const message = data.message.trim();
+        if (/Request Entity Too Large|too large|PAYLOAD_TOO_LARGE/i.test(message)) {
+          return STATUS_MESSAGES[413];
+        }
+        return message;
+      }
+
+      if (typeof data.errorCode === "string" && /PAYLOAD_TOO_LARGE/i.test(data.errorCode)) {
+        return STATUS_MESSAGES[413];
+      }
+
+      const detailsMessage = messageFromDetails(data.details);
+      if (detailsMessage) return detailsMessage;
+    } catch {
+      if (/Request Entity Too Large|FUNCTION_PAYLOAD_TOO_LARGE|too large/i.test(text)) {
+        return STATUS_MESSAGES[413];
+      }
+    }
   } catch {
-    // Response body is not JSON — use status-based fallback.
+    // Response body could not be read — use status-based fallback.
   }
 
-  return defaultMessage;
+  return res.status === 413 ? STATUS_MESSAGES[413] : defaultMessage;
 }
 
 export function getErrorMessage(

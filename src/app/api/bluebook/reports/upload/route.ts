@@ -2,13 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
 import { getOrCreateCycle, serializeReport } from "@/lib/bluebook-cycle";
-import { isAllowedBluebookFile, isCycleOpen } from "@/lib/bluebook-labels";
+import { isAllowedBluebookFile, isCycleOpen, MAX_BLUEBOOK_UPLOAD_BYTES } from "@/lib/bluebook-labels";
 import { saveUpload } from "@/lib/upload";
 import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
 import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 import { handleRouteError, apiError, forbidden } from "@/lib/api-errors";
-
-const MAX_BLUEBOOK_BYTES = 8 * 1024 * 1024;
 
 export async function POST(request: Request) {
   const { session, error } = await requireRole([
@@ -53,7 +51,7 @@ export async function POST(request: Request) {
       return forbidden("Submission is locked. Contact the District Secretary to reopen.");
     }
 
-    const url = await saveUpload(file, "bluebook-reports", MAX_BLUEBOOK_BYTES);
+    const url = await saveUpload(file, "bluebook-reports", MAX_BLUEBOOK_UPLOAD_BYTES);
 
     const proofUrls = [...((existing?.proofUrls as string[] | null) ?? []), url];
 
