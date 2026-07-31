@@ -65,6 +65,18 @@ export function isCycleOpen(closesAt: Date, opensAt?: Date, now = new Date()) {
   return now <= closesAt;
 }
 
+/** Distinguish not-yet-open months from months whose deadline has passed. */
+export function getCycleWindowState(
+  closesAt: Date,
+  opensAt?: Date | null,
+  now = new Date()
+): "open" | "upcoming" | "closed" {
+  if (isSubmissionWindowsBypassEnabled()) return "open";
+  if (opensAt && now < new Date(opensAt)) return "upcoming";
+  if (now > new Date(closesAt)) return "closed";
+  return "open";
+}
+
 export const BLUEBOOK_ALLOWED_MIME = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",

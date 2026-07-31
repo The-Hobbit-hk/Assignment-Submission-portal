@@ -202,12 +202,29 @@ export function MyCouncilTasks() {
 
       {data?.cycle && (
         <p className="text-sm text-muted-foreground">
-          Submission deadline (last day of the month):{" "}
-          <strong className="text-foreground">
-            {formatIstDateTime(new Date(data.cycle.closesAt))}
-          </strong>
-          {stats?.submissionClosed && !stats?.testingMode && (
-            <span className="ml-2 font-medium text-destructive">· Submission Closed</span>
+          {stats?.submissionUpcoming ? (
+            <>
+              Opens{" "}
+              <strong className="text-foreground">
+                {formatIstDateTime(new Date(data.cycle.opensAt))}
+              </strong>
+              {" · "}
+              Closes{" "}
+              <strong className="text-foreground">
+                {formatIstDateTime(new Date(data.cycle.closesAt))}
+              </strong>
+              <span className="ml-2 font-medium text-amber-700">· Not open yet</span>
+            </>
+          ) : (
+            <>
+              Submission deadline (last day of the month):{" "}
+              <strong className="text-foreground">
+                {formatIstDateTime(new Date(data.cycle.closesAt))}
+              </strong>
+              {stats?.submissionClosed && !stats?.testingMode && (
+                <span className="ml-2 font-medium text-destructive">· Submission Closed</span>
+              )}
+            </>
           )}
           {stats?.testingMode && (
             <span className="ml-2 font-medium text-amber-600">· Testing mode (window open)</span>
@@ -215,9 +232,15 @@ export function MyCouncilTasks() {
         </p>
       )}
 
-      {!reviewDone && (
+      {!reviewDone && !stats?.submissionUpcoming && (
         <div className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">
           Please submit a combined report for all tasks.
+        </div>
+      )}
+      {stats?.submissionUpcoming && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          {periodLabel} opens on the 1st. You can view assigned tasks now, but submission starts
+          when the period opens.
         </div>
       )}
 
@@ -314,7 +337,11 @@ export function MyCouncilTasks() {
           </p>
         )}
         {!canSubmit && assignments.length > 0 && !alreadySubmitted && !stats?.testingMode && (
-          <p className="text-sm text-muted-foreground">Submission window is closed.</p>
+          <p className="text-sm text-muted-foreground">
+            {stats?.submissionUpcoming
+              ? "Submission opens on the 1st of this month."
+              : "Submission window is closed."}
+          </p>
         )}
       </div>
 

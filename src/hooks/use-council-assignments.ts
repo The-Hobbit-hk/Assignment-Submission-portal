@@ -33,6 +33,7 @@ export type MyCouncilTasksData = {
     closesAt: string;
     opensAt: string;
     isOpen: boolean;
+    windowState?: "open" | "upcoming" | "closed";
     periodLabel: string;
   };
   report: {
@@ -60,8 +61,11 @@ export type MyCouncilTasksData = {
     totalPossiblePoints: number;
     totalAwardedPoints: number;
     submissionDeadline: string;
+    submissionOpensAt?: string;
+    windowState?: "open" | "upcoming" | "closed";
     submissionOpen: boolean;
     submissionClosed: boolean;
+    submissionUpcoming?: boolean;
     submissionStatus: string;
     testingMode?: boolean;
   };

@@ -58,8 +58,8 @@ export async function GET(request: Request) {
     const cycleData = serializeCycle(cycle);
     const reportData = report ? serializeReport(report) : null;
     const isLocked = reportData != null && reportData.status !== "DRAFT";
-    const windowOpen =
-      isSubmissionWindowsBypassEnabled() || cycleData.isOpen;
+    const windowState = cycleData.windowState;
+    const windowOpen = windowState === "open";
 
     return NextResponse.json({
       month,
@@ -84,8 +84,11 @@ export async function GET(request: Request) {
         totalPossiblePoints: serialized.length,
         totalAwardedPoints: tasksCompleted,
         submissionDeadline: cycleData.closesAt,
+        submissionOpensAt: cycleData.opensAt,
+        windowState,
         submissionOpen: windowOpen && !isLocked,
-        submissionClosed: !windowOpen || isLocked,
+        submissionClosed: windowState === "closed" || isLocked,
+        submissionUpcoming: windowState === "upcoming" && !isLocked,
         testingMode: isSubmissionWindowsBypassEnabled(),
         submissionStatus: reportData?.status ?? "DRAFT",
       },

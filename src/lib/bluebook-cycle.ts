@@ -1,6 +1,6 @@
 import type { BluebookCycle, CouncilBluebookReport } from "@/generated/prisma/client";
 import { getReportingPeriodLabel } from "@/lib/reporting";
-import { isCycleOpen } from "@/lib/bluebook-labels";
+import { getCycleWindowState, isCycleOpen } from "@/lib/bluebook-labels";
 import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 import { istWallTime, lastDayOfMonth } from "@/lib/timezone";
 
@@ -14,6 +14,9 @@ export function getBluebookCycleWindow(month: number, year: number) {
 
 export function serializeCycle(cycle: BluebookCycle) {
   const now = new Date();
+  const windowState = isSubmissionWindowsBypassEnabled()
+    ? ("open" as const)
+    : getCycleWindowState(cycle.closesAt, cycle.opensAt, now);
   return {
     id: cycle.id,
     title: cycle.title,
@@ -23,6 +26,7 @@ export function serializeCycle(cycle: BluebookCycle) {
     opensAt: cycle.opensAt.toISOString(),
     closesAt: cycle.closesAt.toISOString(),
     isActive: cycle.isActive,
+    windowState,
     isOpen:
       isSubmissionWindowsBypassEnabled() ||
       (cycle.isActive && isCycleOpen(cycle.closesAt, cycle.opensAt, now)),
