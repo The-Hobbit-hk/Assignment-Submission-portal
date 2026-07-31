@@ -175,7 +175,12 @@ export function useAssignCitations() {
 export function useUpdateCitationAssignment(id: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { clubNotes?: string; submit?: boolean; saveDraft?: boolean }) =>
+    mutationFn: (data: {
+      clubNotes?: string;
+      completedAt?: string | null;
+      submit?: boolean;
+      saveDraft?: boolean;
+    }) =>
       apiJson<SerializedCitationAssignment>(`/api/citations/assignments/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

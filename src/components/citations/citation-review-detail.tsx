@@ -83,12 +83,22 @@ export function CitationReviewDetail({ assignmentId }: { assignmentId: string })
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="depth-card rounded-xl p-4">
+          <p className="text-xs text-muted-foreground">Date of completion</p>
+          <p className="mt-1 text-sm">
+            {data.completedAt
+              ? new Date(data.completedAt).toLocaleDateString("en-IN", {
+                  timeZone: "Asia/Kolkata",
+                })
+              : "Not provided."}
+          </p>
+        </div>
+        <div className="depth-card rounded-xl p-4">
           <p className="text-xs text-muted-foreground">Club notes</p>
           <p className="mt-1 text-sm whitespace-pre-wrap">
             {data.clubNotes || "No notes provided."}
           </p>
         </div>
-        <div className="depth-card rounded-xl p-4">
+        <div className="depth-card rounded-xl p-4 sm:col-span-2">
           <p className="text-xs text-muted-foreground">Proof</p>
           {data.proofUrl ? (
             <a

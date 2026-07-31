@@ -45,6 +45,8 @@ export const assignCitationsSchema = z.object({
 
 export const updateCitationAssignmentSchema = z.object({
   clubNotes: z.string().max(5000).optional(),
+  /** ISO date or datetime — when the club completed the criterion */
+  completedAt: z.string().min(1).optional().nullable(),
   submit: z.boolean().optional(),
   saveDraft: z.boolean().optional(),
 });

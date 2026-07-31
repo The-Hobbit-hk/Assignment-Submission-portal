@@ -251,6 +251,8 @@ model CitationAssignment {
   status          CitationAssignmentStatus @default(ASSIGNED)
   proofUrl        String?
   clubNotes       String?                  @db.Text
+  /** When the club says the criterion was completed */
+  completedAt     DateTime?
   submittedAt     DateTime?
   reviewedById    String?
   reviewedBy      User?                    @relation("CitationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)

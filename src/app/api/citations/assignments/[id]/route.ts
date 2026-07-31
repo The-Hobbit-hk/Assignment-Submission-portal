@@ -84,6 +84,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const data: {
       clubNotes?: string;
+      completedAt?: Date | null;
       status?: "DRAFT" | "SUBMITTED" | "ASSIGNED";
       submittedAt?: Date | null;
     } = {};
@@ -92,9 +93,28 @@ export async function PUT(request: Request, { params }: RouteParams) {
       data.clubNotes = parsed.data.clubNotes;
     }
 
+    if (parsed.data.completedAt !== undefined) {
+      if (parsed.data.completedAt === null || parsed.data.completedAt === "") {
+        data.completedAt = null;
+      } else {
+        const completed = new Date(parsed.data.completedAt);
+        if (Number.isNaN(completed.getTime())) {
+          return apiError("Invalid date of completion.", 400);
+        }
+        if (completed.getTime() > Date.now()) {
+          return apiError("Date of completion cannot be in the future.", 400);
+        }
+        data.completedAt = completed;
+      }
+    }
+
     if (parsed.data.submit) {
       if (!assignment.proofUrl) {
         return apiError("Upload proof before submitting.", 400);
+      }
+      const completedAt = data.completedAt ?? assignment.completedAt;
+      if (!completedAt) {
+        return apiError("Select the date of completion before submitting.", 400);
       }
       data.status = "SUBMITTED";
       data.submittedAt = new Date();

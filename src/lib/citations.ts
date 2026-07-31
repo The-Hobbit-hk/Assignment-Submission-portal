@@ -79,6 +79,7 @@ export function serializeCitationAssignment(row: AssignmentWithRelations) {
     status: effectiveCitationStatus(row.status, row.dueDate) as typeof row.status,
     proofUrl: row.proofUrl,
     clubNotes: row.clubNotes,
+    completedAt: row.completedAt?.toISOString() ?? null,
     submittedAt: row.submittedAt?.toISOString() ?? null,
     reviewedAt: row.reviewedAt?.toISOString() ?? null,
     reviewerComment: row.reviewerComment,

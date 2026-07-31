@@ -38,6 +38,7 @@ export type SerializedCitationAssignment = {
   status: CitationAssignmentStatus;
   proofUrl: string | null;
   clubNotes: string | null;
+  completedAt: string | null;
   submittedAt: string | null;
   reviewedAt: string | null;
   reviewerComment: string | null;

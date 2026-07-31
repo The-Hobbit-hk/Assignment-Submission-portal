@@ -6,6 +6,8 @@ import { CitationAssignmentCard } from "@/components/citations/citation-assignme
 import { CitationStatusBadge } from "@/components/citations/citation-status-badge";
 import { ReportingFileUpload } from "@/components/reporting/reporting-file-upload";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -21,24 +23,45 @@ import {
 } from "@/lib/citations-shared";
 import { toast } from "@/lib/toast";
 
+function toDateInputValue(iso: string | null | undefined) {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+}
+
+function fromDateInputValue(date: string) {
+  if (!date) return null;
+  return `${date}T12:00:00+05:30`;
+}
+
 function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAssignment }) {
   const update = useUpdateCitationAssignment(assignment.id);
   const [notes, setNotes] = useState(assignment.clubNotes ?? "");
   const [proofUrl, setProofUrl] = useState<string | null>(assignment.proofUrl);
+  const [completedDate, setCompletedDate] = useState(toDateInputValue(assignment.completedAt));
 
   const editable = isCitationEditable(assignment.status, assignment.dueDate);
   const incomplete = assignment.status === "EXPIRED";
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+
+  const payload = () => ({
+    clubNotes: notes,
+    completedAt: fromDateInputValue(completedDate),
+  });
 
   const saveDraft = () => {
     update.mutate(
-      { clubNotes: notes, saveDraft: true },
+      { ...payload(), saveDraft: true },
       { onSuccess: () => toast.success("Draft saved") }
     );
   };
 
   const submit = () => {
+    if (!completedDate) {
+      toast.error("Select the date of completion");
+      return;
+    }
     update.mutate(
-      { clubNotes: notes, submit: true },
+      { ...payload(), submit: true },
       { onSuccess: () => toast.success("Submitted for DRR review") }
     );
   };
@@ -67,7 +90,17 @@ function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAss
           Approved — {assignment.awardedPoints} points awarded.
         </p>
       ) : assignment.status === "SUBMITTED" ? (
-        <p className="text-sm text-muted-foreground">Awaiting DRR review.</p>
+        <div className="space-y-1 text-sm text-muted-foreground">
+          <p>Awaiting DRR review.</p>
+          {assignment.completedAt && (
+            <p>
+              Completed on{" "}
+              {new Date(assignment.completedAt).toLocaleDateString("en-IN", {
+                timeZone: "Asia/Kolkata",
+              })}
+            </p>
+          )}
+        </div>
       ) : incomplete ? (
         <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
           Deadline passed — marked Incomplete. Submission is disabled.
@@ -76,6 +109,7 @@ function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAss
         <>
           <ol className="list-decimal space-y-1 pl-4 text-xs text-muted-foreground">
             <li>Upload a proof document (required).</li>
+            <li>Select the date of completion (required).</li>
             <li>Add optional notes, then click Submit for review.</li>
           </ol>
           <ReportingFileUpload
@@ -87,8 +121,21 @@ function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAss
             }}
             onClear={() => setProofUrl(null)}
           />
+          <div className="space-y-1.5">
+            <Label htmlFor={`completed-${assignment.id}`} className="text-xs font-medium text-muted-foreground">
+              2. Date of completion
+            </Label>
+            <Input
+              id={`completed-${assignment.id}`}
+              type="date"
+              value={completedDate}
+              max={today}
+              onChange={(e) => setCompletedDate(e.target.value)}
+              className="max-w-xs border-border/60 bg-transparent"
+            />
+          </div>
           <Textarea
-            placeholder="2. Club notes (optional)"
+            placeholder="3. Club notes (optional)"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
@@ -98,14 +145,18 @@ function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAss
               {update.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               Save draft
             </Button>
-            <Button size="sm" onClick={submit} disabled={update.isPending || !proofUrl}>
+            <Button
+              size="sm"
+              onClick={submit}
+              disabled={update.isPending || !proofUrl || !completedDate}
+            >
               <Send className="h-4 w-4" />
-              3. Submit for review
+              4. Submit for review
             </Button>
           </div>
-          {!proofUrl && (
+          {(!proofUrl || !completedDate) && (
             <p className="text-xs text-muted-foreground">
-              Submit stays disabled until a proof file is uploaded.
+              Submit stays disabled until proof is uploaded and a completion date is selected.
             </p>
           )}
         </>
