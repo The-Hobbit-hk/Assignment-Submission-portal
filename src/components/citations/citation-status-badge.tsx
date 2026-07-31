@@ -7,7 +7,7 @@ const VARIANTS: Record<
   "success" | "warning" | "destructive" | "secondary" | "default"
 > = {
   APPROVED: "success",
-  SUBMITTED: "default",
+  SUBMITTED: "warning",
   DRAFT: "secondary",
   ASSIGNED: "secondary",
   REJECTED: "destructive",
@@ -16,5 +16,18 @@ const VARIANTS: Record<
 
 export function CitationStatusBadge({ status }: { status: string }) {
   const variant = VARIANTS[status as CitationAssignmentStatus] ?? "secondary";
-  return <Badge variant={variant}>{citationStatusLabel(status)}</Badge>;
+  return (
+    <Badge
+      variant={variant}
+      className={
+        variant === "warning"
+          ? "bg-amber-100 text-amber-900 border-transparent"
+          : variant === "success"
+            ? "bg-emerald-100 text-emerald-900 border-transparent"
+            : undefined
+      }
+    >
+      {citationStatusLabel(status)}
+    </Badge>
+  );
 }
