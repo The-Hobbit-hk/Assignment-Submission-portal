@@ -55,13 +55,17 @@ export const BLUEBOOK_ALLOWED_MIME = [
   "image/webp",
 ] as const;
 
-/** Keep under Vercel's ~4.5 MB serverless request body limit. */
-export const MAX_BLUEBOOK_UPLOAD_BYTES = 4 * 1024 * 1024;
-export const MAX_BLUEBOOK_UPLOAD_LABEL = "4 MB";
+/** Under Vercel body limits we use signed Supabase uploads for large files. */
+export const MAX_BLUEBOOK_UPLOAD_BYTES = 10 * 1024 * 1024;
+export const MAX_BLUEBOOK_UPLOAD_LABEL = "10 MB";
 
-export function isAllowedBluebookFile(file: File) {
+export function isAllowedBluebookFile(file: {
+  type: string;
+  name: string;
+}) {
   return (
     BLUEBOOK_ALLOWED_MIME.includes(file.type as (typeof BLUEBOOK_ALLOWED_MIME)[number]) ||
-    file.name.toLowerCase().endsWith(".pdf")
+    file.name.toLowerCase().endsWith(".pdf") ||
+    file.name.toLowerCase().endsWith(".docx")
   );
 }

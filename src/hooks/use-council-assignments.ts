@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
-import { apiJson } from "@/lib/api-client";
+import { apiJson, ApiError } from "@/lib/api-client";
 import type {
   CouncilBluebookSummary,
   CouncilMemberBluebookRow,
@@ -171,12 +171,57 @@ export function useSubmitCouncilReport(month: number, year: number) {
 }
 
 export async function uploadCouncilReportProof(month: number, year: number, file: File) {
-  const fd = new FormData();
-  fd.append("file", file);
-  return apiJson(`/api/bluebook/reports/upload?month=${month}&year=${year}`, {
-    method: "POST",
-    body: fd,
-  });
+  // Prefer signed direct-to-Supabase upload so 10 MB files bypass Vercel's body limit.
+  try {
+    const signed = await apiJson<{
+      path: string;
+      token: string;
+      signedUrl: string;
+      publicUrl: string;
+    }>(`/api/bluebook/reports/upload/sign?month=${month}&year=${year}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType: file.type || "application/octet-stream",
+        size: file.size,
+      }),
+    });
+
+    const put = await fetch(signed.signedUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type || "application/octet-stream",
+        "x-upsert": "false",
+      },
+      body: file,
+    });
+
+    if (!put.ok) {
+      const detail = await put.text().catch(() => "");
+      throw new ApiError(
+        detail.trim() || "Could not upload file to storage. Please try again.",
+        put.status || 500
+      );
+    }
+
+    return apiJson(`/api/bluebook/reports/upload/complete?month=${month}&year=${year}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: signed.path }),
+    });
+  } catch (err) {
+    // Local/dev without Supabase: fall back to multipart for smaller files.
+    if (err instanceof ApiError && err.status === 500 && file.size <= 4 * 1024 * 1024) {
+      const fd = new FormData();
+      fd.append("file", file);
+      return apiJson(`/api/bluebook/reports/upload?month=${month}&year=${year}`, {
+        method: "POST",
+        body: fd,
+      });
+    }
+    throw err;
+  }
 }
 
 export function useReopenCouncilReport() {

@@ -6,7 +6,7 @@ values (
   'uploads',
   'uploads',
   true,
-  8388608,
+  10485760,
   array[
     'image/jpeg',
     'image/png',

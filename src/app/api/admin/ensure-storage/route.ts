@@ -34,16 +34,21 @@ export async function POST() {
 
   const exists = buckets?.some((b) => b.name === bucket || b.id === bucket);
   if (exists) {
+    await supabase.storage.updateBucket(bucket, {
+      public: true,
+      fileSizeLimit: 10 * 1024 * 1024,
+      allowedMimeTypes: ALLOWED_MIME,
+    });
     return NextResponse.json({
       ok: true,
-      message: `Storage bucket "${bucket}" already exists.`,
+      message: `Storage bucket "${bucket}" already exists (limit refreshed to 10 MB).`,
       bucket,
     });
   }
 
   const { error: createError } = await supabase.storage.createBucket(bucket, {
     public: true,
-    fileSizeLimit: 8 * 1024 * 1024,
+    fileSizeLimit: 10 * 1024 * 1024,
     allowedMimeTypes: ALLOWED_MIME,
   });
 

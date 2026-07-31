@@ -16,7 +16,7 @@ const STATUS_MESSAGES: Record<number, string> = {
   403: "You don't have permission to do this.",
   404: "The requested item was not found.",
   409: "This action conflicts with existing data.",
-  413: "This file is too large. Please upload a smaller file (max 4 MB).",
+  413: "This file is too large. Please upload a smaller file (max 10 MB).",
   422: "Some fields are invalid. Please review and try again.",
   429: "Too many requests. Please wait a moment and try again.",
   500: "Something went wrong. Please try again.",

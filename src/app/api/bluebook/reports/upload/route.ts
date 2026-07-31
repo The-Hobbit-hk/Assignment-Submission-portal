@@ -1,18 +1,24 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { requireRole } from "@/lib/api-auth";
-import { getOrCreateCycle, serializeReport } from "@/lib/bluebook-cycle";
-import { isAllowedBluebookFile, isCycleOpen, MAX_BLUEBOOK_UPLOAD_BYTES } from "@/lib/bluebook-labels";
 import { saveUpload } from "@/lib/upload";
-import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
-import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
-import { handleRouteError, apiError, forbidden } from "@/lib/api-errors";
+import {
+  apiError,
+  assertBluebookReportUploadable,
+  attachBluebookProofUrl,
+  handleRouteError,
+  isAllowedBluebookFile,
+  isSupabaseStorageEnabled,
+  MAX_BLUEBOOK_UPLOAD_BYTES,
+  requireBluebookUploader,
+  serializeReport,
+} from "@/lib/bluebook-report-upload";
 
+/**
+ * Legacy multipart upload (local / small files).
+ * Production clients should use /sign + direct Supabase upload + /complete
+ * so files can be up to 10 MB without hitting Vercel's ~4.5 MB body limit.
+ */
 export async function POST(request: Request) {
-  const { session, error } = await requireRole([
-    ...COUNCIL_BLUEBOOK_PARTICIPANT_ROLES,
-    ...DISTRICT_ROLES,
-  ]);
+  const { session, error } = await requireBluebookUploader();
   if (error) return error;
 
   const { searchParams } = new URL(request.url);
@@ -23,16 +29,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const cycle = await getOrCreateCycle(prisma, month, year);
-
-    if (
-      !isSubmissionWindowsBypassEnabled() &&
-      (!cycle.isActive || !isCycleOpen(cycle.closesAt, cycle.opensAt))
-    ) {
-      return forbidden(
-        "Submission window is closed. Blue Book submissions are only accepted until the last day of the month."
-      );
-    }
+    const gate = await assertBluebookReportUploadable(session!, month, year);
+    if (!gate.ok) return gate.response;
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -43,32 +41,24 @@ export async function POST(request: Request) {
       return apiError("Allowed formats: PDF, DOCX, JPG, PNG.", 400);
     }
 
-    const existing = await prisma.councilBluebookReport.findUnique({
-      where: { cycleId_assigneeId: { cycleId: cycle.id, assigneeId: session!.user.id } },
-    });
-
-    if (existing && existing.status !== "DRAFT") {
-      return forbidden("Submission is locked. Contact the District Secretary to reopen.");
-    }
-
     const url = await saveUpload(file, "bluebook-reports", MAX_BLUEBOOK_UPLOAD_BYTES);
 
-    const proofUrls = [...((existing?.proofUrls as string[] | null) ?? []), url];
-
-    const report = await prisma.councilBluebookReport.upsert({
-      where: { cycleId_assigneeId: { cycleId: cycle.id, assigneeId: session!.user.id } },
-      create: {
-        cycleId: cycle.id,
-        assigneeId: session!.user.id,
-        proofUrls,
-        status: "DRAFT",
-      },
-      update: { proofUrls },
-      include: { cycle: true, assignee: { select: { id: true, name: true, email: true } } },
-    });
+    const report = await attachBluebookProofUrl(
+      gate.cycleId,
+      session!.user.id,
+      url,
+      gate.existingProofUrls
+    );
 
     return NextResponse.json(serializeReport(report));
   } catch (e) {
+    // If multipart hits the platform body limit, steer clients to signed uploads.
+    if (isSupabaseStorageEnabled()) {
+      return apiError(
+        "File is too large for direct server upload. Please retry — the app will use a secure large-file upload.",
+        413
+      );
+    }
     return handleRouteError(e, "Upload failed.");
   }
 }
