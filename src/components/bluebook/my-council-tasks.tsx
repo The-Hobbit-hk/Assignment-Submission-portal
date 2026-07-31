@@ -175,17 +175,24 @@ export function MyCouncilTasks() {
       )}
 
       {reviewDone && assignments.length > 0 && (
-        <div className="rounded-xl border border-green-500/25 bg-green-50/80 px-4 py-3 text-sm text-green-900 dark:bg-green-950/20 dark:text-green-300">
-          <p className="font-semibold">Review summary for {periodLabel}</p>
-          <p className="mt-1">
-            {completed} complete · {incomplete} incomplete
-            {stats?.completionPercent != null ? ` · ${stats.completionPercent}% completion` : ""}
+        <div className="rounded-xl border border-border/60 bg-card px-4 py-4 text-sm text-foreground shadow-sm">
+          <p className="font-semibold text-foreground">Review summary for {periodLabel}</p>
+          <p className="mt-1 text-muted-foreground">
+            <span className="font-medium text-foreground">{completed} complete</span>
+            {" · "}
+            <span className="font-medium text-foreground">{incomplete} incomplete</span>
+            {stats?.completionPercent != null ? (
+              <>
+                {" · "}
+                <span className="font-medium text-foreground">{stats.completionPercent}% completion</span>
+              </>
+            ) : null}
             {report?.reviewedAt
               ? ` · Reviewed ${new Date(report.reviewedAt).toLocaleString("en-IN")}`
               : ""}
           </p>
           {report?.reviewerComment && (
-            <p className="mt-2 text-sm">
+            <p className="mt-3 rounded-lg border border-border/50 bg-muted/40 p-3 text-foreground">
               <span className="font-medium">District Secretary note:</span>{" "}
               {report.reviewerComment}
             </p>
