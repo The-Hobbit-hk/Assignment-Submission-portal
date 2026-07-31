@@ -58,6 +58,9 @@ export function MyCouncilTasks() {
   const assignments = data?.assignments ?? [];
   const canSubmit = stats?.submissionOpen && assignments.length > 0;
   const alreadySubmitted = report?.status === "SUBMITTED" || report?.status === "APPROVED";
+  const reviewDone = Boolean(stats?.reviewDone);
+  const incomplete = stats?.tasksIncomplete ?? 0;
+  const completed = stats?.tasksCompleted ?? stats?.totalAwardedPoints ?? 0;
 
   const submissionLabel = reportStatusLabel(
     report?.status ?? stats?.submissionStatus ?? "DRAFT",
@@ -128,7 +131,11 @@ export function MyCouncilTasks() {
     <div className="space-y-6">
       <PageHeading
         title="My Bluebook"
-        subtitle={`Your assigned tasks and Blue Book submission for ${periodLabel}.`}
+        subtitle={
+          reviewDone
+            ? `Review results for ${periodLabel} — see which tasks were marked complete or incomplete.`
+            : `Your assigned tasks and Blue Book submission for ${periodLabel}.`
+        }
       />
 
       <div className="flex flex-wrap items-end gap-3">
@@ -149,9 +156,10 @@ export function MyCouncilTasks() {
       </div>
 
       {stats && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard label="Tasks assigned" value={String(stats.totalTasks)} />
-          <StatCard label="Tasks completed" value={String(stats.tasksCompleted ?? stats.totalAwardedPoints)} />
+          <StatCard label="Complete" value={String(completed)} />
+          <StatCard label="Incomplete" value={String(incomplete)} />
           <StatCard
             label="Completion"
             value={
@@ -163,6 +171,25 @@ export function MyCouncilTasks() {
             }
           />
           <StatCard label="Submission status" value={submissionLabel} accent />
+        </div>
+      )}
+
+      {reviewDone && assignments.length > 0 && (
+        <div className="rounded-xl border border-green-500/25 bg-green-50/80 px-4 py-3 text-sm text-green-900 dark:bg-green-950/20 dark:text-green-300">
+          <p className="font-semibold">Review summary for {periodLabel}</p>
+          <p className="mt-1">
+            {completed} complete · {incomplete} incomplete
+            {stats?.completionPercent != null ? ` · ${stats.completionPercent}% completion` : ""}
+            {report?.reviewedAt
+              ? ` · Reviewed ${new Date(report.reviewedAt).toLocaleString("en-IN")}`
+              : ""}
+          </p>
+          {report?.reviewerComment && (
+            <p className="mt-2 text-sm">
+              <span className="font-medium">District Secretary note:</span>{" "}
+              {report.reviewerComment}
+            </p>
+          )}
         </div>
       )}
 
@@ -181,25 +208,30 @@ export function MyCouncilTasks() {
         </p>
       )}
 
-      <div className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">
-        Please submit a combined report for all tasks.
-      </div>
+      {!reviewDone && (
+        <div className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-medium text-foreground">
+          Please submit a combined report for all tasks.
+        </div>
+      )}
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">Assigned tasks</h2>
-          <div className="table-scroll rounded-lg border border-border/40">
+        <h2 className="text-lg font-semibold text-foreground">
+          {reviewDone ? "Task results" : "Assigned tasks"}
+        </h2>
+        <div className="table-scroll rounded-lg border border-border/40">
           <Table className="ref-table min-w-[720px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Task</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Result</TableHead>
+                <TableHead className="hidden md:table-cell">Feedback</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {assignments.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
+                  <TableCell colSpan={4} className="text-center text-muted-foreground">
                     No tasks assigned for this period.
                   </TableCell>
                 </TableRow>
@@ -217,7 +249,14 @@ export function MyCouncilTasks() {
                       )}
                     </TableCell>
                     <TableCell className="align-top">
-                      <BluebookStatusBadge status={task.status} />
+                      <BluebookStatusBadge status={task.status} outcome />
+                    </TableCell>
+                    <TableCell className="hidden max-w-xs align-top text-sm text-muted-foreground md:table-cell">
+                      {task.reviewerComment?.trim()
+                        ? task.reviewerComment
+                        : task.status === "APPROVED" || task.status === "REJECTED"
+                          ? "—"
+                          : "Awaiting review"}
                     </TableCell>
                   </TableRow>
                 ))
@@ -253,10 +292,14 @@ export function MyCouncilTasks() {
         <Button
           size="lg"
           className="bg-accent px-8 text-accent-foreground"
-          disabled={!canSubmit || alreadySubmitted}
+          disabled={!canSubmit || alreadySubmitted || reviewDone}
           onClick={openSubmitDialog}
         >
-          {alreadySubmitted ? "Blue Book submitted" : "Submit Blue Book"}
+          {reviewDone
+            ? "Review complete"
+            : alreadySubmitted
+              ? "Blue Book submitted"
+              : "Submit Blue Book"}
         </Button>
         {alreadySubmitted && report?.submittedAt && (
           <p className="text-sm text-green-600">

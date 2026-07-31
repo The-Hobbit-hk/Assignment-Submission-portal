@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
 import { serializeCouncilAssignment } from "@/lib/council-bluebook";
 import { getOrCreateCycle, serializeCycle, serializeReport } from "@/lib/bluebook-cycle";
-import { taskStatusLabel } from "@/lib/bluebook-labels";
+import { memberTaskOutcomeLabel, taskStatusLabel } from "@/lib/bluebook-labels";
 import { COUNCIL_BLUEBOOK_PARTICIPANT_ROLES, DISTRICT_ROLES } from "@/lib/roles";
 import { isSubmissionWindowsBypassEnabled } from "@/lib/submission-windows";
 import { handleRouteError } from "@/lib/api-errors";
@@ -42,6 +42,15 @@ export async function GET(request: Request) {
 
     const serialized = assignments.map(serializeCouncilAssignment);
     const tasksCompleted = serialized.filter((a) => a.status === "APPROVED").length;
+    const tasksIncomplete = serialized.filter((a) => a.status === "REJECTED").length;
+    const tasksUnderReview = serialized.filter((a) => a.status === "SUBMITTED").length;
+    const tasksPending = serialized.filter(
+      (a) => a.status === "DRAFT" || a.status === "EXPIRED"
+    ).length;
+    const reviewedCount = tasksCompleted + tasksIncomplete;
+    const reviewDone =
+      report?.status === "APPROVED" ||
+      (serialized.length > 0 && reviewedCount === serialized.length);
     const completionPercent =
       serialized.length === 0
         ? null
@@ -60,10 +69,16 @@ export async function GET(request: Request) {
       assignments: serialized.map((a) => ({
         ...a,
         statusLabel: taskStatusLabel(a.status),
+        outcomeLabel: memberTaskOutcomeLabel(a.status),
       })),
       stats: {
         totalTasks: serialized.length,
         tasksCompleted,
+        tasksIncomplete,
+        tasksUnderReview,
+        tasksPending,
+        reviewedCount,
+        reviewDone,
         completionPercent,
         // Legacy aliases
         totalPossiblePoints: serialized.length,

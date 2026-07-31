@@ -41,11 +41,21 @@ export type MyCouncilTasksData = {
     proofUrls: string[];
     status: string;
     submittedAt: string | null;
+    reviewedAt?: string | null;
+    reviewerComment?: string | null;
   } | null;
-  assignments: SerializedCouncilAssignment[];
+  assignments: (SerializedCouncilAssignment & {
+    statusLabel?: string;
+    outcomeLabel?: string;
+  })[];
   stats: {
     totalTasks: number;
     tasksCompleted: number;
+    tasksIncomplete?: number;
+    tasksUnderReview?: number;
+    tasksPending?: number;
+    reviewedCount?: number;
+    reviewDone?: boolean;
     completionPercent: number | null;
     totalPossiblePoints: number;
     totalAwardedPoints: number;

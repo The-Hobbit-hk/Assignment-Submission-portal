@@ -19,6 +19,24 @@ export function taskStatusLabel(status: BluebookSubmissionStatus | string): stri
   }
 }
 
+/** Member-facing outcome after District Secretary marks Complete / Incomplete. */
+export function memberTaskOutcomeLabel(status: BluebookSubmissionStatus | string): string {
+  switch (status) {
+    case "APPROVED":
+      return "Complete";
+    case "REJECTED":
+      return "Incomplete";
+    case "SUBMITTED":
+      return "Under review";
+    case "DRAFT":
+      return "Not submitted";
+    case "EXPIRED":
+      return "Expired";
+    default:
+      return taskStatusLabel(status);
+  }
+}
+
 /** Aggregate Blue Book submission status for a council member in a cycle. */
 export function reportStatusLabel(
   status: BluebookSubmissionStatus | string,
