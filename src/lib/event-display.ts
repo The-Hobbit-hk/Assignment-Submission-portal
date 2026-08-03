@@ -45,6 +45,24 @@ export function eventIsOngoing(
   return now >= event.startDate && now <= getEventEndDate(event);
 }
 
+/**
+ * Effective lifecycle status from dates.
+ * CANCELLED is preserved; otherwise UPCOMING / ONGOING / COMPLETED follow the calendar.
+ */
+export function deriveEventStatus(
+  event: {
+    status?: string | null;
+    startDate: Date;
+    endDate?: Date | null;
+  },
+  now: Date = new Date()
+): "UPCOMING" | "ONGOING" | "COMPLETED" | "CANCELLED" {
+  if (event.status === "CANCELLED") return "CANCELLED";
+  if (now > getEventEndDate(event)) return "COMPLETED";
+  if (now >= event.startDate) return "ONGOING";
+  return "UPCOMING";
+}
+
 export type EventLifecycle = "upcoming" | "ongoing" | "completed";
 
 export function getEventLifecycle(
@@ -55,8 +73,9 @@ export function getEventLifecycle(
   },
   now: Date = new Date()
 ): EventLifecycle {
-  if (eventHasEnded(event, now)) return "completed";
-  if (eventIsOngoing(event, now)) return "ongoing";
+  const status = deriveEventStatus(event, now);
+  if (status === "COMPLETED" || status === "CANCELLED") return "completed";
+  if (status === "ONGOING") return "ongoing";
   return "upcoming";
 }
 

@@ -1,5 +1,6 @@
 import type { Event, Club, EventGallery, EventRegistration, Member } from "@/generated/prisma/client";
 import type { Prisma } from "@/generated/prisma/client";
+import { deriveEventStatus } from "@/lib/event-display";
 
 type EventWithRelations = Event & {
   club: Pick<Club, "id" | "name"> | null;
@@ -18,7 +19,7 @@ export function serializeEvent(e: EventWithRelations) {
     hostedBy: e.hostedBy,
     collaborations: e.collaborations,
     type: e.type,
-    status: e.status,
+    status: deriveEventStatus(e),
     clubId: e.clubId,
     club: e.club,
     attendees: e.attendees,

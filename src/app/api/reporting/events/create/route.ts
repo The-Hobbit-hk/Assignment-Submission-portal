@@ -8,6 +8,7 @@ import { reportingEventSchema } from "@/lib/validators/reporting";
 import { isClubUser } from "@/lib/roles";
 import { logActivity } from "@/lib/activity";
 import { saveUpload } from "@/lib/upload";
+import { deriveEventStatus } from "@/lib/event-display";
 import { validationError, handleRouteError, apiError } from "@/lib/api-errors";
 
 const eventInclude = {
@@ -70,7 +71,10 @@ export async function POST(request: Request) {
         hostedBy: d.hostedBy,
         collaborations: d.collaborations,
         type: d.type,
-        status: "UPCOMING",
+        status: deriveEventStatus({
+          startDate,
+          endDate: d.endDate ? new Date(d.endDate) : null,
+        }),
         clubId,
         attendees: d.attendees ?? 0,
         minutesPdfUrl,

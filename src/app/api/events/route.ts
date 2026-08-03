@@ -6,6 +6,7 @@ import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
 import { buildEventWhere, serializeEvent } from "@/lib/event";
 import { createEventSchema, eventQuerySchema } from "@/lib/validators/event";
 import { logActivity } from "@/lib/activity";
+import { deriveEventStatus } from "@/lib/event-display";
 import { validationError, handleRouteError, forbidden } from "@/lib/api-errors";
 import type { UserRole } from "@/types/auth";
 
@@ -89,19 +90,29 @@ export async function POST(request: Request) {
       isClubUser(role) && session!.user.clubId
         ? session!.user.clubId
         : d.clubId;
+    const startDate = new Date(d.startDate);
+    const endDate = d.endDate ? new Date(d.endDate) : undefined;
+    const status =
+      d.status === "CANCELLED"
+        ? "CANCELLED"
+        : deriveEventStatus({
+            status: d.status,
+            startDate,
+            endDate: endDate ?? null,
+          });
 
     const event = await prisma.event.create({
       data: {
         title: d.title,
         description: d.description,
-        startDate: new Date(d.startDate),
-        endDate: d.endDate ? new Date(d.endDate) : undefined,
+        startDate,
+        endDate,
         location: d.location,
         hostedBy: d.hostedBy,
         collaborations: d.collaborations,
         type: d.type,
         attendees: d.attendees ?? 0,
-        status: d.status,
+        status,
         clubId: resolvedClubId,
         maxAttendees: d.maxAttendees,
         registrationOpensAt: d.registrationOpensAt

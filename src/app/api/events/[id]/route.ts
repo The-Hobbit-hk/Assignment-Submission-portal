@@ -5,6 +5,7 @@ import { canManageEvents, isClubUser } from "@/lib/roles";
 import { canAccessClubRecord, canManageEventRecord } from "@/lib/club-access";
 import { serializeEvent } from "@/lib/event";
 import { updateEventSchema } from "@/lib/validators/event";
+import { deriveEventStatus } from "@/lib/event-display";
 import { validationError, handleRouteError, notFound, forbidden } from "@/lib/api-errors";
 import type { UserRole } from "@/types/auth";
 
@@ -68,7 +69,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
   try {
     const existing = await prisma.event.findUnique({
       where: { id },
-      select: { id: true, clubId: true },
+      select: { id: true, clubId: true, startDate: true, endDate: true, status: true },
     });
     if (!existing) return notFound("Not found.");
     if (!canManageEventRecord(sessionUser, existing.clubId)) {
@@ -87,13 +88,31 @@ export async function PUT(request: Request, { params }: RouteParams) {
       ? session!.user.clubId ?? existing.clubId
       : d.clubId;
 
+    const startDate = d.startDate ? new Date(d.startDate) : existing.startDate;
+    const endDate =
+      d.endDate !== undefined
+        ? d.endDate
+          ? new Date(d.endDate)
+          : null
+        : existing.endDate;
+    const requestedStatus = d.status ?? existing.status;
+    const status =
+      requestedStatus === "CANCELLED"
+        ? "CANCELLED"
+        : deriveEventStatus({
+            status: requestedStatus,
+            startDate,
+            endDate,
+          });
+
     const event = await prisma.event.update({
       where: { id },
       data: {
         ...d,
         clubId: nextClubId,
-        startDate: d.startDate ? new Date(d.startDate) : undefined,
-        endDate: d.endDate ? new Date(d.endDate) : undefined,
+        status,
+        startDate: d.startDate ? startDate : undefined,
+        endDate: d.endDate !== undefined ? endDate : undefined,
         registrationOpensAt:
           d.registrationOpensAt === undefined
             ? undefined

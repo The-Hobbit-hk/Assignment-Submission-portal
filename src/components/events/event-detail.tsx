@@ -54,7 +54,20 @@ export function EventDetail({ eventId }: { eventId: string }) {
           <CardContent className="space-y-3 text-sm">
             <p>{event.description ?? "No description."}</p>
             <div className="flex flex-wrap gap-2">
-              <Badge>{getEventTypeLabel(event.type)}</Badge><Badge variant="outline">{event.status}</Badge>
+              <Badge>{getEventTypeLabel(event.type)}</Badge>
+              <Badge
+                variant={
+                  event.status === "COMPLETED"
+                    ? "success"
+                    : event.status === "CANCELLED"
+                      ? "destructive"
+                      : event.status === "ONGOING"
+                        ? "warning"
+                        : "outline"
+                }
+              >
+                {event.status}
+              </Badge>
             </div>
             <p><strong>Date:</strong> {new Date(event.startDate).toLocaleString()}</p>
             {event.location && <p><strong>Location:</strong> {event.location}</p>}
