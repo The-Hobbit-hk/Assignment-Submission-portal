@@ -122,7 +122,6 @@ export async function POST(request: Request) {
           ? new Date(d.registrationClosesAt)
           : undefined,
         onSiteRegistration: d.onSiteRegistration ?? false,
-        serviceHours: d.serviceHours ?? 0,
         budget: d.budget,
         forDistrictNewsletter: d.forDistrictNewsletter === true,
       },

@@ -65,7 +65,7 @@ export function ClubEventsList({ clubId }: ClubEventsListProps) {
                     {event.status}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {event.attendees} attendees · {event.serviceHours}h
+                    {event.attendees} attendees
                   </span>
                 </div>
               </div>

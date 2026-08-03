@@ -66,7 +66,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
     const data = parsed.data;
 
-    // Club logins cannot change status, charter number, service hours, or the
+    // Club logins cannot change status, charter number, or the
     // president/secretary assignments — only their public-facing profile.
     const scoped = isManager
       ? data

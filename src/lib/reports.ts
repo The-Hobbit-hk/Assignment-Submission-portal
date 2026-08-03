@@ -31,7 +31,7 @@ export async function getClubReportData() {
     orderBy: { name: "asc" },
     include: { _count: { select: { members: true, events: true } } },
   });
-  const headers = ["Club", "City", "Zone", "Status", "Members", "Events", "Service Hours"];
+  const headers = ["Club", "City", "Zone", "Status", "Members", "Events"];
   const rows = clubs.map((c) => [
     c.name,
     c.city ?? "",
@@ -39,7 +39,6 @@ export async function getClubReportData() {
     c.status,
     c._count.members,
     c._count.events,
-    c.serviceHours,
   ]);
   return { title: "Club Report — District 3131", headers, rows };
 }
@@ -49,7 +48,7 @@ export async function getEventReportData() {
     orderBy: { startDate: "desc" },
     include: { club: { select: { name: true } }, _count: { select: { registrations: true } } },
   });
-  const headers = ["Title", "Type", "Status", "Date", "Club", "Attendees", "Registrations", "Service Hours"];
+  const headers = ["Title", "Type", "Status", "Date", "Club", "Attendees", "Registrations"];
   const rows = events.map((e) => [
     e.title,
     e.type,
@@ -58,7 +57,6 @@ export async function getEventReportData() {
     e.club?.name ?? "District",
     e.attendees,
     e._count.registrations,
-    e.serviceHours,
   ]);
   return { title: "Event Report — District 3131", headers, rows };
 }

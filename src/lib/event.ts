@@ -27,7 +27,6 @@ export function serializeEvent(e: EventWithRelations) {
     registrationOpensAt: e.registrationOpensAt?.toISOString() ?? null,
     registrationClosesAt: e.registrationClosesAt?.toISOString() ?? null,
     onSiteRegistration: e.onSiteRegistration,
-    serviceHours: e.serviceHours,
     budget: e.budget ? Number(e.budget) : null,
     bannerUrl: e.bannerUrl,
     minutesPdfUrl: e.minutesPdfUrl,

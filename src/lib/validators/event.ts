@@ -44,7 +44,6 @@ export const createEventSchema = z.object({
   registrationOpensAt: z.string().datetime().optional().nullable(),
   registrationClosesAt: z.string().datetime().optional().nullable(),
   onSiteRegistration: z.boolean().optional(),
-  serviceHours: z.coerce.number().int().min(0).optional(),
   budget: z.coerce.number().min(0).optional(),
   forDistrictNewsletter: z.boolean().optional(),
 });

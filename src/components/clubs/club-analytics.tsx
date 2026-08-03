@@ -1,6 +1,6 @@
 "use client";
 
-import { Award, BarChart3, Calendar, Clock, Users } from "lucide-react";
+import { Award, BarChart3, Calendar, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useClubAnalytics } from "@/hooks/use-clubs";
@@ -14,8 +14,8 @@ export function ClubAnalyticsPanel({ clubId }: ClubAnalyticsPanelProps) {
 
   if (isLoading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, i) => (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
           <Skeleton key={i} className="h-28" />
         ))}
       </div>
@@ -38,12 +38,6 @@ export function ClubAnalyticsPanel({ clubId }: ClubAnalyticsPanelProps) {
       icon: Calendar,
     },
     {
-      label: "Service Hours",
-      value: data.totalServiceHours,
-      sub: `${data.completedEvents} completed events`,
-      icon: Clock,
-    },
-    {
       label: "Avg. Attendance",
       value: data.averageAttendance,
       sub: "per event",
@@ -61,7 +55,7 @@ export function ClubAnalyticsPanel({ clubId }: ClubAnalyticsPanelProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (

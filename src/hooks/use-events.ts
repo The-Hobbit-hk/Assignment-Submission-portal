@@ -20,7 +20,6 @@ export interface EventItem {
   registrationOpensAt: string | null;
   registrationClosesAt: string | null;
   onSiteRegistration?: boolean;
-  serviceHours: number;
   budget: number | null;
   bannerUrl: string | null;
   minutesPdfUrl: string | null;

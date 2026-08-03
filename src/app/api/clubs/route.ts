@@ -45,7 +45,6 @@ export async function GET(request: Request) {
           city: null,
           status: "ACTIVE" as const,
           foundedAt: null,
-          serviceHours: 0,
           memberCount: 0,
           eventCount: 0,
           president: null,
@@ -99,7 +98,6 @@ export async function POST(request: Request) {
         description: data.description,
         presidentId: data.presidentId,
         secretaryId: data.secretaryId,
-        serviceHours: data.serviceHours ?? 0,
       },
       include: clubListInclude,
     });

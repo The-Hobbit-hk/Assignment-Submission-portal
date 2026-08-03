@@ -89,7 +89,6 @@ export function serializeClubListItem(club: ClubWithRelations): ClubListItem {
     zone: club.zone,
     status: club.status,
     foundedAt: club.foundedAt?.toISOString() ?? null,
-    serviceHours: club.serviceHours,
     memberCount: club._count?.members ?? 0,
     eventCount: club._count?.events ?? 0,
     president: resolveClubPresident(club),
@@ -108,7 +107,6 @@ export function serializeClubDetail(club: ClubWithRelations): ClubDetail {
     zone: listItem.zone,
     status: listItem.status,
     foundedAt: listItem.foundedAt,
-    serviceHours: listItem.serviceHours,
     president: listItem.president,
     secretary: listItem.secretary,
     description: club.description,
@@ -150,7 +148,6 @@ export async function computeClubAnalytics(
     totalEvents,
     upcomingEvents,
     completedEvents,
-    club,
     events,
     membersByMonth,
     citationsApproved,
@@ -163,10 +160,9 @@ export async function computeClubAnalytics(
     prisma.event.count({ where: { clubId } }),
     prisma.event.count({ where: { clubId, status: "UPCOMING" } }),
     prisma.event.count({ where: { clubId, status: "COMPLETED" } }),
-    prisma.club.findUnique({ where: { id: clubId } }),
     prisma.event.findMany({
       where: { clubId, status: "COMPLETED" },
-      select: { attendees: true, serviceHours: true },
+      select: { attendees: true },
     }),
     prisma.member.findMany({
       where: { clubId, joinedAt: { gte: sixMonthsAgo } },
@@ -187,10 +183,6 @@ export async function computeClubAnalytics(
       where: { clubId, status: { in: ["ASSIGNED", "DRAFT", "REJECTED"] } },
     }),
   ]);
-
-  const totalServiceHours =
-    (club?.serviceHours ?? 0) +
-    events.reduce((sum, e) => sum + e.serviceHours, 0);
 
   const averageAttendance =
     events.length > 0
@@ -223,7 +215,6 @@ export async function computeClubAnalytics(
     totalEvents,
     upcomingEvents,
     completedEvents,
-    totalServiceHours,
     averageAttendance,
     citationsApproved,
     citationPoints: citationPointsAgg._sum.awardedPoints ?? 0,
@@ -245,7 +236,7 @@ export async function computeClubPerformance(
   const allClubs = await prisma.club.findMany({
     where: { ...OFFICIAL_DISTRICT_CLUB_FILTER, status: "ACTIVE" },
     include: { _count: { select: { members: true, events: true } } },
-    orderBy: { serviceHours: "desc" },
+    orderBy: { name: "asc" },
   });
 
   const rank =
@@ -253,12 +244,9 @@ export async function computeClubPerformance(
 
   const memberScore = Math.min(100, analytics.activeMembers * 2);
   const eventScore = Math.min(100, analytics.completedEvents * 5);
-  const serviceScore = Math.min(100, Math.round(analytics.totalServiceHours / 50));
   const attendanceScore = Math.min(100, analytics.averageAttendance * 2);
 
-  const score = Math.round(
-    (memberScore + eventScore + serviceScore + attendanceScore) / 4
-  );
+  const score = Math.round((memberScore + eventScore + attendanceScore) / 3);
 
   return {
     score,
@@ -275,12 +263,6 @@ export async function computeClubPerformance(
         value: analytics.completedEvents,
         target: 20,
         unit: "events",
-      },
-      {
-        label: "Service Hours",
-        value: analytics.totalServiceHours,
-        target: 500,
-        unit: "hours",
       },
       {
         label: "Avg. Attendance",
@@ -301,7 +283,6 @@ export function serializeClubEvent(event: {
   type: ClubEventItem["type"];
   status: ClubEventItem["status"];
   attendees: number;
-  serviceHours: number;
 }): ClubEventItem {
   return {
     id: event.id,
@@ -312,6 +293,5 @@ export function serializeClubEvent(event: {
     type: event.type,
     status: event.status,
     attendees: event.attendees,
-    serviceHours: event.serviceHours,
   };
 }

@@ -8,7 +8,6 @@ export interface ClubListItem {
   zone: string | null;
   status: ClubStatus;
   foundedAt: string | null;
-  serviceHours: number;
   memberCount: number;
   eventCount: number;
   president: {
@@ -36,7 +35,6 @@ export interface ClubAnalytics {
   totalEvents: number;
   upcomingEvents: number;
   completedEvents: number;
-  totalServiceHours: number;
   averageAttendance: number;
   citationsApproved: number;
   citationPoints: number;
@@ -65,5 +63,4 @@ export interface ClubEventItem {
   type: EventType;
   status: EventStatus;
   attendees: number;
-  serviceHours: number;
 }

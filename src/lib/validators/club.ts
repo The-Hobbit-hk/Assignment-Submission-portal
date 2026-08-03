@@ -13,7 +13,6 @@ export const createClubSchema = z.object({
   logo: z.string().max(1000).optional(),
   presidentId: z.string().optional(),
   secretaryId: z.string().optional(),
-  serviceHours: z.number().int().min(0).optional(),
 });
 
 /** Fields a club login may edit on its own club profile. */

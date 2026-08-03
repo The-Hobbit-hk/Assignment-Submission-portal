@@ -52,7 +52,6 @@ export function EventForm({
       ? initial.registrationClosesAt.slice(0, 16)
       : "",
     onSiteRegistration: initial?.onSiteRegistration ?? false,
-    serviceHours: initial?.serviceHours ?? 0,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -94,7 +93,6 @@ export function EventForm({
           ? new Date(form.registrationClosesAt).toISOString()
           : undefined,
         onSiteRegistration: form.onSiteRegistration,
-        serviceHours: Number(form.serviceHours) || 0,
       });
       toast.success(
         initial?.id ? "Event updated successfully" : "Event created successfully"

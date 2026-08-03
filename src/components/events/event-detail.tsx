@@ -135,9 +135,6 @@ export function EventDetail({ eventId }: { eventId: string }) {
               <strong>Attendance:</strong> {event.attendees}
               {event.maxAttendees != null ? ` / ${event.maxAttendees} max` : ""}
             </p>
-            <p>
-              <strong>Service hours:</strong> {event.serviceHours}h
-            </p>
             {event.minutesPdfUrl && (
               <a
                 href={event.minutesPdfUrl}

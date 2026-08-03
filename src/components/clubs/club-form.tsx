@@ -39,7 +39,6 @@ export function ClubForm({
     zone: initialData?.zone ?? "",
     status: initialData?.status ?? "ACTIVE",
     description: initialData?.description ?? "",
-    serviceHours: initialData?.serviceHours ?? 0,
   });
 
   function update(field: string, value: string | number) {
@@ -61,7 +60,6 @@ export function ClubForm({
       if (fullControl) {
         payload.charterNumber = form.charterNumber || undefined;
         payload.status = form.status;
-        payload.serviceHours = Number(form.serviceHours);
       }
       await onSubmit(payload);
       toast.success(
