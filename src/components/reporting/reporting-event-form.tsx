@@ -211,24 +211,6 @@ export function ReportingEventForm({
           />
         </div>
 
-        <label className="flex items-start gap-3 rounded-lg border border-border/50 bg-muted/20 px-3 py-3 text-sm sm:col-span-2">
-          <input
-            type="checkbox"
-            className="mt-1"
-            checked={forDistrictNewsletter}
-            onChange={(e) => setForDistrictNewsletter(e.target.checked)}
-            disabled={disabled || loading}
-          />
-          <span>
-            <span className="font-medium text-foreground">
-              Submit this event for the district newsletter later
-            </span>
-            <span className="mt-1 block text-muted-foreground">
-              Flag this event so district can pull it into the newsletter.
-            </span>
-          </span>
-        </label>
-
         <div className="space-y-1.5">
           <label className="text-xs text-muted-foreground">Event Start Date</label>
           <DateTimeField
@@ -279,6 +261,24 @@ export function ReportingEventForm({
           />
         </div>
       </div>
+
+      <label className="flex items-start gap-3 rounded-lg border border-border/50 bg-muted/20 px-3 py-3 text-sm">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={forDistrictNewsletter}
+          onChange={(e) => setForDistrictNewsletter(e.target.checked)}
+          disabled={disabled || loading}
+        />
+        <span>
+          <span className="font-medium text-foreground">
+            Submit this event for the district newsletter later
+          </span>
+          <span className="mt-1 block text-muted-foreground">
+            Flag this event so district can pull it into the newsletter.
+          </span>
+        </span>
+      </label>
 
       <div className="flex flex-wrap gap-3 pt-2">
         <Button
