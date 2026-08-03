@@ -1,6 +1,12 @@
 import { eventHasEnded } from "@/lib/event-display";
 
-export type RegistrationState = "open" | "coming_soon" | "closed" | "completed" | "none";
+export type RegistrationState =
+  | "open"
+  | "coming_soon"
+  | "closed"
+  | "full"
+  | "completed"
+  | "none";
 
 function coerceDate(value: Date | string | null | undefined): Date | null {
   if (!value) return null;
@@ -16,6 +22,8 @@ export type EventRegistrationFields = {
   registrationClosesAt: Date | null;
   registrationUrl?: string | null;
   onSiteRegistration?: boolean;
+  maxAttendees?: number | null;
+  registrationCount?: number | null;
 };
 
 export function getRegistrationState(
@@ -63,6 +71,14 @@ export function getRegistrationState(
     return "closed";
   }
 
+  if (
+    event.maxAttendees != null &&
+    event.maxAttendees > 0 &&
+    (event.registrationCount ?? 0) >= event.maxAttendees
+  ) {
+    return "full";
+  }
+
   return "open";
 }
 
@@ -74,6 +90,8 @@ export function registrationLabel(state: RegistrationState): string | null {
       return "Coming Soon";
     case "closed":
       return "Registrations Closed";
+    case "full":
+      return "Event Full";
     case "completed":
       return "Completed";
     default:

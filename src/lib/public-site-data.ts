@@ -31,11 +31,13 @@ const publicEventSelect = {
   location: true,
   type: true,
   status: true,
+  maxAttendees: true,
   registrationOpensAt: true,
   registrationClosesAt: true,
   registrationUrl: true,
   onSiteRegistration: true,
   bannerUrl: true,
+  _count: { select: { publicRegistrations: true } },
 } as const;
 
 async function fetchPublicCalendarEvents() {

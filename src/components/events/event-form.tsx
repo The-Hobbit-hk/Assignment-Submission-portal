@@ -39,7 +39,12 @@ export function EventForm({
     type: initial?.type ?? "COMMUNITY_SERVICE",
     status: initial?.status ?? "UPCOMING",
     clubId: lockedClub?.id ?? initial?.clubId ?? "",
-    maxAttendees: initial?.maxAttendees ?? "",
+    attendees:
+      initial?.attendees != null && initial.attendees > 0
+        ? String(initial.attendees)
+        : "",
+    maxAttendees:
+      initial?.maxAttendees != null ? String(initial.maxAttendees) : "",
     registrationOpensAt: initial?.registrationOpensAt
       ? initial.registrationOpensAt.slice(0, 16)
       : "",
@@ -55,19 +60,41 @@ export function EventForm({
     setLoading(true);
     setError("");
     try {
+      const attendance =
+        form.attendees.trim() === "" ? undefined : Number(form.attendees);
+      const capacity =
+        form.maxAttendees.trim() === "" ? null : Number(form.maxAttendees);
+
+      if (attendance != null && Number.isNaN(attendance)) {
+        setError("Attendance must be a valid number.");
+        setLoading(false);
+        return;
+      }
+      if (capacity != null && (Number.isNaN(capacity) || capacity < 1)) {
+        setError("Max attendees must be at least 1, or leave blank for no limit.");
+        setLoading(false);
+        return;
+      }
+
       await onSubmit({
-        ...form,
+        title: form.title,
+        description: form.description || undefined,
         startDate: new Date(form.startDate).toISOString(),
         endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
+        location: form.location || undefined,
+        type: form.type,
+        status: form.status,
         clubId: form.clubId || undefined,
-        maxAttendees: form.maxAttendees ? Number(form.maxAttendees) : undefined,
+        attendees: attendance,
+        maxAttendees: capacity,
         registrationOpensAt: form.registrationOpensAt
           ? new Date(form.registrationOpensAt).toISOString()
           : undefined,
         registrationClosesAt: form.registrationClosesAt
           ? new Date(form.registrationClosesAt).toISOString()
           : undefined,
-        serviceHours: Number(form.serviceHours),
+        onSiteRegistration: form.onSiteRegistration,
+        serviceHours: Number(form.serviceHours) || 0,
       });
       toast.success(
         initial?.id ? "Event updated successfully" : "Event created successfully"
@@ -104,7 +131,7 @@ export function EventForm({
           </div>
         )}
       </div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2"><Label>Type</Label>
           <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -126,7 +153,28 @@ export function EventForm({
             <SelectContent>{["UPCOMING","ONGOING","COMPLETED","CANCELLED"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
           </Select>
         </div>
-        <div className="space-y-2"><Label>Max attendees</Label><Input type="number" value={form.maxAttendees} onChange={(e) => setForm({ ...form, maxAttendees: e.target.value })} /></div>
+        <div className="space-y-2">
+          <Label>Attendance</Label>
+          <Input
+            type="number"
+            min={0}
+            placeholder="How many attended"
+            value={form.attendees}
+            onChange={(e) => setForm({ ...form, attendees: e.target.value })}
+          />
+          <p className="text-[11px] text-muted-foreground">Actual headcount for this event</p>
+        </div>
+        <div className="space-y-2">
+          <Label>Max attendees</Label>
+          <Input
+            type="number"
+            min={1}
+            placeholder="No limit"
+            value={form.maxAttendees}
+            onChange={(e) => setForm({ ...form, maxAttendees: e.target.value })}
+          />
+          <p className="text-[11px] text-muted-foreground">Registration capacity (optional)</p>
+        </div>
       </div>
       {(form.type === "DISTRICT" || form.type === "INSTALLATION") && (
         <div className="space-y-4 rounded-lg border border-border/50 p-4">

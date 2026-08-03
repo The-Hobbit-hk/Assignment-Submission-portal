@@ -1,5 +1,5 @@
 import type { UserRole } from "@/types/auth";
-import { isClubUser } from "@/lib/roles";
+import { canManageEvents, isClubUser } from "@/lib/roles";
 
 type SessionClubUser = {
   role: UserRole;
@@ -20,6 +20,16 @@ export function canAccessClubRecord(
   }
   const ownClubId = getClubUserClubId(session);
   return ownClubId === clubId;
+}
+
+/** District event managers, or club users editing their own club's event. */
+export function canManageEventRecord(
+  session: SessionClubUser,
+  eventClubId: string | null | undefined
+): boolean {
+  if (canManageEvents(session.role)) return true;
+  if (!eventClubId) return false;
+  return getClubUserClubId(session) === eventClubId;
 }
 
 export function canAccessMemberRecord(

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
-import { canManageEvents } from "@/lib/roles";
-import { canAccessClubRecord } from "@/lib/club-access";
+import { canManageEvents, isClubUser } from "@/lib/roles";
+import { canAccessClubRecord, canManageEventRecord } from "@/lib/club-access";
 import { serializeEvent } from "@/lib/event";
 import { updateEventSchema } from "@/lib/validators/event";
 import { validationError, handleRouteError, notFound, forbidden } from "@/lib/api-errors";
@@ -61,13 +61,20 @@ export async function PUT(request: Request, { params }: RouteParams) {
   const { session, error } = await requireAuth();
   if (error) return error;
 
-  if (!canManageEvents(session!.user.role as UserRole)) {
-    return forbidden();
-  }
-
   const { id } = await params;
+  const role = session!.user.role as UserRole;
+  const sessionUser = { role, clubId: session!.user.clubId };
 
   try {
+    const existing = await prisma.event.findUnique({
+      where: { id },
+      select: { id: true, clubId: true },
+    });
+    if (!existing) return notFound("Not found.");
+    if (!canManageEventRecord(sessionUser, existing.clubId)) {
+      return forbidden();
+    }
+
     const body = await request.json();
     const parsed = updateEventSchema.safeParse(body);
     if (!parsed.success) {
@@ -75,12 +82,32 @@ export async function PUT(request: Request, { params }: RouteParams) {
     }
 
     const d = parsed.data;
+    // Club users may only keep events on their own club (no reassignment / district takeover).
+    const nextClubId = isClubUser(role)
+      ? session!.user.clubId ?? existing.clubId
+      : d.clubId;
+
     const event = await prisma.event.update({
       where: { id },
       data: {
         ...d,
+        clubId: nextClubId,
         startDate: d.startDate ? new Date(d.startDate) : undefined,
         endDate: d.endDate ? new Date(d.endDate) : undefined,
+        registrationOpensAt:
+          d.registrationOpensAt === undefined
+            ? undefined
+            : d.registrationOpensAt
+              ? new Date(d.registrationOpensAt)
+              : null,
+        registrationClosesAt:
+          d.registrationClosesAt === undefined
+            ? undefined
+            : d.registrationClosesAt
+              ? new Date(d.registrationClosesAt)
+              : null,
+        // Explicit null clears the capacity; omit when undefined
+        maxAttendees: d.maxAttendees === undefined ? undefined : d.maxAttendees,
       },
       include: {
         club: { select: { id: true, name: true } },
@@ -101,13 +128,19 @@ export async function DELETE(_req: Request, { params }: RouteParams) {
   const { session, error } = await requireAuth();
   if (error) return error;
 
-  if (!canManageEvents(session!.user.role as UserRole)) {
-    return forbidden();
-  }
-
   const { id } = await params;
+  const role = session!.user.role as UserRole;
 
   try {
+    const existing = await prisma.event.findUnique({
+      where: { id },
+      select: { id: true, clubId: true },
+    });
+    if (!existing) return notFound("Not found.");
+    if (!canManageEventRecord({ role, clubId: session!.user.clubId }, existing.clubId)) {
+      return forbidden();
+    }
+
     await prisma.event.delete({ where: { id } });
 
     const { revalidatePublicEvents } = await import("@/lib/revalidate-public-site");

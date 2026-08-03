@@ -27,6 +27,9 @@ export function EventRegistrationButton({
     location?: string | null;
     description?: string | null;
     onSiteRegistration?: boolean;
+    maxAttendees?: number | null;
+    registrationCount?: number | null;
+    _count?: { publicRegistrations?: number; registrations?: number } | null;
   };
   className?: string;
 }) {
@@ -46,11 +49,23 @@ export function EventRegistrationButton({
     startDate &&
     eventHasEnded({ status: event.status, startDate, endDate }, evalNow);
 
+  const registrationCount =
+    event.registrationCount ??
+    event._count?.publicRegistrations ??
+    event._count?.registrations ??
+    0;
+
   const state = isInstallation
     ? installationEnded
       ? "completed"
       : "open"
-    : getRegistrationState(event, evalNow);
+    : getRegistrationState(
+        {
+          ...event,
+          registrationCount,
+        },
+        evalNow
+      );
 
   const label = isInstallation
     ? installationEnded
@@ -143,7 +158,7 @@ export function EventRegistrationButton({
           "border border-amber-300 bg-amber-50 text-amber-800",
         state === "completed" &&
           "border border-emerald-300 bg-emerald-50 text-emerald-800",
-        (state === "closed" || state === "none") &&
+        (state === "closed" || state === "full" || state === "none") &&
           "border border-zinc-200 bg-zinc-100 text-zinc-500"
       )}
     >

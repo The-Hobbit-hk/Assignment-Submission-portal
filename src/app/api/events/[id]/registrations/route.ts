@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
-import { canManageEvents } from "@/lib/roles";
+import { canManageEventRecord } from "@/lib/club-access";
 import { serializeRegistration } from "@/lib/event";
 import { handleRouteError, apiError, notFound, forbidden } from "@/lib/api-errors";
 import type { UserRole } from "@/types/auth";
@@ -11,10 +11,23 @@ interface RouteParams { params: Promise<{ id: string }> }
 export async function GET(_req: Request, { params }: RouteParams) {
   const { session, error } = await requireAuth();
   if (error) return error;
-  if (!canManageEvents(session!.user.role as UserRole)) return forbidden();
   const { id } = await params;
 
   try {
+    const event = await prisma.event.findUnique({
+      where: { id },
+      select: { id: true, clubId: true },
+    });
+    if (!event) return notFound("Event not found.");
+    if (
+      !canManageEventRecord(
+        { role: session!.user.role as UserRole, clubId: session!.user.clubId },
+        event.clubId
+      )
+    ) {
+      return forbidden();
+    }
+
     const registrations = await prisma.eventRegistration.findMany({
       where: { eventId: id },
       include: {
@@ -30,17 +43,24 @@ export async function GET(_req: Request, { params }: RouteParams) {
 export async function POST(request: Request, { params }: RouteParams) {
   const { session, error } = await requireAuth();
   if (error) return error;
-  if (!canManageEvents(session!.user.role as UserRole)) return forbidden();
   const { id } = await params;
 
   try {
+    const event = await prisma.event.findUnique({ where: { id } });
+    if (!event) return notFound("Event not found.");
+    if (
+      !canManageEventRecord(
+        { role: session!.user.role as UserRole, clubId: session!.user.clubId },
+        event.clubId
+      )
+    ) {
+      return forbidden();
+    }
+
     const { memberId } = await request.json();
     if (!memberId) {
       return apiError("memberId required.", 400);
     }
-
-    const event = await prisma.event.findUnique({ where: { id } });
-    if (!event) return notFound("Event not found.");
 
     if (event.maxAttendees) {
       const count = await prisma.eventRegistration.count({ where: { eventId: id } });

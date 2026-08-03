@@ -32,16 +32,20 @@ export const createEventSchema = z.object({
   location: z.string().max(200).optional(),
   hostedBy: z.string().max(200).optional(),
   collaborations: z.string().max(2000).optional(),
-  attendees: z.number().int().min(0).optional(),
+  attendees: z.coerce.number().int().min(0).optional(),
   type: eventTypeEnum.default("SERVICE"),
   status: eventStatusEnum.default("UPCOMING"),
   clubId: z.string().optional(),
-  maxAttendees: z.number().int().positive().optional(),
+  // null clears the cap on update; coerce accepts numeric strings from forms
+  maxAttendees: z.preprocess(
+    (v) => (v === "" || v === undefined ? undefined : v),
+    z.union([z.coerce.number().int().positive(), z.null()]).optional()
+  ),
   registrationOpensAt: z.string().datetime().optional().nullable(),
   registrationClosesAt: z.string().datetime().optional().nullable(),
   onSiteRegistration: z.boolean().optional(),
-  serviceHours: z.number().int().min(0).optional(),
-  budget: z.number().min(0).optional(),
+  serviceHours: z.coerce.number().int().min(0).optional(),
+  budget: z.coerce.number().min(0).optional(),
 });
 
 export const updateEventSchema = createEventSchema.partial();

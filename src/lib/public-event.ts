@@ -6,6 +6,7 @@ import { rotaryYearStart } from "@/lib/rotary-year";
 const publicEventInclude = {
   club: { select: { name: true, zone: true, city: true } },
   gallery: { orderBy: { createdAt: "asc" as const }, take: 6 },
+  _count: { select: { publicRegistrations: true } },
 } as const;
 
 function normalizeGoogleKey(raw: string) {

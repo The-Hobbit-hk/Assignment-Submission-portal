@@ -97,19 +97,35 @@ export async function POST(request: Request, { params }: RouteParams) {
       savePrivateUpload(governmentIdFile, subfolder),
     ]);
 
-    const registration = await prisma.publicEventRegistration.create({
-      data: {
-        eventId,
-        name,
-        clubName,
-        riId,
-        paymentProofPath,
-        governmentIdPath,
-        acknowledged: true,
-      },
-    });
+    // Re-check capacity inside a transaction to avoid overselling under concurrent signups
+    try {
+      const registration = await prisma.$transaction(async (tx) => {
+        if (event.maxAttendees) {
+          const count = await tx.publicEventRegistration.count({ where: { eventId } });
+          if (count >= event.maxAttendees) {
+            throw new Error("EVENT_FULL");
+          }
+        }
+        return tx.publicEventRegistration.create({
+          data: {
+            eventId,
+            name,
+            clubName,
+            riId,
+            paymentProofPath,
+            governmentIdPath,
+            acknowledged: true,
+          },
+        });
+      });
 
-    return NextResponse.json(serializePublicRegistration(registration), { status: 201 });
+      return NextResponse.json(serializePublicRegistration(registration), { status: 201 });
+    } catch (err) {
+      if (err instanceof Error && err.message === "EVENT_FULL") {
+        return apiError("This event is full.", 409);
+      }
+      throw err;
+    }
   } catch (err) {
     return handleRouteError(err, "Registration failed.");
   }
