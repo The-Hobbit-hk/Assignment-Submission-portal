@@ -224,8 +224,7 @@ export function ReportingEventForm({
               Submit this event for the district newsletter later
             </span>
             <span className="mt-1 block text-muted-foreground">
-              Flag this event so district can pull it into the newsletter. Full event details stay
-              available for Excel download from Events Reporting.
+              Flag this event so district can pull it into the newsletter.
             </span>
           </span>
         </label>
