@@ -25,7 +25,11 @@ import { ChevronLeft, ChevronRight, Search, Trophy, Users } from "lucide-react";
 import { useCouncilData } from "@/hooks/use-council";
 import { cn } from "@/lib/utils";
 import { getReportingPeriodLabel } from "@/lib/reporting";
-import { getRotaryYearLabel, rotaryYearOfMonth } from "@/lib/rotary-year";
+import {
+  getCurrentRotaryYear,
+  getRotaryYearLabel,
+  rotaryYearMonths,
+} from "@/lib/rotary-year";
 
 function memberInitials(name: string) {
   return name
@@ -62,48 +66,45 @@ function RankBadge({ rank }: { rank: number | null }) {
   );
 }
 
-function PeriodToggle({
-  value,
-  onChange,
-}: {
-  value: "monthly" | "yearly";
-  onChange: (v: "monthly" | "yearly") => void;
-}) {
-  return (
-    <div className="inline-flex rounded-full border border-border/60 bg-muted/30 p-1">
-      {(["monthly", "yearly"] as const).map((option) => (
-        <button
-          key={option}
-          type="button"
-          onClick={() => onChange(option)}
-          className={cn(
-            "rounded-full px-4 py-1.5 text-sm font-medium capitalize transition",
-            value === option
-              ? "bg-card text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {option}
-        </button>
-      ))}
-    </div>
-  );
+function periodKey(month: number, year: number) {
+  return `${year}-${month}`;
+}
+
+function parsePeriodKey(value: string): { month: number; year: number } {
+  const [year, month] = value.split("-").map((part) => parseInt(part, 10));
+  return { month, year };
 }
 
 export function CouncilContent() {
-  const now = new Date();
-  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
+  const now = useMemo(() => new Date(), []);
+  const rotaryYear = useMemo(() => getCurrentRotaryYear(now), [now]);
+  const monthOptions = useMemo(
+    () =>
+      rotaryYearMonths(rotaryYear.startYear).map(({ month, year }) => ({
+        month,
+        year,
+        value: periodKey(month, year),
+        label: getReportingPeriodLabel(month, year),
+      })),
+    [rotaryYear.startYear]
+  );
+
+  const [periodValue, setPeriodValue] = useState(() =>
+    periodKey(now.getMonth() + 1, now.getFullYear())
+  );
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(100);
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
+
+  const { month, year } = parsePeriodKey(periodValue);
+  const selectedOption =
+    monthOptions.find((option) => option.value === periodValue) ?? monthOptions[0];
 
   const { data, isLoading } = useCouncilData({
     entityType: "MEMBER",
     month,
     year,
-    period,
+    period: "monthly",
     search: search || undefined,
     page,
     limit: rowsPerPage,
@@ -125,11 +126,7 @@ export function CouncilContent() {
     ].filter((slot) => slot.entry);
   }, [podium]);
 
-  const periodLabel =
-    period === "yearly"
-      ? `RIY ${getRotaryYearLabel(rotaryYearOfMonth(month, year))}`
-      : getReportingPeriodLabel(month, year);
-
+  const periodLabel = selectedOption?.label ?? getReportingPeriodLabel(month, year);
   const topScore = podium?.[0]?.score ?? 0;
 
   return (
@@ -153,13 +150,29 @@ export function CouncilContent() {
               </p>
             </div>
           </div>
-          <PeriodToggle
-            value={period}
-            onChange={(v) => {
-              setPeriod(v);
-              setPage(1);
-            }}
-          />
+          <div className="w-full sm:w-auto sm:min-w-[12rem]">
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Month
+            </p>
+            <Select
+              value={periodValue}
+              onValueChange={(value) => {
+                setPeriodValue(value);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="border-border/60 bg-card/80 backdrop-blur-sm">
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="relative mt-5 grid gap-3 sm:grid-cols-3">
@@ -186,10 +199,12 @@ export function CouncilContent() {
           </div>
           <div className="rounded-xl border border-border/40 bg-card/60 px-4 py-3 backdrop-blur-sm">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              View
+              Period
             </p>
-            <p className="mt-1 text-sm font-medium capitalize text-foreground">{period}</p>
-            <p className="text-xs text-muted-foreground">Updates after Blue Book reviews</p>
+            <p className="mt-1 text-sm font-medium text-foreground">{periodLabel}</p>
+            <p className="text-xs text-muted-foreground">
+              RIY {getRotaryYearLabel(rotaryYear.startYear)} · updates after Blue Book reviews
+            </p>
           </div>
         </div>
       </section>
@@ -222,7 +237,8 @@ export function CouncilContent() {
           <Trophy className="mb-3 h-10 w-10 text-muted-foreground/40" aria-hidden />
           <p className="font-medium text-foreground">No scores yet</p>
           <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-            Rankings appear once council Blue Book tasks are reviewed. Score is completed tasks ÷ assigned tasks.
+            Rankings appear once council Blue Book tasks are reviewed for {periodLabel}. Score is
+            completed tasks ÷ assigned tasks.
           </p>
         </div>
       )}
@@ -233,7 +249,9 @@ export function CouncilContent() {
             <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Full standings
             </p>
-            <p className="text-sm font-semibold text-foreground">Live score table</p>
+            <p className="text-sm font-semibold text-foreground">
+              Live score table · {periodLabel}
+            </p>
           </div>
           <div className="relative w-full sm:max-w-xs">
             <Search
