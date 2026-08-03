@@ -28,6 +28,7 @@ export type EventsBrowsingItem = {
   registrationCount: number;
   clubId: string | null;
   club: { name: string } | null;
+  forDistrictNewsletter?: boolean;
 };
 
 interface EventsBrowsingViewProps {
@@ -262,6 +263,7 @@ function EventGridCard({
     bannerUrl: string | null;
     registrationCount: number;
     club?: { name: string } | null;
+    forDistrictNewsletter?: boolean;
   };
   eventLinkBase: string;
 }) {
@@ -281,9 +283,14 @@ function EventGridCard({
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="line-clamp-1 text-base">{event.title}</CardTitle>
-            <Badge variant="outline" className="shrink-0 text-[10px]">
-              {getEventTypeLabel(event.type)}
-            </Badge>
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <Badge variant="outline" className="text-[10px]">
+                {getEventTypeLabel(event.type)}
+              </Badge>
+              {event.forDistrictNewsletter && (
+                <Badge className="bg-amber-100 text-[10px] text-amber-900">Newsletter</Badge>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="text-xs text-muted-foreground">
@@ -319,6 +326,7 @@ function EventListRow({
     type: string;
     status: string;
     club: { name: string } | null;
+    forDistrictNewsletter?: boolean;
   };
   eventLinkBase: string;
 }) {
@@ -341,7 +349,12 @@ function EventListRow({
           </p>
         </div>
       </div>
-      <Badge className="w-fit shrink-0 self-start sm:self-center">{event.status}</Badge>
+      <div className="flex w-fit shrink-0 flex-wrap items-center gap-2 self-start sm:self-center">
+        {event.forDistrictNewsletter && (
+          <Badge className="bg-amber-100 text-amber-900">Newsletter</Badge>
+        )}
+        <Badge>{event.status}</Badge>
+      </div>
     </Link>
   );
 }

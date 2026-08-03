@@ -92,7 +92,6 @@ export async function POST(request: Request) {
             : null,
         hostClub: d.hostClub || null,
         districtEventAttendance: d.districtEventAttendance || null,
-        newsletterEvent: d.newsletterEvent || null,
         status: isSubmit ? "SUBMITTED" : "DRAFT",
         submittedAt: isSubmit ? new Date() : null,
       }

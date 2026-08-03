@@ -46,6 +46,7 @@ export const createEventSchema = z.object({
   onSiteRegistration: z.boolean().optional(),
   serviceHours: z.coerce.number().int().min(0).optional(),
   budget: z.coerce.number().min(0).optional(),
+  forDistrictNewsletter: z.boolean().optional(),
 });
 
 export const updateEventSchema = createEventSchema.partial();

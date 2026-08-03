@@ -79,6 +79,7 @@ export async function POST(request: Request) {
         attendees: d.attendees ?? 0,
         minutesPdfUrl,
         bannerUrl,
+        forDistrictNewsletter: d.forDistrictNewsletter === true,
       },
       include: eventInclude,
     });

@@ -54,7 +54,6 @@ export function AdminReportingForm() {
   const [masterBudgetPassDate, setMasterBudgetPassDate] = useState("");
   const [hostClub, setHostClub] = useState("");
   const [districtEventAttendance, setDistrictEventAttendance] = useState("");
-  const [newsletterEvent, setNewsletterEvent] = useState("");
   const [formError, setFormError] = useState("");
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
 
@@ -97,7 +96,6 @@ export function AdminReportingForm() {
       );
       setHostClub(data.hostClub ?? "");
       setDistrictEventAttendance(data.districtEventAttendance ?? "");
-      setNewsletterEvent(data.newsletterEvent ?? "");
     }
   }, [data]);
 
@@ -184,9 +182,6 @@ export function AdminReportingForm() {
     if (districtEventAttendance.trim() === "") {
       return "Please provide your attendance at district events.";
     }
-    if (newsletterEvent.trim() === "") {
-      return "Please provide an event for the district newsletter.";
-    }
 
     return null;
   };
@@ -233,7 +228,6 @@ export function AdminReportingForm() {
             : null,
         hostClub,
         districtEventAttendance,
-        newsletterEvent,
         submit: true,
       });
       await refetch();
@@ -468,15 +462,6 @@ export function AdminReportingForm() {
               rows={4}
               placeholder="Which district events did your club attend? Include participation details."
               className="resize-y border-border/60 bg-transparent"
-            />
-          </ReportingFieldRow>
-
-          <ReportingFieldRow label="Event for district newsletter :">
-            <Input
-              value={newsletterEvent}
-              onChange={(e) => setNewsletterEvent(e.target.value)}
-              placeholder="Highlight one club event for the district newsletter"
-              className="border-border/60 bg-transparent"
             />
           </ReportingFieldRow>
         </div>

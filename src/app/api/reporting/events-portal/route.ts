@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { buildEventWhere, serializeEvent } from "@/lib/event";
-import { jsonCached } from "@/lib/api-response";
 import { getActiveReportPeriod, serializeMonthlyReport } from "@/lib/reporting";
 import { resolveReportingClubId } from "@/lib/reporting-access";
 import { syncEventsReportIfClubHasEvents } from "@/lib/events-reporting-sync";
@@ -55,16 +54,18 @@ export async function GET(request: Request) {
           })
         : initialReport;
 
-    return jsonCached(
-      {
-        report: report ? serializeMonthlyReport(report) : null,
-        clubEvents: clubEvents.map(serializeEvent),
-        districtEvents: districtEvents.map(serializeEvent),
-        clubId,
-        clubName: club?.name ?? null,
+    return NextResponse.json({
+      report: report ? serializeMonthlyReport(report) : null,
+      clubEvents: clubEvents.map(serializeEvent),
+      districtEvents: districtEvents.map(serializeEvent),
+      clubId,
+      clubName: club?.name ?? null,
+    }, {
+      headers: {
+        // Must not be browser-cached — Undo / submit toggles need fresh data.
+        "Cache-Control": "private, no-store",
       },
-      { maxAge: 30 }
-    );
+    });
   } catch (err) {
     return handleRouteError(err, "Failed to load event reporting.");
   }

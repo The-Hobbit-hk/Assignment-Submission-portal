@@ -128,12 +128,26 @@ export function useSaveEventsReport() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: Record<string, unknown>) =>
-      apiJson("/api/reporting/events", {
+      apiJson<SerializedMonthlyReport>("/api/reporting/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       }),
-    onSuccess: () => {
+    onSuccess: (report) => {
+      qc.setQueriesData<EventsPortalData>(
+        { queryKey: ["reporting", "events-portal"] },
+        (prev) =>
+          prev
+            ? {
+                ...prev,
+                report: {
+                  status: report.status,
+                  submittedAt: report.submittedAt,
+                  noEventsDeclared: report.noEventsDeclared,
+                },
+              }
+            : prev
+      );
       qc.invalidateQueries({ queryKey: ["reporting", "events"] });
       qc.invalidateQueries({ queryKey: ["reporting", "events-portal"] });
       qc.invalidateQueries({ queryKey: ["reporting", "club-reports"] });

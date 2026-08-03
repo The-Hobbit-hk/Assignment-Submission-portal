@@ -61,6 +61,7 @@ export function ReportingEventForm({
   const [collaborations, setCollaborations] = useState("");
   const [attendees, setAttendees] = useState("");
   const [description, setDescription] = useState("");
+  const [forDistrictNewsletter, setForDistrictNewsletter] = useState(false);
   const [startDate, setStartDate] = useState(() =>
     defaultReportingStart(reportingMonth, reportingYear)
   );
@@ -109,6 +110,7 @@ export function ReportingEventForm({
         startDate: start.toISOString(),
         endDate: endDate ? new Date(endDate).toISOString() : undefined,
         clubId,
+        forDistrictNewsletter,
       };
 
       const fd = new FormData();
@@ -208,6 +210,25 @@ export function ReportingEventForm({
             disabled={disabled || loading}
           />
         </div>
+
+        <label className="flex items-start gap-3 rounded-lg border border-border/50 bg-muted/20 px-3 py-3 text-sm sm:col-span-2">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={forDistrictNewsletter}
+            onChange={(e) => setForDistrictNewsletter(e.target.checked)}
+            disabled={disabled || loading}
+          />
+          <span>
+            <span className="font-medium text-foreground">
+              Submit this event for the district newsletter later
+            </span>
+            <span className="mt-1 block text-muted-foreground">
+              Flag this event so district can pull it into the newsletter. Full event details stay
+              available for Excel download from Events Reporting.
+            </span>
+          </span>
+        </label>
 
         <div className="space-y-1.5">
           <label className="text-xs text-muted-foreground">Event Start Date</label>

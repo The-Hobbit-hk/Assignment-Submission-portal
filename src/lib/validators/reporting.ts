@@ -23,7 +23,6 @@ export const adminReportSchema = z.object({
   masterBudgetPassDate: z.string().datetime().nullable().optional(),
   hostClub: yesNoSchema,
   districtEventAttendance: z.string().optional(),
-  newsletterEvent: z.string().optional(),
   submit: z.boolean().optional(),
 });
 
@@ -46,4 +45,5 @@ export const reportingEventSchema = z.object({
   startDate: z.string().datetime(),
   endDate: z.string().datetime().optional(),
   clubId: z.string().optional(),
+  forDistrictNewsletter: z.boolean().optional(),
 });

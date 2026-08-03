@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Download, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EventsBrowsingView } from "@/components/events/events-browsing-view";
 import { ReportingFormLayout } from "@/components/reporting/reporting-form-layout";
@@ -13,7 +13,16 @@ import { useEventsReportingPortal, useSaveEventsReport } from "@/hooks/use-repor
 import { useReportingWindow } from "@/hooks/use-reporting-window";
 import { useSession } from "next-auth/react";
 import { canManageEvents, isClubUser } from "@/lib/roles";
-import { formErrorMessage } from "@/lib/toast";
+import { formErrorMessage, toast } from "@/lib/toast";
+
+function downloadEventsExcel(month: number, year: number, newsletterOnly = false) {
+  const params = new URLSearchParams({
+    month: String(month),
+    year: String(year),
+  });
+  if (newsletterOnly) params.set("newsletterOnly", "true");
+  window.location.href = `/api/reporting/export/events-detail?${params}`;
+}
 
 export function EventsReportingForm() {
   const active = getActiveReportPeriod();
@@ -31,6 +40,12 @@ export function EventsReportingForm() {
   const role = session?.user?.role ?? "MEMBER";
   const clubUser = isClubUser(role);
   const canAddDistrictEvent = !clubUser && canManageEvents(role);
+  const canExportDistrict =
+    !clubUser &&
+    (canManageEvents(role) ||
+      role === "REPORTING_SECRETARY" ||
+      role === "SUPER_ADMIN" ||
+      role === "DISTRICT_ADMIN");
   const { data: window } = useReportingWindow(month, year);
   const { data, refetch } = useEventsReportingPortal(month, year);
   const saveEvents = useSaveEventsReport();
@@ -41,7 +56,6 @@ export function EventsReportingForm() {
   const periodLabel = getReportingPeriodLabel(month, year);
   const hasClubEvents = (data?.clubEvents.length ?? 0) > 0;
   const noEventsDeclared = data?.report?.noEventsDeclared ?? false;
-  const eventsSubmitted = data?.report?.status === "SUBMITTED" || hasClubEvents;
 
   const [noEvents, setNoEvents] = useState(false);
   const [error, setError] = useState("");
@@ -49,7 +63,6 @@ export function EventsReportingForm() {
     setNoEvents(noEventsDeclared);
   }, [noEventsDeclared]);
 
-  // A club can declare "no events" only when it hasn't logged any real events.
   const showNoEventsOption =
     clubUser && !!clubId && !reportingClosed && !hasClubEvents;
   const declaredComplete = noEventsDeclared && !hasClubEvents;
@@ -64,7 +77,8 @@ export function EventsReportingForm() {
         submit: checked,
         noEventsDeclared: checked,
       });
-      await refetch();
+      // Force a fresh portal read (Undo was previously undone by a cached GET).
+      await refetch({ cancelRefetch: false });
     } catch (err) {
       setNoEvents(!checked);
       setError(formErrorMessage(err, "Failed to update events reporting."));
@@ -90,14 +104,46 @@ export function EventsReportingForm() {
           </Link>
         </Button>
 
-        {canAddDistrictEvent && (
-          <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
-            <Link href="/dashboard/events/new">
-              <Plus className="mr-1 h-4 w-4" />
-              Add Event
-            </Link>
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {(clubUser || canExportDistrict) && (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  downloadEventsExcel(month, year, false);
+                  toast.success("Downloading events Excel…");
+                }}
+              >
+                <Download className="mr-1 h-4 w-4" />
+                Download Excel
+              </Button>
+              {canExportDistrict && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    downloadEventsExcel(month, year, true);
+                    toast.success("Downloading newsletter events…");
+                  }}
+                >
+                  <Download className="mr-1 h-4 w-4" />
+                  Newsletter Excel
+                </Button>
+              )}
+            </>
+          )}
+          {canAddDistrictEvent && (
+            <Button size="sm" className="bg-accent text-accent-foreground hover:bg-accent/90" asChild>
+              <Link href="/dashboard/events/new">
+                <Plus className="mr-1 h-4 w-4" />
+                Add Event
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {clubUser && !clubId && (
@@ -120,8 +166,8 @@ export function EventsReportingForm() {
             <Button
               variant="outline"
               size="sm"
-              disabled={saveEvents.isPending}
               onClick={() => handleNoEventsToggle(false)}
+              disabled={saveEvents.isPending}
             >
               Undo
             </Button>
@@ -129,24 +175,11 @@ export function EventsReportingForm() {
         </div>
       )}
 
-      {clubUser && eventsSubmitted && !declaredComplete && (
-        <div className="depth-card mb-4 flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-          <div>
-            <p className="font-medium text-foreground">Events reporting complete</p>
-            <p className="text-sm text-muted-foreground">
-              You can keep adding club events for {periodLabel}. Reporting stays complete once at
-              least one event is on record.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {showNoEventsOption && !declaredComplete && (
-        <label className="flex items-start gap-3 rounded-xl border border-border/60 bg-muted/40 p-4 text-sm">
+      {showNoEventsOption && (
+        <label className="mb-4 flex items-start gap-3 rounded-xl border border-border/50 bg-card/40 px-4 py-3 text-sm">
           <input
             type="checkbox"
-            className="mt-0.5 h-4 w-4 shrink-0"
+            className="mt-1"
             checked={noEvents}
             disabled={saveEvents.isPending}
             onChange={(e) => handleNoEventsToggle(e.target.checked)}
@@ -195,12 +228,8 @@ export function EventsReportingForm() {
 
       <p className="text-sm text-muted-foreground">
         {clubUser
-          ? `Add at least one club event for ${periodLabel} to complete events reporting. District event participation details belong under `
-          : "District event participation details belong under "}
-        <Link href="/dashboard/reporting/admin" className="text-accent hover:underline">
-          Admin Reporting
-        </Link>
-        .
+          ? `Add at least one club event for ${periodLabel} to complete events reporting. Use the newsletter toggle on an event if you want district to feature it later. Download Excel anytime for full event details.`
+          : "Use Download Excel for all club events this month, or Newsletter Excel for events flagged for the district newsletter."}
       </p>
 
       {clubUser && clubId && reportingClosed && (

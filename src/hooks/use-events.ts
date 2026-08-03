@@ -24,6 +24,7 @@ export interface EventItem {
   budget: number | null;
   bannerUrl: string | null;
   minutesPdfUrl: string | null;
+  forDistrictNewsletter?: boolean;
   registrationCount: number;
   gallery?: { id: string; url: string; caption: string | null; sortOrder: number }[];
   registrations?: { id: string; status: string; registeredAt: string; member: { id: string; firstName: string; lastName: string; email: string } }[];

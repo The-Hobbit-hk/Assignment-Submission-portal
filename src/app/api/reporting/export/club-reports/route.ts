@@ -85,7 +85,6 @@ export async function GET(request: Request) {
       "Dues Amount Paid",
       "Host Club",
       "District Event Attendance",
-      "Newsletter Event",
       "Status",
       "Submitted At",
     ];
@@ -100,7 +99,6 @@ export async function GET(request: Request) {
       row.admin?.districtDuesAmount ?? "",
       row.admin?.hostClub ?? "",
       row.admin?.districtEventAttendance ?? "",
-      row.admin?.newsletterEvent ?? "",
       row.admin?.status ?? "NOT SUBMITTED",
       row.admin?.submittedAt ?? "",
     ]);

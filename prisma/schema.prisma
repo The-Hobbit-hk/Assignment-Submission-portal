@@ -400,6 +400,8 @@ model Event {
   budget                Decimal?    @db.Decimal(12, 2)
   bannerUrl             String?
   minutesPdfUrl         String?
+  /** Club opted to submit this event for the district newsletter later. */
+  forDistrictNewsletter Boolean     @default(false)
 
   gallery              EventGallery[]
   registrations        EventRegistration[]
@@ -412,6 +414,7 @@ model Event {
   @@index([startDate])
   @@index([status])
   @@index([type, startDate, status])
+  @@index([forDistrictNewsletter])
 }
 
 model PublicEventRegistration {

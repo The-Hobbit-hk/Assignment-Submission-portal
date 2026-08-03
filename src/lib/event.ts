@@ -31,6 +31,7 @@ export function serializeEvent(e: EventWithRelations) {
     budget: e.budget ? Number(e.budget) : null,
     bannerUrl: e.bannerUrl,
     minutesPdfUrl: e.minutesPdfUrl,
+    forDistrictNewsletter: e.forDistrictNewsletter,
     registrationCount: e._count?.registrations ?? 0,
     gallery: e.gallery?.map((g) => ({
       id: g.id,

@@ -40,7 +40,6 @@ export async function GET(request: Request) {
       "Master Budget Date of Passing",
       "Host Club",
       "District Event Attendance",
-      "Newsletter Event",
       "Status",
       "Submitted At",
     ];
@@ -61,7 +60,6 @@ export async function GET(request: Request) {
         r?.masterBudgetPassDate ? r.masterBudgetPassDate.toISOString().slice(0, 10) : "",
         r?.hostClub ?? "",
         r?.districtEventAttendance ?? "",
-        r?.newsletterEvent ?? "",
         r?.status ?? "NOT SUBMITTED",
         r?.submittedAt?.toISOString() ?? "",
       ];

@@ -135,7 +135,11 @@ export async function apiJson<T>(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<T> {
-  const res = await fetch(input, init);
+  const res = await fetch(input, {
+    ...init,
+    // Dashboard APIs are auth-scoped; never reuse browser HTTP cache after mutations.
+    cache: "no-store",
+  });
 
   if (!res.ok) {
     throw new ApiError(await parseApiErrorResponse(res), res.status);

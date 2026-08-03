@@ -124,6 +124,7 @@ export async function POST(request: Request) {
         onSiteRegistration: d.onSiteRegistration ?? false,
         serviceHours: d.serviceHours ?? 0,
         budget: d.budget,
+        forDistrictNewsletter: d.forDistrictNewsletter === true,
       },
       include: { ...eventInclude, gallery: true },
     });
