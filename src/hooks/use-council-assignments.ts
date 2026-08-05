@@ -260,6 +260,25 @@ export function useReopenCouncilReport() {
   });
 }
 
+export function useReevaluateCouncilReport() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { memberId: string; month: number; year: number }) =>
+      apiJson("/api/bluebook/reports/reevaluate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      }),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({
+        queryKey: ["bluebook", "council-review", variables.memberId, variables.month, variables.year],
+      });
+      qc.invalidateQueries({ queryKey: ["bluebook", "council-overview"] });
+      qc.invalidateQueries({ queryKey: ["council"] });
+    },
+  });
+}
+
 export function useCreateBluebookCycle() {
   const qc = useQueryClient();
   return useMutation({

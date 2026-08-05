@@ -2,15 +2,31 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle2, ExternalLink, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  ExternalLink,
+  RefreshCw,
+  Save,
+  Unlock,
+} from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { BluebookStatusBadge } from "@/components/bluebook/bluebook-status-badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import {
   useCouncilMemberReview,
+  useReevaluateCouncilReport,
   useReopenCouncilReport,
   useReviewCouncilMember,
 } from "@/hooks/use-council-assignments";
@@ -29,8 +45,10 @@ export function CouncilMemberReview({
   const { data, isLoading } = useCouncilMemberReview(memberId, month, year);
   const review = useReviewCouncilMember(memberId);
   const reopen = useReopenCouncilReport();
+  const reevaluate = useReevaluateCouncilReport();
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
   const [comment, setComment] = useState("");
+  const [reopenDialogOpen, setReopenDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!data) return;
@@ -51,6 +69,7 @@ export function CouncilMemberReview({
   const { member, assignments, report, totals } = data;
   const isReviewed = report?.status === "APPROVED";
   const canEdit = !isReviewed && Boolean(report?.submittedAt);
+  const canReopen = Boolean(report && report.status !== "DRAFT");
   const liveCompleted = assignments.filter((a) => completed[a.id]).length;
   const livePct =
     assignments.length > 0
@@ -77,6 +96,18 @@ export function CouncilMemberReview({
     );
   };
 
+  const confirmReopen = () => {
+    reopen.mutate(
+      { memberId, month, year },
+      {
+        onSuccess: () => {
+          setReopenDialogOpen(false);
+          toast.success("Submission reopened for the member");
+        },
+      }
+    );
+  };
+
   return (
     <div className="space-y-6">
       <Button variant="ghost" size="sm" asChild className="-ml-2">
@@ -89,7 +120,52 @@ export function CouncilMemberReview({
       <PageHeading
         title={member.name ?? member.email}
         subtitle={`Blue Book review — ${member.email}`}
+        action={
+          canReopen ? (
+            <Button
+              variant="destructive"
+              disabled={reopen.isPending}
+              onClick={() => setReopenDialogOpen(true)}
+            >
+              <Unlock className="h-4 w-4" />
+              Reopen submission
+            </Button>
+          ) : undefined
+        }
       />
+
+      <Dialog open={reopenDialogOpen} onOpenChange={setReopenDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reopen this submission?</DialogTitle>
+            <DialogDescription className="space-y-2 text-left">
+              <span className="block">
+                This unlocks the Blue Book for the member so they can edit and resubmit.
+              </span>
+              <span className="block font-medium text-amber-800 dark:text-amber-400">
+                Warning: their current review lock will be cleared, task scores reset to draft, and
+                council live scores for this month will update. This cannot be undone automatically.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setReopenDialogOpen(false)}
+              disabled={reopen.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={reopen.isPending}
+              onClick={confirmReopen}
+            >
+              {reopen.isPending ? "Reopening…" : "Yes, reopen submission"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {isReviewed && (
         <div className="flex items-start gap-3 rounded-xl border border-green-500/25 bg-green-50/80 p-4 dark:bg-green-950/20">
@@ -250,18 +326,21 @@ export function CouncilMemberReview({
             </Button>
           </>
         ) : (
-          <Button variant="outline" disabled className="border-green-500/30 text-green-700">
-            <CheckCircle2 className="h-4 w-4" />
-            Reviewed
-          </Button>
-        )}
-        {report && report.status !== "DRAFT" && (
           <Button
-            variant="destructive"
-            disabled={reopen.isPending}
-            onClick={() => reopen.mutate({ memberId, month, year })}
+            variant="outline"
+            disabled={reevaluate.isPending}
+            onClick={() =>
+              reevaluate.mutate(
+                { memberId, month, year },
+                {
+                  onSuccess: () =>
+                    toast.success("Review unlocked — you can change task status again"),
+                }
+              )
+            }
           >
-            {reopen.isPending ? "Reopening…" : "Reopen submission"}
+            <RefreshCw className="h-4 w-4" />
+            {reevaluate.isPending ? "Unlocking…" : "Re-evaluate"}
           </Button>
         )}
       </div>
