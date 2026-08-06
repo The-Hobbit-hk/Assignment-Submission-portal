@@ -11,6 +11,7 @@ import {
   Building2,
   CalendarDays,
   ClipboardList,
+  FileBarChart2,
   LayoutDashboard,
   Shield,
   UserCheck,
@@ -92,6 +93,11 @@ export function canViewAdminReportSubmissions(role: UserRole) {
     role === "DISTRICT_SECRETARY" ||
     DISTRICT_ROLES.includes(role)
   );
+}
+
+/** Admin-only monthly reporting PowerPoint generator. */
+export function canGenerateMonthlyReportingDeck(role: UserRole) {
+  return DISTRICT_ROLES.includes(role);
 }
 
 /**
@@ -228,6 +234,14 @@ export function getNavigationForRole(
       title: "District Dues",
       href: "/dashboard/reporting/district-dues",
       icon: Wallet,
+    });
+  }
+
+  if (canGenerateMonthlyReportingDeck(role)) {
+    reportingChildren.push({
+      title: "Monthly Deck",
+      href: "/dashboard/reporting/monthly-overview",
+      icon: FileBarChart2,
     });
   }
 
