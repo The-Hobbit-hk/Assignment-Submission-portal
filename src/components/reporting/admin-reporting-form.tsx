@@ -14,6 +14,7 @@ import {
   ReportingSection,
 } from "@/components/reporting/reporting-form-layout";
 import { ReportingFileUpload } from "@/components/reporting/reporting-file-upload";
+import { AdminReportDraftBanner } from "@/components/reporting/admin-report-draft-banner";
 import { ReportingSubmittedDialog } from "@/components/reporting/reporting-submitted-dialog";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
 import { YesNoSelect } from "@/components/reporting/yes-no-select";
@@ -59,6 +60,7 @@ export function AdminReportingForm() {
 
   const periodLabel = getReportingPeriodLabel(month, year);
   const isSubmitted = data?.status === "SUBMITTED";
+  const isDraft = data?.status === "DRAFT";
 
   useEffect(() => {
     if (isSubmitted) {
@@ -277,6 +279,8 @@ export function AdminReportingForm() {
         </div>
       ) : (
         <>
+      {isDraft && <AdminReportDraftBanner periodLabel={periodLabel} className="mb-2" />}
+
       <ReportingPanel title="Club Administration">
         <ReportingFieldRow label="New Members :">
           <Input
@@ -478,7 +482,7 @@ export function AdminReportingForm() {
         disabled={save.isPending || reportingClosed}
         className="bg-accent px-10 text-accent-foreground hover:bg-accent/90"
       >
-        {save.isPending ? "Submitting..." : "Submit"}
+        {save.isPending ? "Submitting..." : isDraft ? "Submit admin report" : "Submit"}
       </Button>
         </>
       )}

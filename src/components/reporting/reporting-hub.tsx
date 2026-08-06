@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileBarChart2, Lock } from "lucide-react";
+import { AdminReportDraftBanner } from "@/components/reporting/admin-report-draft-banner";
 import { Badge } from "@/components/ui/badge";
 import { ReportingClosedDialog } from "@/components/reporting/reporting-closed-dialog";
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
@@ -36,12 +37,18 @@ const links = [
   },
 ];
 
-function CompletionBadge({ complete }: { complete: boolean }) {
-  return (
-    <Badge variant={complete ? "success" : "warning"}>
-      {complete ? "Complete" : "Incomplete"}
-    </Badge>
-  );
+function ReportingStatusBadge({
+  status,
+}: {
+  status: "SUBMITTED" | "DRAFT" | "NOT_STARTED";
+}) {
+  if (status === "SUBMITTED") {
+    return <Badge variant="success">Complete</Badge>;
+  }
+  if (status === "DRAFT") {
+    return <Badge variant="warning">Draft — submit</Badge>;
+  }
+  return <Badge variant="warning">Incomplete</Badge>;
 }
 
 export function ReportingHub() {
@@ -56,14 +63,21 @@ export function ReportingHub() {
   const reportingClosed = window && !window.open;
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const adminComplete = adminReport?.status === "SUBMITTED";
+  const adminStatus =
+    adminReport?.status === "SUBMITTED"
+      ? "SUBMITTED"
+      : adminReport?.status === "DRAFT"
+        ? "DRAFT"
+        : "NOT_STARTED";
+  const adminComplete = adminStatus === "SUBMITTED";
+  const adminDraft = adminStatus === "DRAFT";
   const eventsComplete =
     eventsPortal?.report?.status === "SUBMITTED" || (eventsPortal?.clubEvents.length ?? 0) > 0;
   const monthlyComplete = adminComplete && eventsComplete;
 
-  const completionByLink = {
-    events: eventsComplete,
-    admin: adminComplete,
+  const statusByLink = {
+    events: eventsComplete ? ("SUBMITTED" as const) : ("NOT_STARTED" as const),
+    admin: adminStatus,
   };
 
   const handleCardClick = () => {
@@ -105,6 +119,10 @@ export function ReportingHub() {
 
       <ReportingWindowBanner month={month} year={year} />
 
+      {clubUser && adminDraft && (
+        <AdminReportDraftBanner periodLabel={periodLabel} />
+      )}
+
       {clubUser && monthlyComplete && (
         <div className="depth-card flex items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-4">
           <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
@@ -144,7 +162,7 @@ export function ReportingHub() {
                   </div>
                   <div className="flex items-center gap-2">
                     {clubUser && (
-                      <CompletionBadge complete={completionByLink[item.id]} />
+                      <ReportingStatusBadge status={statusByLink[item.id]} />
                     )}
                     <span
                       className={cn(
