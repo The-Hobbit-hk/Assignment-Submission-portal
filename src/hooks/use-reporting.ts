@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiJson } from "@/lib/api-client";
+import { ApiError, apiJson } from "@/lib/api-client";
 import type { SerializedMonthlyReport } from "@/lib/reporting";
 
 interface ReportFilters {
@@ -79,17 +79,72 @@ export async function uploadAdminReportFile(
   year: number,
   clubId?: string
 ) {
-  const fd = new FormData();
-  fd.append("file", file);
-  fd.append("field", field);
-  fd.append("month", String(month));
-  fd.append("year", String(year));
-  if (clubId) fd.append("clubId", clubId);
+  // Prefer signed direct-to-Supabase upload so ~5 MB files bypass Vercel's ~4.5 MB body limit.
+  try {
+    const signed = await apiJson<{
+      path: string;
+      token: string;
+      signedUrl: string;
+      publicUrl: string;
+    }>("/api/reporting/admin/upload/sign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fileName: file.name,
+        contentType: file.type || "application/octet-stream",
+        size: file.size,
+        field,
+        month,
+        year,
+        clubId: clubId ?? null,
+      }),
+    });
 
-  return apiJson<SerializedMonthlyReport>("/api/reporting/admin/upload", {
-    method: "POST",
-    body: fd,
-  });
+    const put = await fetch(signed.signedUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type || "application/octet-stream",
+        "x-upsert": "false",
+      },
+      body: file,
+    });
+
+    if (!put.ok) {
+      const detail = await put.text().catch(() => "");
+      throw new ApiError(
+        detail.trim() || "Could not upload file to storage. Please try again.",
+        put.status || 500
+      );
+    }
+
+    return apiJson<SerializedMonthlyReport>("/api/reporting/admin/upload/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        path: signed.path,
+        field,
+        month,
+        year,
+        clubId: clubId ?? null,
+      }),
+    });
+  } catch (err) {
+    // Local/dev without Supabase: fall back to multipart for smaller files.
+    if (err instanceof ApiError && err.status === 500 && file.size <= 4 * 1024 * 1024) {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("field", field);
+      fd.append("month", String(month));
+      fd.append("year", String(year));
+      if (clubId) fd.append("clubId", clubId);
+
+      return apiJson<SerializedMonthlyReport>("/api/reporting/admin/upload", {
+        method: "POST",
+        body: fd,
+      });
+    }
+    throw err;
+  }
 }
 
 export function useSaveAdminReport() {
