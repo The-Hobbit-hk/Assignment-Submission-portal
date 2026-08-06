@@ -37,11 +37,9 @@ const links = [
   },
 ];
 
-function ReportingStatusBadge({
-  status,
-}: {
-  status: "SUBMITTED" | "DRAFT" | "NOT_STARTED";
-}) {
+type ReportingCardStatus = "SUBMITTED" | "DRAFT" | "NOT_STARTED";
+
+function ReportingStatusBadge({ status }: { status: ReportingCardStatus }) {
   if (status === "SUBMITTED") {
     return <Badge variant="success">Complete</Badge>;
   }
@@ -63,7 +61,7 @@ export function ReportingHub() {
   const reportingClosed = window && !window.open;
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const adminStatus =
+  const adminStatus: ReportingCardStatus =
     adminReport?.status === "SUBMITTED"
       ? "SUBMITTED"
       : adminReport?.status === "DRAFT"
@@ -75,8 +73,8 @@ export function ReportingHub() {
     eventsPortal?.report?.status === "SUBMITTED" || (eventsPortal?.clubEvents.length ?? 0) > 0;
   const monthlyComplete = adminComplete && eventsComplete;
 
-  const statusByLink = {
-    events: eventsComplete ? ("SUBMITTED" as const) : ("NOT_STARTED" as const),
+  const statusByLink: Record<"events" | "admin", ReportingCardStatus> = {
+    events: eventsComplete ? "SUBMITTED" : "NOT_STARTED",
     admin: adminStatus,
   };
 
