@@ -15,6 +15,8 @@ export const EVENT_TYPE_LABELS: Record<string, string> = {
   SERVICE: "Service",
   PROFESSIONAL: "Professional",
   SOCIAL: "Social",
+  GBM: "GBM",
+  BOD_MEET: "BOD Meet",
   TRAINING: "Training",
 };
 
@@ -27,6 +29,8 @@ export const CLUB_EVENT_AVENUE_VALUES = [
   "DEI",
   "PUBLIC_IMAGE",
   "ROTARY_RELATIONS",
+  "GBM",
+  "BOD_MEET",
 ] as const;
 
 export const CLUB_EVENT_AVENUES = CLUB_EVENT_AVENUE_VALUES.map((value) => ({

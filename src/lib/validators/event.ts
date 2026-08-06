@@ -4,6 +4,8 @@ export const eventTypeEnum = z.enum([
   "SERVICE",
   "PROFESSIONAL",
   "SOCIAL",
+  "GBM",
+  "BOD_MEET",
   "DISTRICT",
   "TRAINING",
   "ISD",
