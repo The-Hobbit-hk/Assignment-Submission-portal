@@ -80,3 +80,56 @@ export function useDistrictDues(month: number, year: number) {
       ),
   });
 }
+
+export type AdminSubmissionRow = {
+  club: { id: string; name: string; zone: string | null };
+  status: "SUBMITTED" | "DRAFT" | "NOT SUBMITTED";
+  submittedAt: string | null;
+  newMembers: number | null;
+  resolutionPassed: string | null;
+  resolutionFileUrl: string | null;
+  resolutionPassDate: string | null;
+  districtDuesPaid: string | null;
+  districtDuesFileUrl: string | null;
+  districtDuesMembersCount: number | null;
+  districtDuesAmount: number | null;
+  bylawsPassed: string | null;
+  bylawsFileUrl: string | null;
+  bylawsPassDate: string | null;
+  masterBudgetPassed: string | null;
+  masterBudgetFileUrl: string | null;
+  masterBudgetPassDate: string | null;
+  hostClub: string | null;
+  districtEventAttendance: string | null;
+};
+
+export type AdminSubmissionsResponse = {
+  month: number;
+  year: number;
+  zoneFilter: string | null;
+  summary: {
+    totalClubs: number;
+    submitted: number;
+    draft: number;
+    notSubmitted: number;
+    resolutionYes: number;
+    duesYes: number;
+    bylawsYes: number;
+    budgetYes: number;
+  };
+  clubs: AdminSubmissionRow[];
+};
+
+export function useAdminSubmissions(month: number, year: number, zone?: string) {
+  return useQuery({
+    queryKey: ["reporting", "admin-submissions", month, year, zone ?? "all"],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        month: String(month),
+        year: String(year),
+      });
+      if (zone) params.set("zone", zone);
+      return apiJson<AdminSubmissionsResponse>(`/api/reporting/admin-submissions?${params}`);
+    },
+  });
+}

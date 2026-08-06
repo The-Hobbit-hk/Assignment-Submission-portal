@@ -8,7 +8,11 @@ import { getActiveReportPeriod } from "@/lib/reporting-window";
 import { handleRouteError } from "@/lib/api-errors";
 
 export async function GET(request: Request) {
-  const { error } = await requireRole(["REPORTING_SECRETARY", ...DISTRICT_ROLES]);
+  const { error } = await requireRole([
+    "REPORTING_SECRETARY",
+    "DISTRICT_SECRETARY",
+    ...DISTRICT_ROLES,
+  ]);
   if (error) return error;
 
   const { searchParams } = new URL(request.url);

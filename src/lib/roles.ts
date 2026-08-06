@@ -83,6 +83,18 @@ export function canViewClubReportingOverview(role: UserRole, email?: string | nu
 }
 
 /**
+ * District-wide Admin Reporting submissions (field-level overview).
+ * Reporting Secretary, DGS, and district admins.
+ */
+export function canViewAdminReportSubmissions(role: UserRole) {
+  return (
+    role === "REPORTING_SECRETARY" ||
+    role === "DISTRICT_SECRETARY" ||
+    DISTRICT_ROLES.includes(role)
+  );
+}
+
+/**
  * District Dues overview — the finance data submitted by clubs in Admin Reporting.
  * Visible to the DRR (district admin), Super Admin, and the District Treasurer.
  */
@@ -90,9 +102,14 @@ export function canViewDistrictDues(role: UserRole, email?: string | null) {
   return DISTRICT_ROLES.includes(role) || isDistrictTreasurer(email);
 }
 
-/** DRR (district admin) — create definitions, assign, and approve citations. */
+/** DRR / system admin only — create definitions, assign, and approve citations. */
 export function canManageCitations(role: UserRole) {
-  return DISTRICT_ROLES.includes(role);
+  return DISTRICT_ROLES.includes(role); // SUPER_ADMIN | DISTRICT_ADMIN
+}
+
+/** Alias for citation approval (same gate as manage). */
+export function canReviewCitations(role: UserRole) {
+  return canManageCitations(role);
 }
 
 export function canSubmitCitations(role: UserRole) {
@@ -195,6 +212,14 @@ export function getNavigationForRole(
       title: "Export",
       href: "/dashboard/reports",
       icon: Briefcase,
+    });
+  }
+
+  if (canViewAdminReportSubmissions(role)) {
+    reportingChildren.push({
+      title: "Admin Submissions",
+      href: "/dashboard/reporting/admin-submissions",
+      icon: ClipboardList,
     });
   }
 
