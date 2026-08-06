@@ -22,7 +22,7 @@ export type DistrictZoneMeta = {
 };
 
 export const DISTRICT_ZONE_META: DistrictZoneMeta[] = [
-  { zone: "Zone 1", reps: ["Rtr. Aniket Sardar"], totalClubs: 12 },
+  { zone: "Zone 1", reps: ["Rtr. Aniket Sardar", "Rtr. Rohan Puri"], totalClubs: 12 },
   { zone: "Zone 2", reps: ["Rtr. Rajas Uchagaonkar", "Rtr. Sumedh Gite"], totalClubs: 16 },
   { zone: "Zone 3", reps: ["Rtr. Pratham Pokharkar", "Rtr. Sarthak Ambhore"], totalClubs: 15 },
   { zone: "Zone 4", reps: ["Rtr. Vedant Chirmade", "Rtr. Aditya Verma"], totalClubs: 13 },
