@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +20,7 @@ import { ReportingSubmittedDialog } from "@/components/reporting/reporting-submi
 import { ReportingWindowBanner } from "@/components/reporting/reporting-window-banner";
 import { YesNoSelect } from "@/components/reporting/yes-no-select";
 import { getActiveReportPeriod, getReportingPeriodLabel } from "@/lib/reporting";
+import type { SerializedMonthlyReport } from "@/lib/reporting";
 import {
   uploadAdminReportFile,
   useAdminReport,
@@ -29,13 +31,23 @@ import { useSession } from "next-auth/react";
 import { isClubUser } from "@/lib/roles";
 import { notifyValidation, formErrorMessage } from "@/lib/toast";
 
+function toDateInput(value: string | null | undefined) {
+  if (!value) return "";
+  // Prefer YYYY-MM-DD prefix so IST/UTC shift does not move calendar dates.
+  const match = /^(\d{4}-\d{2}-\d{2})/.exec(value);
+  if (match) return match[1];
+  return new Date(value).toISOString().slice(0, 10);
+}
+
 export function AdminReportingForm() {
   const { month, year } = getActiveReportPeriod();
+  const queryClient = useQueryClient();
+  const reportQueryKey = ["reporting", "admin", { month, year }] as const;
 
   const { data: session } = useSession();
   const clubUser = isClubUser(session?.user?.role ?? "MEMBER");
   const { data: window } = useReportingWindow(month, year);
-  const { data, isLoading, refetch } = useAdminReport({ month, year });
+  const { data, isLoading, isFetched, refetch } = useAdminReport({ month, year });
   const save = useSaveAdminReport();
   const reportingClosed = clubUser && window && !window.open;
 
@@ -58,6 +70,9 @@ export function AdminReportingForm() {
   const [formError, setFormError] = useState("");
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
 
+  // Only hydrate once from the server. Upload/refetch must not wipe in-progress edits.
+  const hydratedRef = useRef(false);
+
   const periodLabel = getReportingPeriodLabel(month, year);
   const isSubmitted = data?.status === "SUBMITTED";
   const isDraft = data?.status === "DRAFT";
@@ -69,37 +84,69 @@ export function AdminReportingForm() {
   }, [isSubmitted]);
 
   useEffect(() => {
-    if (data) {
-      setNewMembers(data.newMembers != null ? String(data.newMembers) : "");
-      setResolutionPassed(data.resolutionPassed ?? "");
-      setResolutionPassDate(
-        data.resolutionPassDate
-          ? new Date(data.resolutionPassDate).toISOString().slice(0, 10)
-          : ""
-      );
-      setDistrictDuesPaid(data.districtDuesPaid ?? "");
-      setDuesMembersCount(
-        data.districtDuesMembersCount != null ? String(data.districtDuesMembersCount) : ""
-      );
-      setDuesAmount(data.districtDuesAmount != null ? String(data.districtDuesAmount) : "");
-      setResolutionFileUrl(data.resolutionFileUrl ?? null);
-      setDistrictDuesFileUrl(data.districtDuesFileUrl ?? null);
-      setBylawsPassed(data.bylawsPassed ?? "");
-      setBylawsFileUrl(data.bylawsFileUrl ?? null);
-      setBylawsPassDate(
-        data.bylawsPassDate ? new Date(data.bylawsPassDate).toISOString().slice(0, 10) : ""
-      );
-      setMasterBudgetPassed(data.masterBudgetPassed ?? "");
-      setMasterBudgetFileUrl(data.masterBudgetFileUrl ?? null);
-      setMasterBudgetPassDate(
-        data.masterBudgetPassDate
-          ? new Date(data.masterBudgetPassDate).toISOString().slice(0, 10)
-          : ""
-      );
-      setHostClub(data.hostClub ?? "");
-      setDistrictEventAttendance(data.districtEventAttendance ?? "");
-    }
-  }, [data]);
+    if (!isFetched || hydratedRef.current) return;
+    hydratedRef.current = true;
+
+    if (!data) return;
+
+    setNewMembers(data.newMembers != null ? String(data.newMembers) : "");
+    setResolutionPassed(data.resolutionPassed ?? "");
+    setResolutionPassDate(toDateInput(data.resolutionPassDate));
+    setDistrictDuesPaid(data.districtDuesPaid ?? "");
+    setDuesMembersCount(
+      data.districtDuesMembersCount != null ? String(data.districtDuesMembersCount) : ""
+    );
+    setDuesAmount(data.districtDuesAmount != null ? String(data.districtDuesAmount) : "");
+    setResolutionFileUrl(data.resolutionFileUrl ?? null);
+    setDistrictDuesFileUrl(data.districtDuesFileUrl ?? null);
+    setBylawsPassed(data.bylawsPassed ?? "");
+    setBylawsFileUrl(data.bylawsFileUrl ?? null);
+    setBylawsPassDate(toDateInput(data.bylawsPassDate));
+    setMasterBudgetPassed(data.masterBudgetPassed ?? "");
+    setMasterBudgetFileUrl(data.masterBudgetFileUrl ?? null);
+    setMasterBudgetPassDate(toDateInput(data.masterBudgetPassDate));
+    setHostClub(data.hostClub ?? "");
+    setDistrictEventAttendance(data.districtEventAttendance ?? "");
+  }, [data, isFetched]);
+
+  const applyUploadedReport = (
+    report: SerializedMonthlyReport,
+    field: "resolution" | "districtDues" | "bylaws" | "masterBudget"
+  ) => {
+    if (field === "resolution") setResolutionFileUrl(report.resolutionFileUrl ?? null);
+    if (field === "districtDues") setDistrictDuesFileUrl(report.districtDuesFileUrl ?? null);
+    if (field === "bylaws") setBylawsFileUrl(report.bylawsFileUrl ?? null);
+    if (field === "masterBudget") setMasterBudgetFileUrl(report.masterBudgetFileUrl ?? null);
+
+    // Keep draft status / file URLs in cache without resetting the form.
+    queryClient.setQueryData<SerializedMonthlyReport | null>(reportQueryKey, (prev) => ({
+      ...(prev ?? report),
+      ...report,
+      // Preserve answers that only exist in local state until Submit.
+      resolutionPassed: resolutionPassed || report.resolutionPassed,
+      resolutionPassDate: resolutionPassDate
+        ? new Date(resolutionPassDate).toISOString()
+        : report.resolutionPassDate,
+      districtDuesPaid: districtDuesPaid || report.districtDuesPaid,
+      districtDuesMembersCount:
+        duesMembersCount !== ""
+          ? parseInt(duesMembersCount, 10)
+          : report.districtDuesMembersCount,
+      districtDuesAmount:
+        duesAmount !== "" ? parseInt(duesAmount, 10) : report.districtDuesAmount,
+      bylawsPassed: bylawsPassed || report.bylawsPassed,
+      bylawsPassDate: bylawsPassDate
+        ? new Date(bylawsPassDate).toISOString()
+        : report.bylawsPassDate,
+      masterBudgetPassed: masterBudgetPassed || report.masterBudgetPassed,
+      masterBudgetPassDate: masterBudgetPassDate
+        ? new Date(masterBudgetPassDate).toISOString()
+        : report.masterBudgetPassDate,
+      hostClub: hostClub || report.hostClub,
+      districtEventAttendance: districtEventAttendance || report.districtEventAttendance,
+      newMembers: newMembers !== "" ? parseInt(newMembers, 10) : report.newMembers,
+    }));
+  };
 
   const handleResolutionChange = (value: string) => {
     setResolutionPassed(value);
@@ -279,211 +326,217 @@ export function AdminReportingForm() {
         </div>
       ) : (
         <>
-      {isDraft && <AdminReportDraftBanner periodLabel={periodLabel} className="mb-2" />}
+          {isDraft && <AdminReportDraftBanner periodLabel={periodLabel} className="mb-2" />}
 
-      <ReportingPanel title="Club Administration">
-        <ReportingFieldRow label="New Members :">
-          <Input
-            type="number"
-            min={0}
-            value={newMembers}
-            onChange={(e) => setNewMembers(e.target.value)}
-            className="border-border/60 bg-transparent"
-          />
-        </ReportingFieldRow>
-
-        <ReportingSection title="Resolution">
-          <ReportingFieldRow label="Resolution passed :">
-            <div>
-              <YesNoSelect value={resolutionPassed} onChange={handleResolutionChange} />
-              {resolutionPassed === "yes" && (
-                <ReportingFileUpload
-                  label="Proof of Resolution Passed (Max 5MB)"
-                  fileUrl={resolutionFileUrl}
-                  disabled={reportingClosed}
-                  accept=".pdf,.jpg,.jpeg,.png,.webp"
-                  hint="PDF or image, max 5MB"
-                  onUpload={async (file) => {
-                    const report = await uploadAdminReportFile(file, "resolution", month, year);
-                    setResolutionFileUrl(report.resolutionFileUrl ?? null);
-                    await refetch();
-                  }}
-                  onClear={() => setResolutionFileUrl(null)}
-                />
-              )}
-            </div>
-          </ReportingFieldRow>
-          {resolutionPassed === "yes" && (
-            <ReportingFieldRow label="Date of passing :">
+          <ReportingPanel title="Club Administration">
+            <ReportingFieldRow label="New Members :">
               <Input
-                type="date"
-                value={resolutionPassDate}
-                onChange={(e) => setResolutionPassDate(e.target.value)}
+                type="number"
+                min={0}
+                value={newMembers}
+                onChange={(e) => setNewMembers(e.target.value)}
                 className="border-border/60 bg-transparent"
-                disabled={reportingClosed}
               />
             </ReportingFieldRow>
-          )}
-        </ReportingSection>
 
-        <ReportingSection title="Finance Reporting">
-          <ReportingFieldRow label="Has the club paid district dues :">
-            <div>
-              <YesNoSelect value={districtDuesPaid} onChange={handleDistrictDuesChange} />
-              {districtDuesPaid === "yes" && (
-                <ReportingFileUpload
-                  label="Proof of District Dues Payment (Max 5MB)"
-                  fileUrl={districtDuesFileUrl}
-                  disabled={reportingClosed}
-                  accept=".pdf,.jpg,.jpeg,.png,.webp"
-                  hint="PDF or image, max 5MB"
-                  onUpload={async (file) => {
-                    const report = await uploadAdminReportFile(file, "districtDues", month, year);
-                    setDistrictDuesFileUrl(report.districtDuesFileUrl ?? null);
-                    await refetch();
-                  }}
-                  onClear={() => setDistrictDuesFileUrl(null)}
-                />
+            <ReportingSection title="Resolution">
+              <ReportingFieldRow label="Resolution passed :">
+                <div>
+                  <YesNoSelect value={resolutionPassed} onChange={handleResolutionChange} />
+                  {resolutionPassed === "yes" && (
+                    <ReportingFileUpload
+                      label="Proof of Resolution Passed (Max 5MB)"
+                      fileUrl={resolutionFileUrl}
+                      disabled={reportingClosed}
+                      accept=".pdf,.jpg,.jpeg,.png,.webp"
+                      hint="PDF or image, max 5MB"
+                      onUpload={async (file) => {
+                        const report = await uploadAdminReportFile(
+                          file,
+                          "resolution",
+                          month,
+                          year
+                        );
+                        applyUploadedReport(report, "resolution");
+                      }}
+                      onClear={() => setResolutionFileUrl(null)}
+                    />
+                  )}
+                </div>
+              </ReportingFieldRow>
+              {resolutionPassed === "yes" && (
+                <ReportingFieldRow label="Date of passing :">
+                  <Input
+                    type="date"
+                    value={resolutionPassDate}
+                    onChange={(e) => setResolutionPassDate(e.target.value)}
+                    className="border-border/60 bg-transparent"
+                    disabled={reportingClosed}
+                  />
+                </ReportingFieldRow>
               )}
+            </ReportingSection>
+
+            <ReportingSection title="Finance Reporting">
+              <ReportingFieldRow label="Has the club paid district dues :">
+                <div>
+                  <YesNoSelect value={districtDuesPaid} onChange={handleDistrictDuesChange} />
+                  {districtDuesPaid === "yes" && (
+                    <ReportingFileUpload
+                      label="Proof of District Dues Payment (Max 5MB)"
+                      fileUrl={districtDuesFileUrl}
+                      disabled={reportingClosed}
+                      accept=".pdf,.jpg,.jpeg,.png,.webp"
+                      hint="PDF or image, max 5MB"
+                      onUpload={async (file) => {
+                        const report = await uploadAdminReportFile(
+                          file,
+                          "districtDues",
+                          month,
+                          year
+                        );
+                        applyUploadedReport(report, "districtDues");
+                      }}
+                      onClear={() => setDistrictDuesFileUrl(null)}
+                    />
+                  )}
+                </div>
+              </ReportingFieldRow>
+              {districtDuesPaid === "yes" && (
+                <>
+                  <ReportingFieldRow label="Dues paid for (no. of members) :">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={duesMembersCount}
+                      onChange={(e) => setDuesMembersCount(e.target.value)}
+                      placeholder="e.g. 25"
+                      className="border-border/60 bg-transparent"
+                      disabled={reportingClosed}
+                    />
+                  </ReportingFieldRow>
+                  <ReportingFieldRow label="Amount paid (₹) :">
+                    <Input
+                      type="number"
+                      min={0}
+                      value={duesAmount}
+                      onChange={(e) => setDuesAmount(e.target.value)}
+                      placeholder="e.g. 5000"
+                      className="border-border/60 bg-transparent"
+                      disabled={reportingClosed}
+                    />
+                  </ReportingFieldRow>
+                </>
+              )}
+            </ReportingSection>
+
+            <ReportingSection title="Club By Laws">
+              <ReportingFieldRow label="By-laws passed :">
+                <YesNoSelect value={bylawsPassed} onChange={handleBylawsChange} />
+              </ReportingFieldRow>
+
+              {bylawsPassed === "yes" && (
+                <>
+                  <ReportingFieldRow label="Upload Doc Here (Max 5MB) :">
+                    <ReportingFileUpload
+                      label="Club bylaws document"
+                      fileUrl={bylawsFileUrl}
+                      disabled={reportingClosed}
+                      accept=".pdf,.jpg,.jpeg,.png,.webp"
+                      hint="PDF or image, max 5MB"
+                      onUpload={async (file) => {
+                        const report = await uploadAdminReportFile(file, "bylaws", month, year);
+                        applyUploadedReport(report, "bylaws");
+                      }}
+                      onClear={() => setBylawsFileUrl(null)}
+                    />
+                  </ReportingFieldRow>
+
+                  <ReportingFieldRow label="Date Pass On :">
+                    <Input
+                      type="date"
+                      value={bylawsPassDate}
+                      onChange={(e) => setBylawsPassDate(e.target.value)}
+                      className="border-border/60 bg-transparent"
+                      disabled={reportingClosed}
+                    />
+                  </ReportingFieldRow>
+                </>
+              )}
+            </ReportingSection>
+
+            <ReportingSection title="Club Master Budget">
+              <ReportingFieldRow label="Master budget passed :">
+                <YesNoSelect value={masterBudgetPassed} onChange={handleMasterBudgetChange} />
+              </ReportingFieldRow>
+
+              {masterBudgetPassed === "yes" && (
+                <>
+                  <ReportingFieldRow label="Upload Doc Here (Max 5MB) :">
+                    <ReportingFileUpload
+                      label="Club master budget document"
+                      fileUrl={masterBudgetFileUrl}
+                      disabled={reportingClosed}
+                      accept=".pdf,.jpg,.jpeg,.png,.webp"
+                      hint="PDF or image, max 5MB"
+                      onUpload={async (file) => {
+                        const report = await uploadAdminReportFile(
+                          file,
+                          "masterBudget",
+                          month,
+                          year
+                        );
+                        applyUploadedReport(report, "masterBudget");
+                      }}
+                      onClear={() => setMasterBudgetFileUrl(null)}
+                    />
+                  </ReportingFieldRow>
+
+                  <ReportingFieldRow label="Date Pass On :">
+                    <Input
+                      type="date"
+                      value={masterBudgetPassDate}
+                      onChange={(e) => setMasterBudgetPassDate(e.target.value)}
+                      className="border-border/60 bg-transparent"
+                      disabled={reportingClosed}
+                    />
+                  </ReportingFieldRow>
+                </>
+              )}
+            </ReportingSection>
+          </ReportingPanel>
+
+          <ReportingPanel title="District Event Participation">
+            <div className="space-y-0">
+              <ReportingFieldRow label="Were you the host club :">
+                <YesNoSelect value={hostClub} onChange={setHostClub} />
+              </ReportingFieldRow>
+
+              <ReportingFieldRow label="Attendance at District Event (details)">
+                <Textarea
+                  value={districtEventAttendance}
+                  onChange={(e) => setDistrictEventAttendance(e.target.value)}
+                  rows={4}
+                  placeholder="Which district events did your club attend? Include participation details."
+                  className="resize-y border-border/60 bg-transparent"
+                />
+              </ReportingFieldRow>
             </div>
-          </ReportingFieldRow>
-          {districtDuesPaid === "yes" && (
-            <>
-              <ReportingFieldRow label="Dues paid for (no. of members) :">
-                <Input
-                  type="number"
-                  min={0}
-                  value={duesMembersCount}
-                  onChange={(e) => setDuesMembersCount(e.target.value)}
-                  placeholder="e.g. 25"
-                  className="border-border/60 bg-transparent"
-                  disabled={reportingClosed}
-                />
-              </ReportingFieldRow>
-              <ReportingFieldRow label="Amount paid (₹) :">
-                <Input
-                  type="number"
-                  min={0}
-                  value={duesAmount}
-                  onChange={(e) => setDuesAmount(e.target.value)}
-                  placeholder="e.g. 5000"
-                  className="border-border/60 bg-transparent"
-                  disabled={reportingClosed}
-                />
-              </ReportingFieldRow>
-            </>
+          </ReportingPanel>
+
+          {reportingClosed && (
+            <p className="text-sm text-destructive">{window?.message}</p>
           )}
-        </ReportingSection>
 
-        <ReportingSection title="Club By Laws">
-          <ReportingFieldRow label="By-laws passed :">
-            <YesNoSelect value={bylawsPassed} onChange={handleBylawsChange} />
-          </ReportingFieldRow>
+          {formError && <p className="text-sm text-destructive">{formError}</p>}
 
-          {bylawsPassed === "yes" && (
-            <>
-              <ReportingFieldRow label="Upload Doc Here (Max 5MB) :">
-                <ReportingFileUpload
-                  label="Club bylaws document"
-                  fileUrl={bylawsFileUrl}
-                  disabled={reportingClosed}
-                  accept=".pdf,.jpg,.jpeg,.png,.webp"
-                  hint="PDF or image, max 5MB"
-                  onUpload={async (file) => {
-                    const report = await uploadAdminReportFile(file, "bylaws", month, year);
-                    setBylawsFileUrl(report.bylawsFileUrl ?? null);
-                    await refetch();
-                  }}
-                  onClear={() => setBylawsFileUrl(null)}
-                />
-              </ReportingFieldRow>
-
-              <ReportingFieldRow label="Date Pass On :">
-                <Input
-                  type="date"
-                  value={bylawsPassDate}
-                  onChange={(e) => setBylawsPassDate(e.target.value)}
-                  className="border-border/60 bg-transparent"
-                  disabled={reportingClosed}
-                />
-              </ReportingFieldRow>
-            </>
-          )}
-        </ReportingSection>
-
-        <ReportingSection title="Club Master Budget">
-          <ReportingFieldRow label="Master budget passed :">
-            <YesNoSelect value={masterBudgetPassed} onChange={handleMasterBudgetChange} />
-          </ReportingFieldRow>
-
-          {masterBudgetPassed === "yes" && (
-            <>
-              <ReportingFieldRow label="Upload Doc Here (Max 5MB) :">
-                <ReportingFileUpload
-                  label="Club master budget document"
-                  fileUrl={masterBudgetFileUrl}
-                  disabled={reportingClosed}
-                  accept=".pdf,.jpg,.jpeg,.png,.webp"
-                  hint="PDF or image, max 5MB"
-                  onUpload={async (file) => {
-                    const report = await uploadAdminReportFile(
-                      file,
-                      "masterBudget",
-                      month,
-                      year
-                    );
-                    setMasterBudgetFileUrl(report.masterBudgetFileUrl ?? null);
-                    await refetch();
-                  }}
-                  onClear={() => setMasterBudgetFileUrl(null)}
-                />
-              </ReportingFieldRow>
-
-              <ReportingFieldRow label="Date Pass On :">
-                <Input
-                  type="date"
-                  value={masterBudgetPassDate}
-                  onChange={(e) => setMasterBudgetPassDate(e.target.value)}
-                  className="border-border/60 bg-transparent"
-                  disabled={reportingClosed}
-                />
-              </ReportingFieldRow>
-            </>
-          )}
-        </ReportingSection>
-      </ReportingPanel>
-
-      <ReportingPanel title="District Event Participation">
-        <div className="space-y-0">
-          <ReportingFieldRow label="Were you the host club :">
-            <YesNoSelect value={hostClub} onChange={setHostClub} />
-          </ReportingFieldRow>
-
-          <ReportingFieldRow label="Attendance at District Event (details)">
-            <Textarea
-              value={districtEventAttendance}
-              onChange={(e) => setDistrictEventAttendance(e.target.value)}
-              rows={4}
-              placeholder="Which district events did your club attend? Include participation details."
-              className="resize-y border-border/60 bg-transparent"
-            />
-          </ReportingFieldRow>
-        </div>
-      </ReportingPanel>
-
-      {reportingClosed && (
-        <p className="text-sm text-destructive">{window?.message}</p>
-      )}
-
-      {formError && <p className="text-sm text-destructive">{formError}</p>}
-
-      <Button
-        onClick={handleSubmit}
-        disabled={save.isPending || reportingClosed}
-        className="bg-accent px-10 text-accent-foreground hover:bg-accent/90"
-      >
-        {save.isPending ? "Submitting..." : isDraft ? "Submit admin report" : "Submit"}
-      </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={save.isPending || reportingClosed}
+            className="bg-accent px-10 text-accent-foreground hover:bg-accent/90"
+          >
+            {save.isPending ? "Submitting..." : isDraft ? "Submit admin report" : "Submit"}
+          </Button>
         </>
       )}
     </ReportingFormLayout>
