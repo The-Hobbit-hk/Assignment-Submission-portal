@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Award, Loader2, Send } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { CitationAssignmentCard } from "@/components/citations/citation-assignment-card";
 import { CitationStatusBadge } from "@/components/citations/citation-status-badge";
 import { ReportingFileUpload } from "@/components/reporting/reporting-file-upload";
@@ -14,6 +15,7 @@ import {
   useCitationAssignments,
   useUpdateCitationAssignment,
   uploadCitationProof,
+  patchCitationAssignmentCaches,
 } from "@/hooks/use-citations";
 import {
   citationTitleSortKey,
@@ -25,6 +27,8 @@ import { toast } from "@/lib/toast";
 
 function toDateInputValue(iso: string | null | undefined) {
   if (!iso) return "";
+  const match = /^(\d{4}-\d{2}-\d{2})/.exec(iso);
+  if (match) return match[1];
   return new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 }
 
@@ -34,10 +38,16 @@ function fromDateInputValue(date: string) {
 }
 
 function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAssignment }) {
+  const qc = useQueryClient();
   const update = useUpdateCitationAssignment(assignment.id);
   const [notes, setNotes] = useState(assignment.clubNotes ?? "");
   const [proofUrl, setProofUrl] = useState<string | null>(assignment.proofUrl);
   const [completedDate, setCompletedDate] = useState(toDateInputValue(assignment.completedAt));
+
+  // Keep local proof in sync if the list cache is updated (e.g. after upload) without wiping notes.
+  useEffect(() => {
+    if (assignment.proofUrl) setProofUrl(assignment.proofUrl);
+  }, [assignment.proofUrl]);
 
   const editable = isCitationEditable(assignment.status, assignment.dueDate);
   const incomplete = assignment.status === "EXPIRED";
@@ -118,11 +128,20 @@ function CitationSubmitPanel({ assignment }: { assignment: SerializedCitationAss
             onUpload={async (file) => {
               const updated = await uploadCitationProof(assignment.id, file);
               setProofUrl(updated.proofUrl);
+              patchCitationAssignmentCaches(qc, {
+                ...assignment,
+                ...updated,
+                clubNotes: notes || updated.clubNotes,
+                completedAt: fromDateInputValue(completedDate) ?? updated.completedAt,
+              });
             }}
             onClear={() => setProofUrl(null)}
           />
           <div className="space-y-1.5">
-            <Label htmlFor={`completed-${assignment.id}`} className="text-xs font-medium text-muted-foreground">
+            <Label
+              htmlFor={`completed-${assignment.id}`}
+              className="text-xs font-medium text-muted-foreground"
+            >
               2. Date of completion
             </Label>
             <Input

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, ExternalLink } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
@@ -16,10 +16,18 @@ export function CitationReviewDetail({ assignmentId }: { assignmentId: string })
   const { data, isLoading } = useCitationAssignment(assignmentId);
   const review = useReviewCitation(assignmentId);
   const [comment, setComment] = useState("");
+  const hydratedIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (data?.reviewerComment) setComment(data.reviewerComment);
-  }, [data?.reviewerComment]);
+    hydratedIdRef.current = null;
+    setComment("");
+  }, [assignmentId]);
+
+  useEffect(() => {
+    if (!data || hydratedIdRef.current === assignmentId) return;
+    hydratedIdRef.current = assignmentId;
+    setComment(data.reviewerComment ?? "");
+  }, [data, assignmentId]);
 
   if (isLoading) return <Skeleton className="h-96 rounded-2xl" />;
   if (!data) {

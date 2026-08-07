@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -49,9 +49,20 @@ export function CouncilMemberReview({
   const [completed, setCompleted] = useState<Record<string, boolean>>({});
   const [comment, setComment] = useState("");
   const [reopenDialogOpen, setReopenDialogOpen] = useState(false);
+  // Don't re-copy checkboxes/comment from the server on every query refresh —
+  // that wiped mid-edit work after Save / reopen / re-evaluate.
+  const hydratedKeyRef = useRef<string | null>(null);
+  const reviewKey = `${memberId}:${month}:${year}`;
+
+  useEffect(() => {
+    hydratedKeyRef.current = null;
+  }, [reviewKey]);
 
   useEffect(() => {
     if (!data) return;
+    if (hydratedKeyRef.current === reviewKey) return;
+    hydratedKeyRef.current = reviewKey;
+
     const initial: Record<string, boolean> = {};
     for (const a of data.assignments) {
       initial[a.id] =
@@ -59,7 +70,11 @@ export function CouncilMemberReview({
     }
     setCompleted(initial);
     setComment(data.report?.reviewerComment ?? "");
-  }, [data]);
+  }, [data, reviewKey]);
+
+  const resetFormHydration = () => {
+    hydratedKeyRef.current = null;
+  };
 
   if (isLoading) return <Skeleton className="h-96 rounded-2xl" />;
   if (!data) {
@@ -101,6 +116,7 @@ export function CouncilMemberReview({
       { memberId, month, year },
       {
         onSuccess: () => {
+          resetFormHydration();
           setReopenDialogOpen(false);
           toast.success("Submission reopened for the member");
         },
@@ -333,8 +349,10 @@ export function CouncilMemberReview({
               reevaluate.mutate(
                 { memberId, month, year },
                 {
-                  onSuccess: () =>
-                    toast.success("Review unlocked — you can change task status again"),
+                  onSuccess: () => {
+                    resetFormHydration();
+                    toast.success("Review unlocked — you can change task status again");
+                  },
                 }
               )
             }

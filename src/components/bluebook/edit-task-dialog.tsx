@@ -58,15 +58,16 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
   const [maxScore, setMaxScore] = useState("50");
   const [dueDate, setDueDate] = useState("");
 
+  // Hydrate when the dialog opens for a task — not on every parent refetch mid-edit.
   useEffect(() => {
-    if (!task) return;
+    if (!open || !task) return;
     setTitle(task.title);
     setDescription(task.description ?? "");
     setCategory(task.category);
     setMaxScore(String(task.maxScore));
     setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : "");
     setError("");
-  }, [task]);
+  }, [open, task?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

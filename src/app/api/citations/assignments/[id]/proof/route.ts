@@ -1,59 +1,45 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
-import { assignmentInclude, isCitationEditable, serializeCitationAssignment } from "@/lib/citations";
-import { canSubmitCitations } from "@/lib/roles";
 import { saveUpload } from "@/lib/upload";
-import { apiError, forbidden, notFound, handleRouteError } from "@/lib/api-errors";
-import type { UserRole } from "@/types/auth";
+import { handleRouteError, apiError } from "@/lib/api-errors";
+import {
+  assertCitationProofUploadable,
+  attachCitationProofUrl,
+  isAllowedCitationProofFile,
+  MAX_CITATION_PROOF_BYTES,
+  MAX_CITATION_PROOF_LABEL,
+} from "@/lib/citation-proof-upload";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
+/**
+ * Multipart fallback for smaller files / local dev.
+ * Prefer /proof/sign + direct storage PUT near the 5 MB limit.
+ */
 export async function POST(request: Request, { params }: RouteParams) {
   const { session, error } = await requireAuth();
   if (error) return error;
   const { id } = await params;
 
-  const role = session!.user.role as UserRole;
-  if (!canSubmitCitations(role)) {
-    return forbidden();
-  }
-
   try {
-    const assignment = await prisma.citationAssignment.findUnique({
-      where: { id },
-      include: assignmentInclude,
-    });
-    if (!assignment) return notFound("Citation assignment not found.");
-    if (session!.user.clubId !== assignment.clubId) {
-      return forbidden();
-    }
-    if (assignment.status === "APPROVED") {
-      return apiError("Approved citations cannot be edited.", 400);
-    }
-    if (!isCitationEditable(assignment.status, assignment.dueDate)) {
-      return apiError("This citation is past its deadline and can no longer be updated.", 400);
-    }
+    const gate = await assertCitationProofUploadable(session!, id);
+    if (!gate.ok) return gate.response;
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
-    if (!file) return apiError("No file.", 400);
+    if (!file?.size) return apiError("No file.", 400);
+    if (!isAllowedCitationProofFile(file)) {
+      return apiError("Allowed formats: PDF, JPG, PNG, WebP.", 400);
+    }
+    if (file.size > MAX_CITATION_PROOF_BYTES) {
+      return apiError(`File exceeds maximum size of ${MAX_CITATION_PROOF_LABEL}.`, 413);
+    }
 
-    const proofUrl = await saveUpload(file, "citations/proofs");
-    const status =
-      assignment.status === "ASSIGNED" || assignment.status === "REJECTED"
-        ? "DRAFT"
-        : assignment.status;
-
-    const updated = await prisma.citationAssignment.update({
-      where: { id },
-      data: { proofUrl, status },
-      include: assignmentInclude,
-    });
-
-    return NextResponse.json(serializeCitationAssignment(updated));
+    const proofUrl = await saveUpload(file, "citations/proofs", MAX_CITATION_PROOF_BYTES);
+    const updated = await attachCitationProofUrl(id, proofUrl);
+    return NextResponse.json(updated);
   } catch (err) {
     return handleRouteError(err, "Upload failed.");
   }
