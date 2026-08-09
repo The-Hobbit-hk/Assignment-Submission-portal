@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileBarChart2, Lock } from "lucide-react";
+import { ArrowRight, CalendarDays, CheckCircle2, ClipboardList, FileBarChart2, History, Lock } from "lucide-react";
 import { AdminReportDraftBanner } from "@/components/reporting/admin-report-draft-banner";
 import { Badge } from "@/components/ui/badge";
 import { ReportingClosedDialog } from "@/components/reporting/reporting-closed-dialog";
@@ -223,6 +223,24 @@ export function ReportingHub() {
           );
         })}
       </div>
+
+      {clubUser && (
+        <Link
+          href="/dashboard/reporting/history"
+          className="depth-card depth-card-interactive flex items-center gap-4 rounded-2xl p-5"
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-500/10 text-sky-700 shadow-sm">
+            <History className="h-6 w-6" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-lg font-semibold text-foreground">Reporting History</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Review admin and events submissions from previous months to verify what was filed.
+            </p>
+          </div>
+          <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </Link>
+      )}
 
       <div className="depth-card rounded-xl px-4 py-3 text-center text-xs text-muted-foreground sm:text-sm">
         Clubs report for the <span className="font-medium text-foreground">previous calendar month</span>{" "}

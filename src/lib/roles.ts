@@ -12,6 +12,7 @@ import {
   CalendarDays,
   ClipboardList,
   FileBarChart2,
+  History,
   LayoutDashboard,
   Shield,
   UserCheck,
@@ -206,6 +207,13 @@ export function getNavigationForRole(
       { title: "Admin Reporting", href: "/dashboard/reporting/admin", icon: Shield },
       { title: "Events Reporting", href: "/dashboard/reporting/events", icon: CalendarDays }
     );
+    if (isClubUser(role)) {
+      reportingChildren.push({
+        title: "Reporting History",
+        href: "/dashboard/reporting/history",
+        icon: History,
+      });
+    }
   }
 
   if (canViewAllClubReports(role)) {
