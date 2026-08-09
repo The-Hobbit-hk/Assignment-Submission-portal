@@ -15,7 +15,7 @@ config();
 const CLUB_NAME = "Rotaract Club of Symbiosis Artificial Intelligence Institute";
 /** Provisional local charter id until official RI id is known. */
 const CHARTER = "3131-SAII-01";
-const ZONE = "Zone 2";
+const ZONE = "Zone 6";
 const CITY = "Pune";
 
 async function main() {
