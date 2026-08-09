@@ -7,7 +7,7 @@ import {
   summarizeClubReporting,
 } from "@/lib/reporting-club-status";
 import { canViewAllClubReports, canViewZoneClubReports } from "@/lib/roles";
-import { OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER } from "@/lib/district-clubs-data";
+import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { getZonesForZonalRep } from "@/lib/zonal-reps";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
 import { handleRouteError, forbidden } from "@/lib/api-errors";
@@ -34,7 +34,8 @@ export async function GET(request: Request) {
   const assignedZones = getZonesForZonalRep(email);
 
   try {
-    const clubWhere: Prisma.ClubWhereInput = { ...OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER };
+    // Include inactive official clubs in the table, but summary counts only ACTIVE.
+    const clubWhere: Prisma.ClubWhereInput = { ...OFFICIAL_DISTRICT_CLUB_FILTER };
 
     if (districtView) {
       if (zoneFilter) {
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
     const clubs = await prisma.club.findMany({
       where: clubWhere,
       orderBy: [{ zone: "asc" }, { name: "asc" }],
-      select: { id: true, name: true, zone: true },
+      select: { id: true, name: true, zone: true, status: true },
     });
 
     const clubIds = clubs.map((c) => c.id);
@@ -59,7 +60,12 @@ export async function GET(request: Request) {
       },
     });
 
-    const rows = buildClubReportingRows(clubs, reports);
+    const rows = buildClubReportingRows(clubs, reports).sort((a, b) => {
+      if (a.countsTowardReporting !== b.countsTowardReporting) {
+        return a.countsTowardReporting ? -1 : 1;
+      }
+      return a.club.name.localeCompare(b.club.name);
+    });
     const summary = summarizeClubReporting(rows);
 
     return NextResponse.json({

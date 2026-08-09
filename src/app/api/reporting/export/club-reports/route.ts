@@ -8,7 +8,7 @@ import {
   summarizeClubReporting,
 } from "@/lib/reporting-club-status";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
-import { OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER } from "@/lib/district-clubs-data";
+import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { DISTRICT_ROLES } from "@/lib/roles";
 import { handleRouteError } from "@/lib/api-errors";
 
@@ -23,13 +23,13 @@ export async function GET(request: Request) {
   const zoneFilter = searchParams.get("zone")?.trim() || null;
 
   try {
-    const clubWhere: Prisma.ClubWhereInput = { ...OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER };
+    const clubWhere: Prisma.ClubWhereInput = { ...OFFICIAL_DISTRICT_CLUB_FILTER };
     if (zoneFilter) clubWhere.zone = zoneFilter;
 
     const clubs = await prisma.club.findMany({
       where: clubWhere,
       orderBy: [{ zone: "asc" }, { name: "asc" }],
-      select: { id: true, name: true, zone: true },
+      select: { id: true, name: true, zone: true, status: true },
     });
 
     const clubIds = clubs.map((c) => c.id);
@@ -39,6 +39,7 @@ export async function GET(request: Request) {
 
     const rows = buildClubReportingRows(clubs, reports);
     const summary = summarizeClubReporting(rows);
+    const activeRows = rows.filter((r) => r.countsTowardReporting);
 
     const eventCounts = await prisma.event.groupBy({
       by: ["clubId"],
@@ -56,6 +57,7 @@ export async function GET(request: Request) {
     const overviewHeaders = [
       "Club",
       "Zone",
+      "Club Status",
       "Admin Status",
       "Events Status",
       "Monthly Complete",
@@ -66,9 +68,10 @@ export async function GET(request: Request) {
     const overviewRows = rows.map((row) => [
       row.club.name,
       row.club.zone ?? "",
-      row.adminStatus,
-      row.eventsStatus,
-      row.completed ? "Yes" : "No",
+      row.countsTowardReporting ? "ACTIVE" : row.club.status,
+      row.countsTowardReporting ? row.adminStatus : "N/A",
+      row.countsTowardReporting ? row.eventsStatus : "N/A",
+      row.countsTowardReporting ? (row.completed ? "Yes" : "No") : "N/A — inactive",
       row.admin?.submittedAt ?? "",
       row.events?.submittedAt ?? "",
       countByClub.get(row.club.id) ?? 0,
@@ -77,6 +80,7 @@ export async function GET(request: Request) {
     const adminHeaders = [
       "Club",
       "Zone",
+      "Club Status",
       "New Members",
       "Resolution Passed",
       "Resolution Date of Passing",
@@ -88,9 +92,10 @@ export async function GET(request: Request) {
       "Status",
       "Submitted At",
     ];
-    const adminRows = rows.map((row) => [
+    const adminRows = activeRows.map((row) => [
       row.club.name,
       row.club.zone ?? "",
+      row.club.status,
       row.admin?.newMembers ?? "",
       row.admin?.resolutionPassed ?? "",
       row.admin?.resolutionPassDate ? row.admin.resolutionPassDate.slice(0, 10) : "",
@@ -103,10 +108,11 @@ export async function GET(request: Request) {
       row.admin?.submittedAt ?? "",
     ]);
 
-    const eventsHeaders = ["Club", "Zone", "Events In Period", "Status", "Submitted At"];
-    const eventsRows = rows.map((row) => [
+    const eventsHeaders = ["Club", "Zone", "Club Status", "Events In Period", "Status", "Submitted At"];
+    const eventsRows = activeRows.map((row) => [
       row.club.name,
       row.club.zone ?? "",
+      row.club.status,
       countByClub.get(row.club.id) ?? 0,
       row.events?.status ?? "NOT SUBMITTED",
       row.events?.submittedAt ?? "",
@@ -115,11 +121,12 @@ export async function GET(request: Request) {
     const analyticsHeaders = ["Metric", "Value"];
     const analyticsRows = [
       ["Report period", `${month}/${year}`],
-      ["Total clubs", summary.total],
+      ["Total active clubs", summary.total],
       ["Fully complete", summary.completed],
       ["Incomplete", summary.incomplete],
       ["Admin submitted", summary.adminSubmitted],
       ["Events submitted", summary.eventsSubmitted],
+      ["Inactive clubs (excluded from counts)", summary.inactive],
     ];
 
     const buffer = await multiSheetExcel([

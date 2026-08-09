@@ -16,7 +16,8 @@ import {
 } from "@/lib/reporting";
 import { DISTRICT_ZONE_META } from "@/lib/district-clubs-data";
 import { getCurrentRotaryYear, rotaryMonthOptions, withMonthOption } from "@/lib/rotary-year";
-import { CheckCircle2, Download, XCircle } from "lucide-react";
+import { CheckCircle2, Download, MinusCircle, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import type { UserRole } from "@/types/auth";
 
 function SummaryCard({
@@ -71,8 +72,8 @@ export function ClubReportsView() {
 
   const title = districtView ? "Club Reporting Overview" : "Zone Reporting Overview";
   const subtitle = districtView
-    ? `Report period: ${periodLabel}. Clubs submit during ${windowLabel.openLabel} – ${windowLabel.closeLabel}. A club is complete only when both admin and events reports are submitted.`
-    : `Report period: ${periodLabel}. Track completion for clubs in your zone(s).`;
+    ? `Report period: ${periodLabel}. Clubs submit during ${windowLabel.openLabel} – ${windowLabel.closeLabel}. A club is complete only when both admin and events reports are submitted. Inactive clubs are listed but excluded from the counts.`
+    : `Report period: ${periodLabel}. Track completion for clubs in your zone(s). Inactive clubs are listed but excluded from the counts.`;
 
   if (isError) {
     return (
@@ -156,12 +157,13 @@ export function ClubReportsView() {
       ) : (
         <>
           {summary && (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               <SummaryCard label="Total clubs" value={summary.total} />
               <SummaryCard label="Fully complete" value={summary.completed} accent="text-green-600" />
               <SummaryCard label="Incomplete" value={summary.incomplete} accent="text-destructive" />
               <SummaryCard label="Admin submitted" value={summary.adminSubmitted} />
               <SummaryCard label="Events submitted" value={summary.eventsSubmitted} />
+              <SummaryCard label="Inactive clubs" value={summary.inactive} accent="text-muted-foreground" />
             </div>
           )}
 
@@ -186,43 +188,75 @@ export function ClubReportsView() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  clubs.map((row) => (
-                    <TableRow key={row.club.id}>
-                      <TableCell className="font-medium">{row.club.name}</TableCell>
-                      {districtView && (
-                        <TableCell className="text-muted-foreground">{row.club.zone ?? "—"}</TableCell>
-                      )}
-                      <TableCell>
-                        <ReportingStatusBadge status={row.adminStatus} />
-                      </TableCell>
-                      <TableCell>
-                        <ReportingStatusBadge status={row.eventsStatus} />
-                      </TableCell>
-                      <TableCell>
-                        {row.completed ? (
-                          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
-                            <CheckCircle2 className="h-4 w-4" />
-                            Complete
+                  clubs.map((row) => {
+                    const inactive = !row.countsTowardReporting;
+                    return (
+                      <TableRow
+                        key={row.club.id}
+                        className={inactive ? "bg-muted/30 text-muted-foreground" : undefined}
+                      >
+                        <TableCell className="font-medium">
+                          <span className="inline-flex flex-wrap items-center gap-2">
+                            {row.club.name}
+                            {inactive && (
+                              <Badge variant="outline" className="text-[10px] font-normal">
+                                {row.club.status === "PROVISIONAL" ? "Provisional" : "Inactive"}
+                              </Badge>
+                            )}
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 text-sm font-medium text-destructive">
-                            <XCircle className="h-4 w-4" />
-                            Incomplete
-                          </span>
+                        </TableCell>
+                        {districtView && (
+                          <TableCell className="text-muted-foreground">{row.club.zone ?? "—"}</TableCell>
                         )}
-                      </TableCell>
-                      <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">
-                        {row.admin?.submittedAt
-                          ? new Date(row.admin.submittedAt).toLocaleDateString("en-IN")
-                          : "—"}
-                      </TableCell>
-                      <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">
-                        {row.events?.submittedAt
-                          ? new Date(row.events.submittedAt).toLocaleDateString("en-IN")
-                          : "—"}
-                      </TableCell>
-                    </TableRow>
-                  ))
+                        <TableCell>
+                          {inactive ? (
+                            <span className="text-sm text-muted-foreground">—</span>
+                          ) : (
+                            <ReportingStatusBadge status={row.adminStatus} />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {inactive ? (
+                            <span className="text-sm text-muted-foreground">—</span>
+                          ) : (
+                            <ReportingStatusBadge status={row.eventsStatus} />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {inactive ? (
+                            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                              <MinusCircle className="h-4 w-4" />
+                              Not counted
+                            </span>
+                          ) : row.completed ? (
+                            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600">
+                              <CheckCircle2 className="h-4 w-4" />
+                              Complete
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 text-sm font-medium text-destructive">
+                              <XCircle className="h-4 w-4" />
+                              Incomplete
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">
+                          {inactive
+                            ? "—"
+                            : row.admin?.submittedAt
+                              ? new Date(row.admin.submittedAt).toLocaleDateString("en-IN")
+                              : "—"}
+                        </TableCell>
+                        <TableCell className="hidden text-sm text-muted-foreground lg:table-cell">
+                          {inactive
+                            ? "—"
+                            : row.events?.submittedAt
+                              ? new Date(row.events.submittedAt).toLocaleDateString("en-IN")
+                              : "—"}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

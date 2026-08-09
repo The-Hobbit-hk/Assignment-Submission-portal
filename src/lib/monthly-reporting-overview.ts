@@ -62,7 +62,7 @@ export async function buildMonthlyReportingOverview(
   const clubs = await prisma.club.findMany({
     where: OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER,
     orderBy: [{ zone: "asc" }, { name: "asc" }],
-    select: { id: true, name: true, zone: true },
+    select: { id: true, name: true, zone: true, status: true },
   });
 
   const clubIds = clubs.map((c) => c.id);
