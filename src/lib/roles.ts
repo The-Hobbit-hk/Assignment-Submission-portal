@@ -95,7 +95,7 @@ export function canViewAdminReportSubmissions(role: UserRole) {
   );
 }
 
-/** Admin-only monthly reporting PowerPoint generator. */
+/** Admin-only monthly reporting visual dashboard (and optional PPT export). */
 export function canGenerateMonthlyReportingDeck(role: UserRole) {
   return DISTRICT_ROLES.includes(role);
 }
@@ -239,7 +239,7 @@ export function getNavigationForRole(
 
   if (canGenerateMonthlyReportingDeck(role)) {
     reportingChildren.push({
-      title: "Monthly Deck",
+      title: "Reporting Dashboard",
       href: "/dashboard/reporting/monthly-overview",
       icon: FileBarChart2,
     });

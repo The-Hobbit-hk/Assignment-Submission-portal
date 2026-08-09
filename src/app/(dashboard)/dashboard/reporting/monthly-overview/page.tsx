@@ -1,7 +1,7 @@
-import { MonthlyOverviewGenerator } from "@/components/reporting/monthly-overview-generator";
+import { MonthlyReportingDashboard } from "@/components/reporting/monthly-reporting-dashboard";
 
-export const metadata = { title: "Monthly Reporting Deck" };
+export const metadata = { title: "Monthly Reporting Dashboard" };
 
 export default function MonthlyOverviewPage() {
-  return <MonthlyOverviewGenerator />;
+  return <MonthlyReportingDashboard />;
 }

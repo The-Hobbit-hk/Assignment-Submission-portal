@@ -17,6 +17,8 @@ export type ZoneOverview = {
   completed: number;
   incomplete: number;
   pct: number;
+  adminSubmitted: number;
+  eventsSubmitted: number;
   newMembers: number;
   duesPaidClubs: number;
   duesMembers: number;
@@ -30,6 +32,13 @@ export type AvenueCount = {
   count: number;
 };
 
+export type ClubMemberGrowth = {
+  clubId: string;
+  name: string;
+  zone: string | null;
+  newMembers: number;
+};
+
 export type MonthlyReportingOverview = {
   month: number;
   year: number;
@@ -38,13 +47,19 @@ export type MonthlyReportingOverview = {
     totalClubs: number;
     completedClubs: number;
     incompleteClubs: number;
+    adminSubmitted: number;
+    eventsSubmitted: number;
     totalEvents: number;
     newMembers: number;
     duesPaidClubs: number;
     duesMembers: number;
+    resolutionYes: number;
+    bylawsYes: number;
+    budgetYes: number;
   };
   zones: ZoneOverview[];
   avenues: AvenueCount[];
+  topNewMemberClubs: ClubMemberGrowth[];
   perfectZones: string[];
 };
 
@@ -71,6 +86,7 @@ export async function buildMonthlyReportingOverview(
   });
 
   const rows = buildClubReportingRows(clubs, reports);
+  const activeRows = rows.filter((r) => r.countsTowardReporting);
   const districtSummary = summarizeClubReporting(rows);
 
   const startBounds = periodBounds(month, year);
@@ -92,20 +108,18 @@ export async function buildMonthlyReportingOverview(
   );
   const totalEvents = [...eventsByClubId.values()].reduce((a, b) => a + b, 0);
 
-  const newMembers = rows.reduce(
+  const newMembers = activeRows.reduce(
     (sum, row) => sum + (row.admin?.newMembers ?? 0),
     0
   );
-  const duesPaidRows = rows.filter((r) => r.admin?.districtDuesPaid === "yes");
-  const duesPaidClubs = duesPaidRows.length;
-  const duesMembers = duesPaidRows.reduce(
-    (sum, row) => sum + (row.admin?.districtDuesMembersCount ?? 0),
-    0
-  );
+  const duesPaidRows = activeRows.filter((r) => r.admin?.districtDuesPaid === "yes");
+  const resolutionYes = activeRows.filter((r) => r.admin?.resolutionPassed === "yes").length;
+  const bylawsYes = activeRows.filter((r) => r.admin?.bylawsPassed === "yes").length;
+  const budgetYes = activeRows.filter((r) => r.admin?.masterBudgetPassed === "yes").length;
 
   const zoneOrder = DISTRICT_ZONE_META.map((z) => z.zone);
   const zones: ZoneOverview[] = zoneOrder.map((zone) => {
-    const zoneRows = rows.filter((r) => r.club.zone === zone);
+    const zoneRows = activeRows.filter((r) => r.club.zone === zone);
     const completedRows = zoneRows.filter((r) => r.completed);
     const total = zoneRows.length;
     const completed = completedRows.length;
@@ -127,6 +141,8 @@ export async function buildMonthlyReportingOverview(
       completed,
       incomplete: total - completed,
       pct: total > 0 ? Math.round((completed / total) * 100) : 0,
+      adminSubmitted: zoneRows.filter((r) => r.adminStatus === "SUBMITTED").length,
+      eventsSubmitted: zoneRows.filter((r) => r.eventsStatus === "SUBMITTED").length,
       newMembers: zoneNewMembers,
       duesPaidClubs: zoneDuesPaid.length,
       duesMembers: zoneDuesPaid.reduce(
@@ -156,6 +172,17 @@ export async function buildMonthlyReportingOverview(
       : []),
   ].filter((a) => a.count > 0);
 
+  const topNewMemberClubs: ClubMemberGrowth[] = activeRows
+    .map((row) => ({
+      clubId: row.club.id,
+      name: row.club.name,
+      zone: row.club.zone,
+      newMembers: row.admin?.newMembers ?? 0,
+    }))
+    .filter((row) => row.newMembers > 0)
+    .sort((a, b) => b.newMembers - a.newMembers || a.name.localeCompare(b.name))
+    .slice(0, 10);
+
   const perfectZones = zones
     .filter((z) => z.total > 0 && z.completed === z.total)
     .map((z) => z.zone);
@@ -168,13 +195,22 @@ export async function buildMonthlyReportingOverview(
       totalClubs: districtSummary.total,
       completedClubs: districtSummary.completed,
       incompleteClubs: districtSummary.incomplete,
+      adminSubmitted: districtSummary.adminSubmitted,
+      eventsSubmitted: districtSummary.eventsSubmitted,
       totalEvents,
       newMembers,
-      duesPaidClubs,
-      duesMembers,
+      duesPaidClubs: duesPaidRows.length,
+      duesMembers: duesPaidRows.reduce(
+        (sum, row) => sum + (row.admin?.districtDuesMembersCount ?? 0),
+        0
+      ),
+      resolutionYes,
+      bylawsYes,
+      budgetYes,
     },
     zones,
     avenues,
+    topNewMemberClubs,
     perfectZones,
   };
 }
@@ -183,7 +219,7 @@ export async function buildMonthlyReportingOverview(
 export function completedClubsByZone(rows: ClubReportingRow[]) {
   const map = new Map<string, string[]>();
   for (const row of rows) {
-    if (!row.completed) continue;
+    if (!row.completed || !row.countsTowardReporting) continue;
     const zone = row.club.zone ?? "Unassigned";
     if (!map.has(zone)) map.set(zone, []);
     map.get(zone)!.push(row.club.name);
