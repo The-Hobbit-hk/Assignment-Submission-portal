@@ -23,7 +23,7 @@ export type DistrictZoneMeta = {
 
 export const DISTRICT_ZONE_META: DistrictZoneMeta[] = [
   { zone: "Zone 1", reps: ["Rtr. Aniket Sardar", "Rtr. Rohan Puri"], totalClubs: 12 },
-  { zone: "Zone 2", reps: ["Rtr. Rajas Uchagaonkar", "Rtr. Sumedh Gite"], totalClubs: 16 },
+  { zone: "Zone 2", reps: ["Rtr. Rajas Uchagaonkar", "Rtr. Sumedh Gite"], totalClubs: 17 },
   { zone: "Zone 3", reps: ["Rtr. Pratham Pokharkar", "Rtr. Sarthak Ambhore"], totalClubs: 15 },
   { zone: "Zone 4", reps: ["Rtr. Vedant Chirmade", "Rtr. Aditya Verma"], totalClubs: 13 },
   { zone: "Zone 5", reps: ["Rtr. Vedant Chaudhari", "Rtr. Prerna Bhilare"], totalClubs: 16 },
@@ -50,6 +50,7 @@ const Z2: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Bharati Vidyapeeth New Law College Pune", riClubId: "8827789", sponsoringClub: "Rotary Club of Poona Midtown", city: "Pune" },
   { name: "Rotaract Club of Pimpri", riClubId: "7295", sponsoringClub: "Pimpri (Rotary Club)", charterDate: "9 August 1980", city: "Pimpri" },
   { name: "Rotaract Club of Symbiosis Skills and Professional University", riClubId: "8825207", sponsoringClub: "Poona Downtown (Rotary Club)", charterDate: "29 September 2022", city: "Pune" },
+  { name: "Rotaract Club of Symbiosis Artificial Intelligence Institute", riClubId: "3131-SAII-01", city: "Pune" },
   { name: "Rotaract Club of Nigdi-Pune", riClubId: "8825815", sponsoringClub: "Nigdi-Pune (Rotary Club)", charterDate: "28 June 2023", city: "Nigdi" },
   { name: "Rotaract Club of Ajeenkya DY Patil Group", riClubId: "8826992", sponsoringClub: "Pune Amanora (Rotary Club)", charterDate: "7 February 2025", city: "Pune" },
   { name: "Rotaract Club of Ramkrishna More College", riClubId: "8824661", sponsoringClub: "Chinchwad-Pune (Rotary Club)", city: "Pune" },
