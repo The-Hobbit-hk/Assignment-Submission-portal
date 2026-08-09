@@ -1,12 +1,15 @@
 "use client";
 
 import { useMemo, useState, type ComponentType, type ReactNode } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   Award,
   CalendarDays,
   CheckCircle2,
   Download,
+  ExternalLink,
+  MapPin,
   Users,
   Wallet,
 } from "lucide-react";
@@ -14,10 +17,19 @@ import { PageHeading } from "@/components/layout/page-heading";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { apiJson } from "@/lib/api-client";
 import type { MonthlyReportingOverview } from "@/lib/monthly-reporting-overview";
+import type { EventItem } from "@/hooks/use-events";
 import { getActiveReportPeriod } from "@/lib/reporting";
+import { getEventTypeLabel } from "@/lib/event-types";
 import { getCurrentRotaryYear, rotaryMonthOptions, withMonthOption } from "@/lib/rotary-year";
 import { cn } from "@/lib/utils";
 
@@ -67,16 +79,20 @@ function HorizontalBar({
   max,
   colorClass,
   trailing,
+  onClick,
+  active,
 }: {
   label: string;
   value: number;
   max: number;
   colorClass: string;
   trailing?: string;
+  onClick?: () => void;
+  active?: boolean;
 }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
-  return (
-    <div className="space-y-1.5">
+  const content = (
+    <>
       <div className="flex items-baseline justify-between gap-3 text-sm">
         <span className="truncate font-medium text-foreground">{label}</span>
         <span className="shrink-0 tabular-nums text-muted-foreground">
@@ -89,7 +105,127 @@ function HorizontalBar({
           style={{ width: `${pct}%` }}
         />
       </div>
-    </div>
+    </>
+  );
+
+  if (!onClick) {
+    return <div className="space-y-1.5">{content}</div>;
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "w-full space-y-1.5 rounded-lg px-2 py-2 text-left transition",
+        "hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40",
+        active && "bg-accent/10 ring-1 ring-accent/30"
+      )}
+    >
+      {content}
+    </button>
+  );
+}
+
+type AvenueEventsResponse = {
+  month: number;
+  year: number;
+  type: string;
+  label: string;
+  count: number;
+  events: EventItem[];
+};
+
+function AvenueEventsDialog({
+  open,
+  onOpenChange,
+  month,
+  year,
+  avenueType,
+  avenueLabel,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  month: number;
+  year: number;
+  avenueType: string | null;
+  avenueLabel: string;
+}) {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["reporting", "monthly-overview", "events", month, year, avenueType],
+    queryFn: () =>
+      apiJson<AvenueEventsResponse>(
+        `/api/reporting/monthly-overview/events?month=${month}&year=${year}&type=${encodeURIComponent(avenueType!)}`
+      ),
+    enabled: open && Boolean(avenueType),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[85vh] overflow-hidden sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{avenueLabel}</DialogTitle>
+          <DialogDescription>
+            Events in this avenue for the selected report period
+            {data ? ` · ${data.count} total` : ""}.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="max-h-[min(60vh,32rem)] overflow-y-auto pr-1">
+          {isLoading ? (
+            <Skeleton className="h-40 rounded-xl" />
+          ) : isError ? (
+            <p className="text-sm text-destructive">Could not load events for this avenue.</p>
+          ) : !data?.events.length ? (
+            <p className="text-sm text-muted-foreground">No events found for this avenue.</p>
+          ) : (
+            <ul className="space-y-2">
+              {data.events.map((event) => (
+                <li
+                  key={event.id}
+                  className="rounded-xl border border-border/50 bg-muted/20 px-3 py-3"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0 space-y-1">
+                      <Link
+                        href={`/dashboard/events/${event.id}`}
+                        className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-accent"
+                      >
+                        <span className="truncate">{event.title}</span>
+                        <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-60" />
+                      </Link>
+                      <p className="text-sm text-muted-foreground">
+                        {event.club?.name ?? "District event"}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                        <span className="inline-flex items-center gap-1">
+                          <CalendarDays className="h-3 w-3" />
+                          {new Date(event.startDate).toLocaleString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </span>
+                        {event.location && (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            <span className="truncate">{event.location}</span>
+                          </span>
+                        )}
+                        <span>{event.attendees} attended</span>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="shrink-0 text-[10px]">
+                      {getEventTypeLabel(event.type)}
+                    </Badge>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -124,6 +260,10 @@ export function MonthlyReportingDashboard() {
   );
   const [period, setPeriod] = useState(() => `${active.month}-${active.year}`);
   const [month, year] = period.split("-").map(Number);
+  const [selectedAvenue, setSelectedAvenue] = useState<{
+    type: string;
+    label: string;
+  } | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["reporting", "monthly-overview", month, year],
@@ -287,12 +427,12 @@ export function MonthlyReportingDashboard() {
           <div className="grid gap-6 lg:grid-cols-2">
             <Section
               title="Avenue-wise events"
-              subtitle="Breakdown of club events by avenue / type"
+              subtitle="Click an avenue to see its events for this period"
             >
               {data.avenues.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No events recorded for this period.</p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-1">
                   {data.avenues.map((avenue, i) => (
                     <HorizontalBar
                       key={avenue.type}
@@ -301,6 +441,10 @@ export function MonthlyReportingDashboard() {
                       max={maxAvenue}
                       colorClass={AVENUE_BAR_COLORS[i % AVENUE_BAR_COLORS.length]}
                       trailing={`${avenue.count}`}
+                      active={selectedAvenue?.type === avenue.type}
+                      onClick={() =>
+                        setSelectedAvenue({ type: avenue.type, label: avenue.label })
+                      }
                     />
                   ))}
                 </div>
@@ -443,6 +587,17 @@ export function MonthlyReportingDashboard() {
           </div>
         </>
       )}
+
+      <AvenueEventsDialog
+        open={Boolean(selectedAvenue)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedAvenue(null);
+        }}
+        month={month}
+        year={year}
+        avenueType={selectedAvenue?.type ?? null}
+        avenueLabel={selectedAvenue?.label ?? "Avenue events"}
+      />
     </div>
   );
 }
