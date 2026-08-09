@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { EventType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { canManageEvents, isClubUser } from "@/lib/roles";
@@ -108,8 +109,17 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const event = await prisma.event.update({
       where: { id },
       data: {
-        ...d,
-        clubId: nextClubId,
+        title: d.title,
+        description: d.description,
+        location: d.location,
+        hostedBy: d.hostedBy,
+        collaborations: d.collaborations,
+        type: d.type as EventType | undefined,
+        attendees: d.attendees,
+        budget: d.budget,
+        forDistrictNewsletter: d.forDistrictNewsletter,
+        onSiteRegistration: d.onSiteRegistration,
+        clubId: nextClubId === undefined ? existing.clubId : nextClubId ?? null,
         status,
         startDate: d.startDate ? startDate : undefined,
         endDate: d.endDate !== undefined ? endDate : undefined,
@@ -134,8 +144,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
         _count: { select: { registrations: true } },
       },
     });
-    const { revalidatePublicEvents } = await import("@/lib/revalidate-public-site");
-    revalidatePublicEvents();
+    try {
+      const { revalidatePublicEvents } = await import("@/lib/revalidate-public-site");
+      revalidatePublicEvents();
+    } catch (revalidateError) {
+      console.error("[api] revalidatePublicEvents failed after event update", revalidateError);
+    }
 
     return NextResponse.json(serializeEvent(event));
   } catch (err) {

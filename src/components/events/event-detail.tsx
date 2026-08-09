@@ -131,6 +131,16 @@ export function EventDetail({ eventId }: { eventId: string }) {
                 <strong>Location:</strong> {event.location}
               </p>
             )}
+            {event.hostedBy && (
+              <p>
+                <strong>Hosted by:</strong> {event.hostedBy}
+              </p>
+            )}
+            {event.collaborations && (
+              <p>
+                <strong>Collaborations:</strong> {event.collaborations}
+              </p>
+            )}
             <p>
               <strong>Attendance:</strong> {event.attendees}
               {event.maxAttendees != null ? ` / ${event.maxAttendees} max` : ""}

@@ -36,6 +36,8 @@ export function EventForm({
     startDate: initial?.startDate ? initial.startDate.slice(0, 16) : "",
     endDate: initial?.endDate ? initial.endDate.slice(0, 16) : "",
     location: initial?.location ?? "",
+    hostedBy: initial?.hostedBy ?? "",
+    collaborations: initial?.collaborations ?? "",
     type: initial?.type ?? "COMMUNITY_SERVICE",
     status: initial?.status ?? "UPCOMING",
     clubId: lockedClub?.id ?? initial?.clubId ?? "",
@@ -52,6 +54,7 @@ export function EventForm({
       ? initial.registrationClosesAt.slice(0, 16)
       : "",
     onSiteRegistration: initial?.onSiteRegistration ?? false,
+    forDistrictNewsletter: initial?.forDistrictNewsletter ?? false,
   });
 
   async function handleSubmit(e: React.FormEvent) {
@@ -81,6 +84,8 @@ export function EventForm({
         startDate: new Date(form.startDate).toISOString(),
         endDate: form.endDate ? new Date(form.endDate).toISOString() : undefined,
         location: form.location || undefined,
+        hostedBy: form.hostedBy.trim() || undefined,
+        collaborations: form.collaborations.trim() || undefined,
         type: form.type,
         status: form.status,
         clubId: form.clubId || undefined,
@@ -93,6 +98,7 @@ export function EventForm({
           ? new Date(form.registrationClosesAt).toISOString()
           : undefined,
         onSiteRegistration: form.onSiteRegistration,
+        forDistrictNewsletter: form.forDistrictNewsletter,
       });
       toast.success(
         initial?.id ? "Event updated successfully" : "Event created successfully"
@@ -128,6 +134,24 @@ export function EventForm({
             </Select>
           </div>
         )}
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label>Hosted By</Label>
+          <Input
+            value={form.hostedBy}
+            onChange={(e) => setForm({ ...form, hostedBy: e.target.value })}
+            placeholder="Hosted By"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>Collaborations</Label>
+          <Input
+            value={form.collaborations}
+            onChange={(e) => setForm({ ...form, collaborations: e.target.value })}
+            placeholder="Collaborations"
+          />
+        </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="space-y-2"><Label>Type</Label>
@@ -211,6 +235,24 @@ export function EventForm({
           </div>
         </div>
       )}
+      <label className="flex items-start gap-3 rounded-lg border border-border/50 bg-muted/20 px-3 py-3 text-sm">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={form.forDistrictNewsletter}
+          onChange={(e) =>
+            setForm({ ...form, forDistrictNewsletter: e.target.checked })
+          }
+        />
+        <span>
+          <span className="font-medium text-foreground">
+            Submit this event for the district newsletter later
+          </span>
+          <span className="mt-1 block text-muted-foreground">
+            Flag this event so district can pull it into the newsletter.
+          </span>
+        </span>
+      </label>
       <Button type="submit" disabled={loading}>
         {loading && <Loader2 className="animate-spin" />}
         {submitLabel}

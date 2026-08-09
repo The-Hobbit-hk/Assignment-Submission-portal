@@ -11,6 +11,8 @@ export interface EventItem {
   startDate: string;
   endDate: string | null;
   location: string | null;
+  hostedBy?: string | null;
+  collaborations?: string | null;
   type: string;
   status: string;
   clubId: string | null;
@@ -86,7 +88,12 @@ export function useUpdateEvent(id: string) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       }),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ["events"] }); qc.invalidateQueries({ queryKey: ["events", id] }); },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["events"] });
+      qc.invalidateQueries({ queryKey: ["events", id] });
+      qc.invalidateQueries({ queryKey: ["reporting", "events-portal"] });
+      qc.invalidateQueries({ queryKey: ["reporting", "club-reports"] });
+    },
   });
 }
 
