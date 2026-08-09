@@ -46,4 +46,7 @@ export const reportingEventSchema = z.object({
   endDate: z.string().datetime().optional(),
   clubId: z.string().optional(),
   forDistrictNewsletter: z.boolean().optional(),
+  /** Owned storage object paths from signed direct upload (preferred). */
+  minutesPath: z.string().min(1).max(400).optional(),
+  bannerPath: z.string().min(1).max(400).optional(),
 });

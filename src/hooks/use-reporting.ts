@@ -167,29 +167,79 @@ export function useCreateReportingEvent() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (formData: FormData) => {
+      const raw = formData.get("data");
+      if (typeof raw !== "string") {
+        throw new ApiError("Invalid event data.", 400);
+      }
+
+      const payload = JSON.parse(raw) as Record<string, unknown>;
       const minutes = formData.get("minutes");
       const image = formData.get("image");
-      const hasFiles =
-        (minutes instanceof File && minutes.size > 0) ||
-        (image instanceof File && image.size > 0);
 
-      // Prefer JSON when no files — avoids multipart edge cases that surface as "Failed to fetch".
-      if (!hasFiles) {
-        const raw = formData.get("data");
-        if (typeof raw !== "string") {
-          throw new ApiError("Invalid event data.", 400);
+      async function uploadDirect(file: File, kind: "minutes" | "image") {
+        const signed = await apiJson<{
+          path: string;
+          signedUrl: string;
+        }>("/api/reporting/events/upload/sign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType: file.type || "application/octet-stream",
+            size: file.size,
+            kind,
+            clubId: typeof payload.clubId === "string" ? payload.clubId : null,
+          }),
+        });
+
+        const put = await fetch(signed.signedUrl, {
+          method: "PUT",
+          headers: {
+            "Content-Type": file.type || "application/octet-stream",
+            "x-upsert": "false",
+          },
+          body: file,
+        });
+
+        if (!put.ok) {
+          const detail = await put.text().catch(() => "");
+          throw new ApiError(
+            detail.trim() || "Could not upload file to storage. Please try again.",
+            put.status || 500
+          );
         }
+
+        return signed.path;
+      }
+
+      // Prefer signed direct-to-Supabase uploads so minutes + image never hit
+      // Vercel's ~4.5 MB request body limit (common cause of "Failed to fetch").
+      try {
+        if (minutes instanceof File && minutes.size > 0) {
+          payload.minutesPath = await uploadDirect(minutes, "minutes");
+        }
+        if (image instanceof File && image.size > 0) {
+          payload.bannerPath = await uploadDirect(image, "image");
+        }
+
         return apiJson("/api/reporting/events/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: raw,
+          body: JSON.stringify(payload),
         });
+      } catch (err) {
+        // Local/dev without Supabase: fall back to multipart for smaller payloads.
+        const combined =
+          (minutes instanceof File ? minutes.size : 0) +
+          (image instanceof File ? image.size : 0);
+        if (err instanceof ApiError && err.status === 500 && combined <= 4 * 1024 * 1024) {
+          return apiJson("/api/reporting/events/create", {
+            method: "POST",
+            body: formData,
+          });
+        }
+        throw err;
       }
-
-      return apiJson("/api/reporting/events/create", {
-        method: "POST",
-        body: formData,
-      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["reporting", "events-portal"] });

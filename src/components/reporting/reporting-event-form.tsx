@@ -235,7 +235,7 @@ export function ReportingEventForm({
             fileUrl={minutesFile ? "pending" : null}
             disabled={disabled || loading}
             accept=".pdf"
-            hint="PDF only, max 2MB"
+            hint="PDF only, max 2MB. Uploads go directly to storage."
             onUpload={async (file) => {
               if (file.size > 2 * 1024 * 1024) throw new Error("File exceeds 2MB limit.");
               setMinutesFile(file);
@@ -251,7 +251,7 @@ export function ReportingEventForm({
             fileUrl={imageFile ? "pending" : null}
             disabled={disabled || loading}
             accept=".jpg,.jpeg,.png,.webp"
-            hint="Image, max 2MB"
+            hint="Image, max 2MB. Uploads go directly to storage."
             onUpload={async (file) => {
               if (file.size > 2 * 1024 * 1024) throw new Error("File exceeds 2MB limit.");
               setImageFile(file);
