@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
-import { requireRole } from "@/lib/api-auth";
-import { canGenerateMonthlyReportingDeck } from "@/lib/roles";
+import { requireAuth } from "@/lib/api-auth";
+import {
+  canGenerateMonthlyReportingDeck,
+  canViewAllClubReports,
+  canViewZoneClubReports,
+} from "@/lib/roles";
+import { getZonesForZonalRep } from "@/lib/zonal-reps";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
 import { buildMonthlyReportingOverview } from "@/lib/monthly-reporting-overview";
 import { buildMonthlyReportingPptx } from "@/lib/monthly-reporting-pptx";
@@ -12,13 +17,12 @@ export const maxDuration = 60;
 
 /** PowerPoint export of monthly club reporting overview. */
 export async function GET(request: Request) {
-  const { session, error } = await requireRole([
-    "REPORTING_SECRETARY",
-    "DISTRICT_ADMIN",
-    "SUPER_ADMIN",
-  ]);
+  const { session, error } = await requireAuth();
   if (error) return error;
-  if (!canGenerateMonthlyReportingDeck(session!.user.role as UserRole)) {
+
+  const role = session!.user.role as UserRole;
+  const email = session!.user.email;
+  if (!canGenerateMonthlyReportingDeck(role, email)) {
     return forbidden();
   }
 
@@ -31,10 +35,22 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid month/year." }, { status: 400 });
   }
 
+  const zones =
+    !canViewAllClubReports(role) && canViewZoneClubReports(email)
+      ? getZonesForZonalRep(email!)
+      : null;
+
+  if (zones && zones.length === 0) {
+    return forbidden("No zone is assigned to your account.");
+  }
+
   try {
-    const overview = await buildMonthlyReportingOverview(month, year);
+    const overview = await buildMonthlyReportingOverview(month, year, { zones });
     const buffer = await buildMonthlyReportingPptx(overview);
-    const filename = `monthly-reporting-${month}-${year}.pptx`;
+    const filename =
+      overview.scope === "zone" && overview.assignedZones?.length
+        ? `monthly-reporting-${overview.assignedZones.join("-").replace(/\s+/g, "")}-${month}-${year}.pptx`
+        : `monthly-reporting-${month}-${year}.pptx`;
 
     return new NextResponse(new Uint8Array(buffer), {
       headers: {

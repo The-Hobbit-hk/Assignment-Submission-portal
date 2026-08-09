@@ -96,8 +96,15 @@ export function canViewAdminReportSubmissions(role: UserRole) {
 }
 
 /** Monthly reporting visual dashboard (and optional PPT export). */
-export function canGenerateMonthlyReportingDeck(role: UserRole) {
-  return role === "REPORTING_SECRETARY" || DISTRICT_ROLES.includes(role);
+export function canGenerateMonthlyReportingDeck(
+  role: UserRole,
+  email?: string | null
+) {
+  return (
+    role === "REPORTING_SECRETARY" ||
+    DISTRICT_ROLES.includes(role) ||
+    canViewZoneClubReports(email)
+  );
 }
 
 /**
@@ -237,7 +244,7 @@ export function getNavigationForRole(
     });
   }
 
-  if (canGenerateMonthlyReportingDeck(role)) {
+  if (canGenerateMonthlyReportingDeck(role, email)) {
     reportingChildren.push({
       title: "Reporting Dashboard",
       href: "/dashboard/reporting/monthly-overview",

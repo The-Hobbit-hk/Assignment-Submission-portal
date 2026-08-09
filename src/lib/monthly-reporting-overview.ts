@@ -43,6 +43,8 @@ export type MonthlyReportingOverview = {
   month: number;
   year: number;
   periodLabel: string;
+  scope: "district" | "zone";
+  assignedZones: string[] | null;
   summary: {
     totalClubs: number;
     completedClubs: number;
@@ -63,6 +65,11 @@ export type MonthlyReportingOverview = {
   perfectZones: string[];
 };
 
+export type MonthlyOverviewOptions = {
+  /** When set, only include clubs in these zones (ZR scoped view). */
+  zones?: string[] | null;
+};
+
 function periodBounds(month: number, year: number) {
   return {
     gte: new Date(year, month - 1, 1),
@@ -72,36 +79,51 @@ function periodBounds(month: number, year: number) {
 
 export async function buildMonthlyReportingOverview(
   month: number,
-  year: number
+  year: number,
+  options: MonthlyOverviewOptions = {}
 ): Promise<MonthlyReportingOverview> {
+  const zoneFilter =
+    options.zones && options.zones.length > 0
+      ? [...new Set(options.zones)]
+      : null;
+
   const clubs = await prisma.club.findMany({
-    where: OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER,
+    where: {
+      ...OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER,
+      ...(zoneFilter ? { zone: { in: zoneFilter } } : {}),
+    },
     orderBy: [{ zone: "asc" }, { name: "asc" }],
     select: { id: true, name: true, zone: true, status: true },
   });
 
   const clubIds = clubs.map((c) => c.id);
-  const reports = await prisma.monthlyReport.findMany({
-    where: { month, year, clubId: { in: clubIds } },
-  });
+  const reports =
+    clubIds.length === 0
+      ? []
+      : await prisma.monthlyReport.findMany({
+          where: { month, year, clubId: { in: clubIds } },
+        });
 
   const rows = buildClubReportingRows(clubs, reports);
   const activeRows = rows.filter((r) => r.countsTowardReporting);
   const districtSummary = summarizeClubReporting(rows);
 
   const startBounds = periodBounds(month, year);
-  const [eventByClub, eventByType] = await Promise.all([
-    prisma.event.groupBy({
-      by: ["clubId"],
-      where: { clubId: { in: clubIds }, startDate: startBounds },
-      _count: { id: true },
-    }),
-    prisma.event.groupBy({
-      by: ["type"],
-      where: { clubId: { in: clubIds }, startDate: startBounds },
-      _count: { id: true },
-    }),
-  ]);
+  const [eventByClub, eventByType] =
+    clubIds.length === 0
+      ? [[], []]
+      : await Promise.all([
+          prisma.event.groupBy({
+            by: ["clubId"],
+            where: { clubId: { in: clubIds }, startDate: startBounds },
+            _count: { id: true },
+          }),
+          prisma.event.groupBy({
+            by: ["type"],
+            where: { clubId: { in: clubIds }, startDate: startBounds },
+            _count: { id: true },
+          }),
+        ]);
 
   const eventsByClubId = new Map(
     eventByClub.map((e) => [e.clubId!, e._count.id])
@@ -117,7 +139,10 @@ export async function buildMonthlyReportingOverview(
   const bylawsYes = activeRows.filter((r) => r.admin?.bylawsPassed === "yes").length;
   const budgetYes = activeRows.filter((r) => r.admin?.masterBudgetPassed === "yes").length;
 
-  const zoneOrder = DISTRICT_ZONE_META.map((z) => z.zone);
+  const zoneOrder = zoneFilter
+    ? DISTRICT_ZONE_META.map((z) => z.zone).filter((z) => zoneFilter.includes(z))
+    : DISTRICT_ZONE_META.map((z) => z.zone);
+
   const zones: ZoneOverview[] = zoneOrder.map((zone) => {
     const zoneRows = activeRows.filter((r) => r.club.zone === zone);
     const completedRows = zoneRows.filter((r) => r.completed);
@@ -191,6 +216,8 @@ export async function buildMonthlyReportingOverview(
     month,
     year,
     periodLabel: getReportingPeriodLabel(month, year),
+    scope: zoneFilter ? "zone" : "district",
+    assignedZones: zoneFilter,
     summary: {
       totalClubs: districtSummary.total,
       completedClubs: districtSummary.completed,

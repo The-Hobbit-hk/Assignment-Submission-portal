@@ -289,8 +289,16 @@ export function MonthlyReportingDashboard() {
   return (
     <div className="space-y-6">
       <PageHeading
-        title="Monthly Reporting Dashboard"
-        subtitle="Live district view of completion, membership growth, dues, and avenue-wise events. Available to district admins and the District Reporting Secretary."
+        title={
+          data?.scope === "zone"
+            ? "Zone Reporting Dashboard"
+            : "Monthly Reporting Dashboard"
+        }
+        subtitle={
+          data?.scope === "zone"
+            ? `Stats for ${data.assignedZones?.join(", ") ?? "your zone"} — completion, membership, dues, and avenue-wise events.`
+            : "Live district view of completion, membership growth, dues, and avenue-wise events. Available to district admins, the District Reporting Secretary, and zonal representatives (their zone only)."
+        }
         action={
           <Button variant="outline" size="sm" asChild>
             <a href={`/api/reporting/export/monthly-overview?${exportParams}`} download>
@@ -325,8 +333,8 @@ export function MonthlyReportingDashboard() {
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4">
-            <StatCard
-              label="Active clubs"
+              <StatCard
+              label={data.scope === "zone" ? "Zone clubs" : "Active clubs"}
               value={data.summary.totalClubs}
               hint={`${data.summary.completedClubs} fully complete`}
             />
