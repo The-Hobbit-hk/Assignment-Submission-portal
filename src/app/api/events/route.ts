@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { EventType } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { canManageEvents, isClubUser } from "@/lib/roles";
@@ -110,7 +111,7 @@ export async function POST(request: Request) {
         location: d.location,
         hostedBy: d.hostedBy,
         collaborations: d.collaborations,
-        type: d.type,
+        type: d.type as EventType,
         attendees: d.attendees ?? 0,
         status,
         clubId: resolvedClubId,

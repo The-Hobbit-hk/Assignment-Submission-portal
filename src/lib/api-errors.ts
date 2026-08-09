@@ -48,6 +48,28 @@ export function validationError(error: ZodError) {
   return apiError(zodFirstError(error), 400, error.flatten());
 }
 
+function sanitizePrismaClientError(message: string): { message: string; status: number } | "fallback" | null {
+  if (/invalid input value for enum ["']?EventType["']?/i.test(message)) {
+    return {
+      message:
+        "That event type is not available in the database yet. Please refresh and try again, or pick another type.",
+      status: 400,
+    };
+  }
+  if (/invalid input value for enum/i.test(message)) {
+    return {
+      message:
+        "One of the selected values is not supported. Please refresh the page and try again.",
+      status: 400,
+    };
+  }
+  // Never show raw Prisma invocation dumps to clubs/council.
+  if (/Invalid[`\s]*prisma\./i.test(message) || /invocation:/i.test(message)) {
+    return "fallback";
+  }
+  return null;
+}
+
 export function handleRouteError(
   error: unknown,
   fallback: string = API_MESSAGES.internal
@@ -60,6 +82,13 @@ export function handleRouteError(
 
   if (error instanceof Error && error.message.trim()) {
     const msg = error.message;
+    const sanitized = sanitizePrismaClientError(msg);
+    if (sanitized === "fallback") {
+      return apiError(fallback, 500);
+    }
+    if (sanitized) {
+      return apiError(sanitized.message, sanitized.status);
+    }
     if (/too large|exceeds maximum size|payload/i.test(msg)) {
       return apiError(msg, 413);
     }

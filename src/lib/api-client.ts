@@ -135,11 +135,19 @@ export async function apiJson<T>(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<T> {
-  const res = await fetch(input, {
-    ...init,
-    // Dashboard APIs are auth-scoped; never reuse browser HTTP cache after mutations.
-    cache: "no-store",
-  });
+  let res: Response;
+  try {
+    res = await fetch(input, {
+      ...init,
+      // Dashboard APIs are auth-scoped; never reuse browser HTTP cache after mutations.
+      cache: "no-store",
+    });
+  } catch {
+    throw new ApiError(
+      "Could not reach the server. Check your connection and try again. If you attached minutes or an image, use files under 2 MB or add the event first and upload files afterward.",
+      0
+    );
+  }
 
   if (!res.ok) {
     throw new ApiError(await parseApiErrorResponse(res), res.status);
@@ -154,5 +162,9 @@ export async function apiJson<T>(
     return undefined as T;
   }
 
-  return JSON.parse(text) as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new ApiError("The server returned an unexpected response. Please try again.", res.status || 500);
+  }
 }

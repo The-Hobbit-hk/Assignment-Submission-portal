@@ -166,11 +166,31 @@ export function useSaveAdminReport() {
 export function useCreateReportingEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (formData: FormData) =>
-      apiJson("/api/reporting/events/create", {
+    mutationFn: async (formData: FormData) => {
+      const minutes = formData.get("minutes");
+      const image = formData.get("image");
+      const hasFiles =
+        (minutes instanceof File && minutes.size > 0) ||
+        (image instanceof File && image.size > 0);
+
+      // Prefer JSON when no files — avoids multipart edge cases that surface as "Failed to fetch".
+      if (!hasFiles) {
+        const raw = formData.get("data");
+        if (typeof raw !== "string") {
+          throw new ApiError("Invalid event data.", 400);
+        }
+        return apiJson("/api/reporting/events/create", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: raw,
+        });
+      }
+
+      return apiJson("/api/reporting/events/create", {
         method: "POST",
         body: formData,
-      }),
+      });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["reporting", "events-portal"] });
       qc.invalidateQueries({ queryKey: ["reporting", "club-reports"] });
