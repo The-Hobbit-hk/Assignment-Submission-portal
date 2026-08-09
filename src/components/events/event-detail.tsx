@@ -14,6 +14,7 @@ import { useDeleteEvent, useEvent, uploadEventFile } from "@/hooks/use-events";
 import { PublicEventRegistrationsPanel } from "@/components/events/public-event-registrations-panel";
 import { getEventTypeLabel } from "@/lib/event-types";
 import { canManageEventRecord } from "@/lib/club-access";
+import { isZonalRepOnly, ZONAL_REP_HOME_PATH } from "@/lib/roles";
 import type { UserRole } from "@/types/auth";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -30,15 +31,23 @@ export function EventDetail({ eventId }: { eventId: string }) {
   if (isLoading) return <Skeleton className="h-96 w-full" />;
   if (!event) return <p className="text-destructive">Event not found.</p>;
 
+  const role = session?.user?.role as UserRole | undefined;
+  const email = session?.user?.email;
   const canManage =
     !!session?.user &&
+    !!role &&
     canManageEventRecord(
       {
-        role: session.user.role as UserRole,
+        role,
         clubId: session.user.clubId,
       },
       event.clubId
     );
+
+  const backHref =
+    role && isZonalRepOnly(role, email)
+      ? ZONAL_REP_HOME_PATH
+      : "/dashboard/reporting/events";
 
   async function handleUpload(
     type: "banner" | "minutes" | "gallery",
@@ -55,7 +64,7 @@ export function EventDetail({ eventId }: { eventId: string }) {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-3 sm:gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/events">
+          <Link href={backHref}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -74,7 +83,7 @@ export function EventDetail({ eventId }: { eventId: string }) {
               onClick={() => {
                 if (confirm("Delete?")) {
                   deleteMutation.mutate(eventId, {
-                    onSuccess: () => router.push("/dashboard/events"),
+                    onSuccess: () => router.push(backHref),
                   });
                 }
               }}

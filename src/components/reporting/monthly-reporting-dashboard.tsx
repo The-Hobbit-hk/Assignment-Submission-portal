@@ -1,14 +1,13 @@
 "use client";
 
 import { useMemo, useState, type ComponentType, type ReactNode } from "react";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
   Award,
   CalendarDays,
   CheckCircle2,
   Download,
-  ExternalLink,
+  FileText,
   MapPin,
   Users,
   Wallet,
@@ -151,6 +150,8 @@ function AvenueEventsDialog({
   avenueType: string | null;
   avenueLabel: string;
 }) {
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+
   const { data, isLoading, isError } = useQuery({
     queryKey: ["reporting", "monthly-overview", "events", month, year, avenueType],
     queryFn: () =>
@@ -160,19 +161,102 @@ function AvenueEventsDialog({
     enabled: open && Boolean(avenueType),
   });
 
+  const {
+    data: selectedEvent,
+    isLoading: detailLoading,
+    isError: detailError,
+  } = useQuery({
+    queryKey: ["events", selectedEventId, "overview-preview"],
+    queryFn: () => apiJson<EventItem>(`/api/events/${selectedEventId}`),
+    enabled: Boolean(selectedEventId),
+  });
+
+  function handleOpenChange(next: boolean) {
+    if (!next) setSelectedEventId(null);
+    onOpenChange(next);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[85vh] overflow-hidden sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>{avenueLabel}</DialogTitle>
+          <DialogTitle>
+            {selectedEventId ? selectedEvent?.title ?? "Event details" : avenueLabel}
+          </DialogTitle>
           <DialogDescription>
-            Events in this avenue for the selected report period
-            {data ? ` · ${data.count} total` : ""}.
+            {selectedEventId
+              ? "View-only event details. Close to return to the avenue list."
+              : `Events in this avenue for the selected report period${data ? ` · ${data.count} total` : ""}.`}
           </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[min(60vh,32rem)] overflow-y-auto pr-1">
-          {isLoading ? (
+          {selectedEventId ? (
+            <div className="space-y-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedEventId(null)}
+              >
+                Back to avenue list
+              </Button>
+              {detailLoading ? (
+                <Skeleton className="h-40 rounded-xl" />
+              ) : detailError || !selectedEvent ? (
+                <p className="text-sm text-destructive">Could not load this event.</p>
+              ) : (
+                <div className="space-y-3 rounded-xl border border-border/50 bg-muted/20 px-4 py-4 text-sm">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge>{getEventTypeLabel(selectedEvent.type)}</Badge>
+                    <Badge variant="outline">{selectedEvent.status}</Badge>
+                  </div>
+                  <p className="text-muted-foreground">
+                    {selectedEvent.club?.name ?? "District event"}
+                  </p>
+                  {selectedEvent.description && (
+                    <p className="leading-relaxed text-foreground">{selectedEvent.description}</p>
+                  )}
+                  <p>
+                    <span className="font-medium">Date:</span>{" "}
+                    {new Date(selectedEvent.startDate).toLocaleString("en-IN")}
+                  </p>
+                  {selectedEvent.location && (
+                    <p>
+                      <span className="font-medium">Location:</span> {selectedEvent.location}
+                    </p>
+                  )}
+                  {selectedEvent.hostedBy && (
+                    <p>
+                      <span className="font-medium">Hosted by:</span> {selectedEvent.hostedBy}
+                    </p>
+                  )}
+                  <p>
+                    <span className="font-medium">Attendance:</span> {selectedEvent.attendees}
+                  </p>
+                  {selectedEvent.minutesPdfUrl && (
+                    <a
+                      href={selectedEvent.minutesPdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 text-accent hover:underline"
+                    >
+                      <FileText className="h-4 w-4" />
+                      View meeting minutes (PDF)
+                    </a>
+                  )}
+                  {selectedEvent.bannerUrl && (
+                    // External Supabase URLs — use img to avoid remotePatterns churn.
+                    <img
+                      src={selectedEvent.bannerUrl}
+                      alt={`${selectedEvent.title} image`}
+                      className="mt-2 max-h-64 w-full rounded-lg bg-muted object-contain"
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          ) : isLoading ? (
             <Skeleton className="h-40 rounded-xl" />
           ) : isError ? (
             <p className="text-sm text-destructive">Could not load events for this avenue.</p>
@@ -181,45 +265,42 @@ function AvenueEventsDialog({
           ) : (
             <ul className="space-y-2">
               {data.events.map((event) => (
-                <li
-                  key={event.id}
-                  className="rounded-xl border border-border/50 bg-muted/20 px-3 py-3"
-                >
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0 space-y-1">
-                      <Link
-                        href={`/dashboard/events/${event.id}`}
-                        className="inline-flex items-center gap-1.5 font-medium text-foreground hover:text-accent"
-                      >
-                        <span className="truncate">{event.title}</span>
-                        <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-60" />
-                      </Link>
-                      <p className="text-xs text-muted-foreground">View details</p>
-                      <p className="text-sm text-muted-foreground">
-                        {event.club?.name ?? "District event"}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                        <span className="inline-flex items-center gap-1">
-                          <CalendarDays className="h-3 w-3" />
-                          {new Date(event.startDate).toLocaleString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </span>
-                        {event.location && (
+                <li key={event.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEventId(event.id)}
+                    className="w-full rounded-xl border border-border/50 bg-muted/20 px-3 py-3 text-left transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0 space-y-1">
+                        <p className="font-medium text-foreground">{event.title}</p>
+                        <p className="text-xs text-muted-foreground">View details</p>
+                        <p className="text-sm text-muted-foreground">
+                          {event.club?.name ?? "District event"}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                           <span className="inline-flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            <span className="truncate">{event.location}</span>
+                            <CalendarDays className="h-3 w-3" />
+                            {new Date(event.startDate).toLocaleString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
                           </span>
-                        )}
-                        <span>{event.attendees} attended</span>
+                          {event.location && (
+                            <span className="inline-flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              <span className="truncate">{event.location}</span>
+                            </span>
+                          )}
+                          <span>{event.attendees} attended</span>
+                        </div>
                       </div>
+                      <Badge variant="outline" className="shrink-0 text-[10px]">
+                        {getEventTypeLabel(event.type)}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="shrink-0 text-[10px]">
-                      {getEventTypeLabel(event.type)}
-                    </Badge>
-                  </div>
+                  </button>
                 </li>
               ))}
             </ul>

@@ -1,3 +1,4 @@
+import { redirectIfZonalRepBlocked } from "@/lib/zonal-rep-access";
 import { AdminReportingForm } from "@/components/reporting/admin-reporting-form";
 import { ReportingWindowBlock } from "@/components/reporting/reporting-window-block";
 
@@ -5,7 +6,8 @@ export const metadata = {
   title: "Administration Reporting",
 };
 
-export default function AdminReportingPage() {
+export default async function AdminReportingPage() {
+  await redirectIfZonalRepBlocked();
   return (
     <ReportingWindowBlock>
       <AdminReportingForm />

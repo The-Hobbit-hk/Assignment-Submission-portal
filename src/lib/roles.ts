@@ -80,6 +80,25 @@ export function canViewZoneClubReports(email?: string | null) {
   return !!email && isZonalRepresentative(email);
 }
 
+/**
+ * Zonal representatives who are not district admins / secretaries / club officers.
+ * These users only oversee their zone dashboards (view-only).
+ */
+export function isZonalRepOnly(role: UserRole, email?: string | null) {
+  if (!canViewZoneClubReports(email)) return false;
+  if (DISTRICT_ROLES.includes(role)) return false;
+  if (role === "REPORTING_SECRETARY" || role === "DISTRICT_SECRETARY") return false;
+  if (isClubUser(role)) return false;
+  return true;
+}
+
+/** Safe home for pure ZRs — never club Monthly / Events Reporting. */
+export const ZONAL_REP_HOME_PATH = "/dashboard/reporting/monthly-overview";
+
+export function getZonalRepHomePath(role: UserRole, email?: string | null) {
+  return isZonalRepOnly(role, email) ? ZONAL_REP_HOME_PATH : "/dashboard";
+}
+
 export function canViewClubReportingOverview(role: UserRole, email?: string | null) {
   return canViewAllClubReports(role) || canViewZoneClubReports(email);
 }
@@ -199,6 +218,38 @@ export function getNavigationForRole(
   email?: string | null,
   clubId?: string | null
 ): NavItem[] {
+  // Pure ZRs: zone oversight only — never club Monthly / Events Reporting hubs.
+  if (isZonalRepOnly(role, email)) {
+    const zrNav: NavItem[] = [
+      { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      {
+        title: "Reporting",
+        icon: ClipboardList,
+        children: [
+          {
+            title: "Zone Reporting",
+            href: "/dashboard/reporting/club-reports",
+            icon: Building2,
+          },
+          {
+            title: "Reporting Dashboard",
+            href: "/dashboard/reporting/monthly-overview",
+            icon: FileBarChart2,
+          },
+        ],
+      },
+      { title: "My Profile", href: "/dashboard/profile", icon: UserCircle },
+    ];
+    if (canViewMyCouncilBluebook(role)) {
+      zrNav.push({
+        title: "My Bluebook",
+        href: "/dashboard/bluebook/my-tasks",
+        icon: BookOpen,
+      });
+    }
+    return zrNav;
+  }
+
   const reportingChildren: NavItem[] = [];
 
   if (canSubmitClubReporting(role)) {
