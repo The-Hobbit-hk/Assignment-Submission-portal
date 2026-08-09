@@ -290,7 +290,7 @@ export function MonthlyReportingDashboard() {
     <div className="space-y-6">
       <PageHeading
         title="Monthly Reporting Dashboard"
-        subtitle="Live district view of completion, membership growth, dues, and avenue-wise events. Admin only."
+        subtitle="Live district view of completion, membership growth, dues, and avenue-wise events. Available to district admins and the District Reporting Secretary."
         action={
           <Button variant="outline" size="sm" asChild>
             <a href={`/api/reporting/export/monthly-overview?${exportParams}`} download>

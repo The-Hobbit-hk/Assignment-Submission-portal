@@ -1,16 +1,24 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/api-auth";
-import { DISTRICT_ROLES } from "@/lib/roles";
+import { canGenerateMonthlyReportingDeck } from "@/lib/roles";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
 import { buildMonthlyReportingOverview } from "@/lib/monthly-reporting-overview";
-import { handleRouteError, apiError } from "@/lib/api-errors";
+import { handleRouteError, apiError, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 export const runtime = "nodejs";
 
-/** Admin JSON overview for the monthly reporting visual dashboard. */
+/** JSON overview for the monthly reporting visual dashboard. */
 export async function GET(request: Request) {
-  const { error } = await requireRole([...DISTRICT_ROLES]);
+  const { session, error } = await requireRole([
+    "REPORTING_SECRETARY",
+    "DISTRICT_ADMIN",
+    "SUPER_ADMIN",
+  ]);
   if (error) return error;
+  if (!canGenerateMonthlyReportingDeck(session!.user.role as UserRole)) {
+    return forbidden();
+  }
 
   const { searchParams } = new URL(request.url);
   const active = getActiveReportPeriod();

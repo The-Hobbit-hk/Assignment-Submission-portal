@@ -95,9 +95,9 @@ export function canViewAdminReportSubmissions(role: UserRole) {
   );
 }
 
-/** Admin-only monthly reporting visual dashboard (and optional PPT export). */
+/** Monthly reporting visual dashboard (and optional PPT export). */
 export function canGenerateMonthlyReportingDeck(role: UserRole) {
-  return DISTRICT_ROLES.includes(role);
+  return role === "REPORTING_SECRETARY" || DISTRICT_ROLES.includes(role);
 }
 
 /**

@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import type { EventType, Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
-import { DISTRICT_ROLES } from "@/lib/roles";
+import { canGenerateMonthlyReportingDeck } from "@/lib/roles";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
 import { OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { CLUB_EVENT_AVENUE_VALUES, getEventTypeLabel } from "@/lib/event-types";
 import { serializeEvent } from "@/lib/event";
-import { apiError, handleRouteError } from "@/lib/api-errors";
+import { apiError, handleRouteError, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 export const runtime = "nodejs";
 
@@ -17,8 +18,15 @@ const avenueSet = new Set<string>(CLUB_EVENT_AVENUE_VALUES);
  * Events for one avenue (or "OTHER") in the monthly reporting dashboard period.
  */
 export async function GET(request: Request) {
-  const { error } = await requireRole([...DISTRICT_ROLES]);
+  const { session, error } = await requireRole([
+    "REPORTING_SECRETARY",
+    "DISTRICT_ADMIN",
+    "SUPER_ADMIN",
+  ]);
   if (error) return error;
+  if (!canGenerateMonthlyReportingDeck(session!.user.role as UserRole)) {
+    return forbidden();
+  }
 
   const { searchParams } = new URL(request.url);
   const active = getActiveReportPeriod();

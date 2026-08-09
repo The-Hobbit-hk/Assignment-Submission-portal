@@ -1,18 +1,26 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/api-auth";
-import { DISTRICT_ROLES } from "@/lib/roles";
+import { canGenerateMonthlyReportingDeck } from "@/lib/roles";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
 import { buildMonthlyReportingOverview } from "@/lib/monthly-reporting-overview";
 import { buildMonthlyReportingPptx } from "@/lib/monthly-reporting-pptx";
-import { handleRouteError } from "@/lib/api-errors";
+import { handleRouteError, forbidden } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-/** Admin-only PowerPoint overview of monthly club reporting. */
+/** PowerPoint export of monthly club reporting overview. */
 export async function GET(request: Request) {
-  const { error } = await requireRole([...DISTRICT_ROLES]);
+  const { session, error } = await requireRole([
+    "REPORTING_SECRETARY",
+    "DISTRICT_ADMIN",
+    "SUPER_ADMIN",
+  ]);
   if (error) return error;
+  if (!canGenerateMonthlyReportingDeck(session!.user.role as UserRole)) {
+    return forbidden();
+  }
 
   const { searchParams } = new URL(request.url);
   const active = getActiveReportPeriod();

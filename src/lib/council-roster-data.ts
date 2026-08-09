@@ -44,7 +44,7 @@ export const COUNCIL_MEMBER_FILTER = {
 
 /** District Council 26-27 — official roster */
 export const COUNCIL_USERS: CouncilUserSeed[] = [
-  { name: "PHF. DRR. Dr. Karishma Awari", email: "rtr.dr.karishmaawari@gmail.com", title: "District Rotaract Representative", club: "Rotaract Club of Pune Shaniwarwada", photo: "/council/karishma-awari.png", role: "DISTRICT_ADMIN", group: "drr" },
+  { name: "PHF. DRR. Dr. Karishma Awari", email: "rtr.dr.karishmaawari@gmail.com", title: "District Rotaract Representative", club: "Rotaract Club of Pune Shaniwarwada", photo: "/council/karishma-awari.png", role: "SUPER_ADMIN", group: "drr" },
   { name: "PHF. PDRR. Drishti Singh", email: "rtrdrishtisingh@gmail.com", title: "District Learning Facilitator", club: "Rotaract Club of Humanitas", role: "COUNCIL_MEMBER", group: "core-council" },
   { name: "PHF. Rtr. Harshvardhan Kale", email: "rtr.harshvardhan3131@gmail.com", title: "District General Secretary", club: "Rotaract Club of Bavdhan Pioneers", photo: "/council/harshvardhan-kale.png", role: "DISTRICT_SECRETARY", group: "core-council" },
   { name: "Rtr. Suraj Surkutla", email: "rtrsurajsurkutla@gmail.com", title: "District Secretary - Administration", club: "Rotaract Club of Pune Shaniwarwada", photo: "/council/suraj-surkutla.png", role: "COUNCIL_MEMBER", group: "core-council" },
