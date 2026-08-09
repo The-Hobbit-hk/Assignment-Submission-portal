@@ -56,5 +56,8 @@ next-env.d.ts
 /public/uploads
 /private-uploads
 
+# local database / storage backups (contain PII + credential hashes — never commit)
+/backups
+
 # logo processing backups
 /public/*.opaque-backup.png

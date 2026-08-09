@@ -1,6 +1,7 @@
 import type { ClubStatus, PrismaClient } from "@/generated/prisma/client";
 import { DISTRICT_COUNCIL_CLUB } from "@/lib/council-roster-data";
 import { purgeLegacyDemoEvents } from "@/lib/legacy-demo-events";
+import { DEMO_CLUB_CHARTER_ID } from "@/lib/demo-club";
 import {
   DISTRICT_CLUBS,
   OFFICIAL_CLUB_CHARTER_IDS,
@@ -11,6 +12,7 @@ import {
 const PRESERVED_CHARTER_IDS = new Set([
   ...OFFICIAL_CLUB_CHARTER_IDS,
   DISTRICT_COUNCIL_CLUB.riClubId,
+  DEMO_CLUB_CHARTER_ID,
 ]);
 
 export async function syncDistrictClubs(prisma: PrismaClient) {

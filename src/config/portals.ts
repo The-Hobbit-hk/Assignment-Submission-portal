@@ -15,7 +15,7 @@ export const PORTAL_OPTIONS = [
     id: "club",
     title: "Club Portal",
     description: "Submit monthly admin & event reporting during the reporting window.",
-    loginHint: "club.panvel@rotaract3131.org",
+    loginHint: "club.demo@rotaract3131.org",
   },
   {
     id: "reporting",
