@@ -194,6 +194,7 @@ function AvenueEventsDialog({
                         <span className="truncate">{event.title}</span>
                         <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-60" />
                       </Link>
+                      <p className="text-xs text-muted-foreground">View details</p>
                       <p className="text-sm text-muted-foreground">
                         {event.club?.name ?? "District event"}
                       </p>

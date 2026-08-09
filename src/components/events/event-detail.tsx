@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { ArrowLeft, FileText, ImageIcon, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +13,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDeleteEvent, useEvent, uploadEventFile } from "@/hooks/use-events";
 import { PublicEventRegistrationsPanel } from "@/components/events/public-event-registrations-panel";
 import { getEventTypeLabel } from "@/lib/event-types";
+import { canManageEventRecord } from "@/lib/club-access";
+import type { UserRole } from "@/types/auth";
 import { useQueryClient } from "@tanstack/react-query";
 
 export function EventDetail({ eventId }: { eventId: string }) {
   const router = useRouter();
   const qc = useQueryClient();
+  const { data: session } = useSession();
   const { data: event, isLoading } = useEvent(eventId);
   const deleteMutation = useDeleteEvent();
   const bannerRef = useRef<HTMLInputElement>(null);
@@ -25,6 +29,16 @@ export function EventDetail({ eventId }: { eventId: string }) {
 
   if (isLoading) return <Skeleton className="h-96 w-full" />;
   if (!event) return <p className="text-destructive">Event not found.</p>;
+
+  const canManage =
+    !!session?.user &&
+    canManageEventRecord(
+      {
+        role: session.user.role as UserRole,
+        clubId: session.user.clubId,
+      },
+      event.clubId
+    );
 
   async function handleUpload(
     type: "banner" | "minutes" | "gallery",
@@ -49,25 +63,27 @@ export function EventDetail({ eventId }: { eventId: string }) {
           <h1 className="truncate text-xl font-semibold">{event.title}</h1>
           <p className="text-muted-foreground">{event.club?.name ?? "District Event"}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" asChild>
-            <Link href={`/dashboard/events/${eventId}/edit`}>Edit</Link>
-          </Button>
-          <Button
-            variant="destructive"
-            size="icon"
-            onClick={() => {
-              if (confirm("Delete?")) {
-                deleteMutation.mutate(eventId, {
-                  onSuccess: () => router.push("/dashboard/events"),
-                });
-              }
-            }}
-            aria-label="Delete event"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
+        {canManage && (
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link href={`/dashboard/events/${eventId}/edit`}>Edit</Link>
+            </Button>
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={() => {
+                if (confirm("Delete?")) {
+                  deleteMutation.mutate(eventId, {
+                    onSuccess: () => router.push("/dashboard/events"),
+                  });
+                }
+              }}
+              aria-label="Delete event"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {event.bannerUrl && (
@@ -95,8 +111,8 @@ export function EventDetail({ eventId }: { eventId: string }) {
         </a>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+      <div className={canManage ? "grid gap-4 lg:grid-cols-3" : "grid gap-4"}>
+        <Card className={canManage ? "lg:col-span-2" : undefined}>
           <CardHeader>
             <CardTitle className="text-base">Details</CardTitle>
           </CardHeader>
@@ -159,61 +175,63 @@ export function EventDetail({ eventId }: { eventId: string }) {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Uploads</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <input
-              ref={bannerRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={() => handleUpload("banner", bannerRef)}
-            />
-            <input
-              ref={minutesRef}
-              type="file"
-              accept="application/pdf"
-              className="hidden"
-              onChange={() => handleUpload("minutes", minutesRef)}
-            />
-            <input
-              ref={galleryRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={() => handleUpload("gallery", galleryRef)}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={() => bannerRef.current?.click()}
-            >
-              <Upload className="h-4 w-4" />
-              Banner
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={() => minutesRef.current?.click()}
-            >
-              <FileText className="h-4 w-4" />
-              Minutes PDF
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="w-full"
-              onClick={() => galleryRef.current?.click()}
-            >
-              <ImageIcon className="h-4 w-4" />
-              Gallery photo
-            </Button>
-          </CardContent>
-        </Card>
+        {canManage && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Uploads</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <input
+                ref={bannerRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={() => handleUpload("banner", bannerRef)}
+              />
+              <input
+                ref={minutesRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={() => handleUpload("minutes", minutesRef)}
+              />
+              <input
+                ref={galleryRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={() => handleUpload("gallery", galleryRef)}
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => bannerRef.current?.click()}
+              >
+                <Upload className="h-4 w-4" />
+                Banner
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => minutesRef.current?.click()}
+              >
+                <FileText className="h-4 w-4" />
+                Minutes PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={() => galleryRef.current?.click()}
+              >
+                <ImageIcon className="h-4 w-4" />
+                Gallery photo
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {event.gallery && event.gallery.length > 0 && (
@@ -246,7 +264,7 @@ export function EventDetail({ eventId }: { eventId: string }) {
         </Card>
       )}
 
-      {(event.type === "DISTRICT" || event.type === "INSTALLATION") && (
+      {canManage && (event.type === "DISTRICT" || event.type === "INSTALLATION") && (
         <PublicEventRegistrationsPanel eventId={eventId} />
       )}
     </div>
