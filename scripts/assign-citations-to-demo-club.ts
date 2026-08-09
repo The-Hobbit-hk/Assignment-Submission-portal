@@ -70,7 +70,7 @@ async function main() {
       clubId: string;
       cadence: typeof CADENCE;
       periodKey: string;
-      year: number | null;
+      year: number;
       month: number | null;
       quarter: number | null;
       rotaryYearLabel: string | null;
