@@ -10,8 +10,9 @@ import { assertClubEventCreateAccess, resolveReportingClubId } from "@/lib/repor
 import { isClubUser } from "@/lib/roles";
 import { apiError } from "@/lib/api-errors";
 
-export const MAX_REPORTING_EVENT_UPLOAD_BYTES = 2 * 1024 * 1024;
-export const MAX_REPORTING_EVENT_UPLOAD_LABEL = "2 MB";
+/** Signed uploads bypass Vercel body limits; 5 MB is safe for club phone photos. */
+export const MAX_REPORTING_EVENT_UPLOAD_BYTES = 5 * 1024 * 1024;
+export const MAX_REPORTING_EVENT_UPLOAD_LABEL = "5 MB";
 
 export const REPORTING_EVENT_UPLOAD_KINDS = ["minutes", "image"] as const;
 export type ReportingEventUploadKind = (typeof REPORTING_EVENT_UPLOAD_KINDS)[number];
@@ -19,16 +20,18 @@ export type ReportingEventUploadKind = (typeof REPORTING_EVENT_UPLOAD_KINDS)[num
 const ALLOWED_MIME = new Set([
   "application/pdf",
   "image/jpeg",
+  "image/jpg",
   "image/png",
   "image/webp",
 ]);
 
 export function isAllowedReportingEventFile(file: { name: string; type: string }, kind: ReportingEventUploadKind) {
   const ext = path.extname(file.name).toLowerCase();
+  const type = (file.type || "").toLowerCase();
   if (kind === "minutes") {
-    return file.type === "application/pdf" || ext === ".pdf";
+    return type === "application/pdf" || ext === ".pdf";
   }
-  if (ALLOWED_MIME.has(file.type) && file.type !== "application/pdf") return true;
+  if (ALLOWED_MIME.has(type) && type !== "application/pdf") return true;
   return [".jpg", ".jpeg", ".png", ".webp"].includes(ext);
 }
 

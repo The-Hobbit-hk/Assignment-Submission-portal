@@ -144,7 +144,7 @@ export async function apiJson<T>(
     });
   } catch {
     throw new ApiError(
-      "Could not reach the server. Check your connection and try again. If you attached minutes or an image, use files under 2 MB or add the event first and upload files afterward.",
+      "Could not reach the server. Wait a few seconds and try again. For file uploads, files go directly to storage — if this keeps happening, add the event first without files, then upload minutes/image from the event page.",
       0
     );
   }

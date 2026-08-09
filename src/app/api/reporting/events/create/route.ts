@@ -14,6 +14,7 @@ import { validationError, handleRouteError, apiError } from "@/lib/api-errors";
 import {
   isOwnedReportingEventPath,
   publicUrlForPath,
+  MAX_REPORTING_EVENT_UPLOAD_BYTES,
 } from "@/lib/reporting-event-upload";
 
 export const runtime = "nodejs";
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
         return apiError("Could not resolve uploaded minutes file.", 500);
       }
     } else if (minutesFile?.size) {
-      minutesPdfUrl = await saveUpload(minutesFile, "event-minutes", 2 * 1024 * 1024);
+      minutesPdfUrl = await saveUpload(minutesFile, "event-minutes", MAX_REPORTING_EVENT_UPLOAD_BYTES);
     }
 
     if (d.bannerPath) {
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
         return apiError("Could not resolve uploaded image.", 500);
       }
     } else if (imageFile?.size) {
-      bannerUrl = await saveUpload(imageFile, "event-banners", 2 * 1024 * 1024);
+      bannerUrl = await saveUpload(imageFile, "event-banners", MAX_REPORTING_EVENT_UPLOAD_BYTES);
     }
 
     const event = await prisma.event.create({

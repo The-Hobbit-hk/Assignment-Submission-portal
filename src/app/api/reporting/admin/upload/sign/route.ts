@@ -32,7 +32,8 @@ export async function POST(request: Request) {
     if (!isSupabaseStorageEnabled()) {
       return apiError(
         "Direct uploads require Supabase Storage. Contact an administrator.",
-        500
+        503,
+        { code: "STORAGE_NOT_CONFIGURED" }
       );
     }
 
@@ -59,7 +60,9 @@ export async function POST(request: Request) {
 
     const supabase = getSupabaseAdmin();
     if (!supabase) {
-      return apiError("Supabase Storage is not configured.", 500);
+      return apiError("Supabase Storage is not configured.", 503, {
+        code: "STORAGE_NOT_CONFIGURED",
+      });
     }
 
     const objectPath = buildAdminReportObjectPath(

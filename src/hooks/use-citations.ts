@@ -3,6 +3,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { ApiError, apiJson } from "@/lib/api-client";
+import {
+  guessContentType,
+  isStorageNotConfiguredError,
+  putFileToSignedUrl,
+  shouldAvoidMultipartFallback,
+  withRetries,
+} from "@/lib/direct-storage-upload";
 import type {
   CitationStandingEntry,
   SerializedCitationAssignment,
@@ -209,50 +216,46 @@ export function useReviewCitation(id: string) {
 }
 
 export async function uploadCitationProof(assignmentId: string, file: File) {
-  // Prefer signed direct-to-Supabase upload so ~5 MB files bypass Vercel's ~4.5 MB body limit.
+  const contentType = guessContentType(file.name, file.type);
+
   try {
-    const signed = await apiJson<{
-      path: string;
-      token: string;
-      signedUrl: string;
-      publicUrl: string;
-    }>(`/api/citations/assignments/${assignmentId}/proof/sign`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fileName: file.name,
-        contentType: file.type || "application/octet-stream",
-        size: file.size,
-      }),
-    });
+    const signed = await withRetries(
+      () =>
+        apiJson<{
+          path: string;
+          token: string;
+          signedUrl: string;
+          publicUrl: string;
+        }>(`/api/citations/assignments/${assignmentId}/proof/sign`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType,
+            size: file.size,
+          }),
+        }),
+      3,
+      "Prepare upload"
+    );
 
-    const put = await fetch(signed.signedUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type || "application/octet-stream",
-        "x-upsert": "false",
-      },
-      body: file,
-    });
+    await putFileToSignedUrl(file, signed.signedUrl, contentType);
 
-    if (!put.ok) {
-      const detail = await put.text().catch(() => "");
-      throw new ApiError(
-        detail.trim() || "Could not upload file to storage. Please try again.",
-        put.status || 500
-      );
-    }
-
-    return apiJson<SerializedCitationAssignment>(
-      `/api/citations/assignments/${assignmentId}/proof/complete`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ path: signed.path }),
-      }
+    return withRetries(
+      () =>
+        apiJson<SerializedCitationAssignment>(
+          `/api/citations/assignments/${assignmentId}/proof/complete`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ path: signed.path }),
+          }
+        ),
+      3,
+      "Save proof"
     );
   } catch (err) {
-    if (err instanceof ApiError && err.status === 500 && file.size <= 4 * 1024 * 1024) {
+    if (isStorageNotConfiguredError(err) && !shouldAvoidMultipartFallback(file.size)) {
       const fd = new FormData();
       fd.append("file", file);
       return apiJson<SerializedCitationAssignment>(

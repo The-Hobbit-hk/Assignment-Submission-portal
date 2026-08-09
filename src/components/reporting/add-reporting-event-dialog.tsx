@@ -54,8 +54,9 @@ export function AddReportingEventDialog({
           disabled={disabled}
           onCancel={() => setOpen(false)}
           onSubmit={async (formData) => {
-            await create.mutateAsync(formData);
+            const result = await create.mutateAsync(formData);
             setOpen(false);
+            return result;
           }}
         />
       </DialogContent>

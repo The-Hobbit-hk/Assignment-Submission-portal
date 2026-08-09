@@ -2,6 +2,14 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ApiError, apiJson } from "@/lib/api-client";
+import {
+  guessContentType,
+  isStorageNotConfiguredError,
+  putFileToSignedUrl,
+  shouldAvoidMultipartFallback,
+  withRetries,
+} from "@/lib/direct-storage-upload";
+import { uploadEventFile } from "@/hooks/use-events";
 import type { SerializedMonthlyReport } from "@/lib/reporting";
 
 interface ReportFilters {
@@ -9,6 +17,11 @@ interface ReportFilters {
   year: number;
   clubId?: string;
 }
+
+export type CreateReportingEventResult = {
+  id: string;
+  fileWarnings?: string[];
+};
 
 export function useAdminReport(filters: ReportFilters) {
   const p = new URLSearchParams({
@@ -79,58 +92,53 @@ export async function uploadAdminReportFile(
   year: number,
   clubId?: string
 ) {
-  // Prefer signed direct-to-Supabase upload so ~5 MB files bypass Vercel's ~4.5 MB body limit.
+  const contentType = guessContentType(file.name, file.type);
+
   try {
-    const signed = await apiJson<{
-      path: string;
-      token: string;
-      signedUrl: string;
-      publicUrl: string;
-    }>("/api/reporting/admin/upload/sign", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        fileName: file.name,
-        contentType: file.type || "application/octet-stream",
-        size: file.size,
-        field,
-        month,
-        year,
-        clubId: clubId ?? null,
-      }),
-    });
+    const signed = await withRetries(
+      () =>
+        apiJson<{
+          path: string;
+          token: string;
+          signedUrl: string;
+          publicUrl: string;
+        }>("/api/reporting/admin/upload/sign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType,
+            size: file.size,
+            field,
+            month,
+            year,
+            clubId: clubId ?? null,
+          }),
+        }),
+      3,
+      "Prepare upload"
+    );
 
-    const put = await fetch(signed.signedUrl, {
-      method: "PUT",
-      headers: {
-        "Content-Type": file.type || "application/octet-stream",
-        "x-upsert": "false",
-      },
-      body: file,
-    });
+    await putFileToSignedUrl(file, signed.signedUrl, contentType);
 
-    if (!put.ok) {
-      const detail = await put.text().catch(() => "");
-      throw new ApiError(
-        detail.trim() || "Could not upload file to storage. Please try again.",
-        put.status || 500
-      );
-    }
-
-    return apiJson<SerializedMonthlyReport>("/api/reporting/admin/upload/complete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        path: signed.path,
-        field,
-        month,
-        year,
-        clubId: clubId ?? null,
-      }),
-    });
+    return withRetries(
+      () =>
+        apiJson<SerializedMonthlyReport>("/api/reporting/admin/upload/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            path: signed.path,
+            field,
+            month,
+            year,
+            clubId: clubId ?? null,
+          }),
+        }),
+      3,
+      "Save upload"
+    );
   } catch (err) {
-    // Local/dev without Supabase: fall back to multipart for smaller files.
-    if (err instanceof ApiError && err.status === 500 && file.size <= 4 * 1024 * 1024) {
+    if (isStorageNotConfiguredError(err) && !shouldAvoidMultipartFallback(file.size)) {
       const fd = new FormData();
       fd.append("file", file);
       fd.append("field", field);
@@ -163,83 +171,58 @@ export function useSaveAdminReport() {
   });
 }
 
+/**
+ * Hardened create path for reporting deadline:
+ * 1) Create the event as small JSON (always survives Vercel limits)
+ * 2) Attach minutes/image via signed direct-to-storage uploads with retries
+ * Never posts multipart create with both files through Vercel.
+ */
 export function useCreateReportingEvent() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (formData: FormData) => {
+    mutationFn: async (formData: FormData): Promise<CreateReportingEventResult> => {
       const raw = formData.get("data");
       if (typeof raw !== "string") {
         throw new ApiError("Invalid event data.", 400);
       }
 
       const payload = JSON.parse(raw) as Record<string, unknown>;
+      delete payload.minutesPath;
+      delete payload.bannerPath;
+
       const minutes = formData.get("minutes");
       const image = formData.get("image");
 
-      async function uploadDirect(file: File, kind: "minutes" | "image") {
-        const signed = await apiJson<{
-          path: string;
-          signedUrl: string;
-        }>("/api/reporting/events/upload/sign", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            fileName: file.name,
-            contentType: file.type || "application/octet-stream",
-            size: file.size,
-            kind,
-            clubId: typeof payload.clubId === "string" ? payload.clubId : null,
-          }),
-        });
-
-        const put = await fetch(signed.signedUrl, {
-          method: "PUT",
-          headers: {
-            "Content-Type": file.type || "application/octet-stream",
-            "x-upsert": "false",
-          },
-          body: file,
-        });
-
-        if (!put.ok) {
-          const detail = await put.text().catch(() => "");
-          throw new ApiError(
-            detail.trim() || "Could not upload file to storage. Please try again.",
-            put.status || 500
-          );
-        }
-
-        return signed.path;
-      }
-
-      // Prefer signed direct-to-Supabase uploads so minutes + image never hit
-      // Vercel's ~4.5 MB request body limit (common cause of "Failed to fetch").
-      try {
-        if (minutes instanceof File && minutes.size > 0) {
-          payload.minutesPath = await uploadDirect(minutes, "minutes");
-        }
-        if (image instanceof File && image.size > 0) {
-          payload.bannerPath = await uploadDirect(image, "image");
-        }
-
-        return apiJson("/api/reporting/events/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-      } catch (err) {
-        // Local/dev without Supabase: fall back to multipart for smaller payloads.
-        const combined =
-          (minutes instanceof File ? minutes.size : 0) +
-          (image instanceof File ? image.size : 0);
-        if (err instanceof ApiError && err.status === 500 && combined <= 4 * 1024 * 1024) {
-          return apiJson("/api/reporting/events/create", {
+      const event = await withRetries(
+        () =>
+          apiJson<{ id: string }>("/api/reporting/events/create", {
             method: "POST",
-            body: formData,
-          });
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          }),
+        3,
+        "Create event"
+      );
+
+      const fileWarnings: string[] = [];
+
+      if (minutes instanceof File && minutes.size > 0) {
+        try {
+          await uploadEventFile(event.id, "minutes", minutes);
+        } catch {
+          fileWarnings.push("minutes (PDF)");
         }
-        throw err;
       }
+
+      if (image instanceof File && image.size > 0) {
+        try {
+          await uploadEventFile(event.id, "banner", image);
+        } catch {
+          fileWarnings.push("image");
+        }
+      }
+
+      return { id: event.id, fileWarnings: fileWarnings.length ? fileWarnings : undefined };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["reporting", "events-portal"] });

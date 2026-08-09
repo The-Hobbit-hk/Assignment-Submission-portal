@@ -37,7 +37,7 @@ interface ReportingEventFormProps {
   clubId: string;
   reportingMonth?: number;
   reportingYear?: number;
-  onSubmit: (formData: FormData) => Promise<void>;
+  onSubmit: (formData: FormData) => Promise<{ fileWarnings?: string[] } | void>;
   onCancel?: () => void;
   submitLabel?: string;
   disabled?: boolean;
@@ -118,8 +118,13 @@ export function ReportingEventForm({
       if (minutesFile) fd.append("minutes", minutesFile);
       if (imageFile) fd.append("image", imageFile);
 
-      await onSubmit(fd);
+      const result = await onSubmit(fd);
       toast.success("Event added successfully");
+      if (result?.fileWarnings?.length) {
+        toast.error(
+          `Event is saved for reporting, but ${result.fileWarnings.join(" and ")} did not upload. Open Events → this event and upload the file(s) again.`
+        );
+      }
     } catch (err) {
       setError(formErrorMessage(err, "Failed to add event."));
     } finally {
@@ -231,13 +236,13 @@ export function ReportingEventForm({
 
         <div className="space-y-1.5 sm:col-span-2">
           <ReportingFileUpload
-            label="Add Minutes of Meetings (pdf) (max size: 2MB)"
+            label="Add Minutes of Meetings (pdf) (max size: 5MB)"
             fileUrl={minutesFile ? "pending" : null}
             disabled={disabled || loading}
-            accept=".pdf"
-            hint="PDF only, max 2MB. Uploads go directly to storage."
+            accept=".pdf,application/pdf"
+            hint="PDF only, max 5MB. Event is saved first; file uploads go directly to storage."
             onUpload={async (file) => {
-              if (file.size > 2 * 1024 * 1024) throw new Error("File exceeds 2MB limit.");
+              if (file.size > 5 * 1024 * 1024) throw new Error("File exceeds 5MB limit.");
               setMinutesFile(file);
             }}
             onClear={() => setMinutesFile(null)}
@@ -247,13 +252,13 @@ export function ReportingEventForm({
 
         <div className="space-y-1.5 sm:col-span-2">
           <ReportingFileUpload
-            label="Add Image (max size: 2MB)"
+            label="Add Image (max size: 5MB)"
             fileUrl={imageFile ? "pending" : null}
             disabled={disabled || loading}
-            accept=".jpg,.jpeg,.png,.webp"
-            hint="Image, max 2MB. Uploads go directly to storage."
+            accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+            hint="JPG/PNG/WebP, max 5MB. Compress large phone photos if needed."
             onUpload={async (file) => {
-              if (file.size > 2 * 1024 * 1024) throw new Error("File exceeds 2MB limit.");
+              if (file.size > 5 * 1024 * 1024) throw new Error("File exceeds 5MB limit.");
               setImageFile(file);
             }}
             onClear={() => setImageFile(null)}

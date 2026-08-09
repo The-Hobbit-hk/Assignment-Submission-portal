@@ -1,7 +1,14 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiJson } from "@/lib/api-client";
+import { apiJson, ApiError } from "@/lib/api-client";
+import {
+  guessContentType,
+  isStorageNotConfiguredError,
+  putFileToSignedUrl,
+  shouldAvoidMultipartFallback,
+  withRetries,
+} from "@/lib/direct-storage-upload";
 import type { PaginatedResult } from "@/lib/pagination";
 
 export interface EventItem {
@@ -28,7 +35,12 @@ export interface EventItem {
   forDistrictNewsletter?: boolean;
   registrationCount: number;
   gallery?: { id: string; url: string; caption: string | null; sortOrder: number }[];
-  registrations?: { id: string; status: string; registeredAt: string; member: { id: string; firstName: string; lastName: string; email: string } }[];
+  registrations?: {
+    id: string;
+    status: string;
+    registeredAt: string;
+    member: { id: string; firstName: string; lastName: string; email: string };
+  }[];
 }
 
 interface EventFilters {
@@ -105,12 +117,62 @@ export function useDeleteEvent() {
   });
 }
 
-export async function uploadEventFile(eventId: string, type: "banner" | "minutes" | "gallery", file: File, caption?: string) {
-  const fd = new FormData();
-  fd.append("file", file);
-  if (caption) fd.append("caption", caption);
-  return apiJson(`/api/events/${eventId}/${type === "gallery" ? "gallery" : type}`, {
-    method: "POST",
-    body: fd,
-  });
+export async function uploadEventFile(
+  eventId: string,
+  type: "banner" | "minutes" | "gallery",
+  file: File,
+  caption?: string
+) {
+  const contentType = guessContentType(file.name, file.type);
+
+  try {
+    const signed = await withRetries(
+      () =>
+        apiJson<{
+          path: string;
+          signedUrl: string;
+        }>(`/api/events/${eventId}/upload/sign`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType,
+            size: file.size,
+            kind: type,
+          }),
+        }),
+      3,
+      "Prepare upload"
+    );
+
+    await putFileToSignedUrl(file, signed.signedUrl, contentType);
+
+    return withRetries(
+      () =>
+        apiJson(`/api/events/${eventId}/upload/complete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            path: signed.path,
+            kind: type,
+            caption: caption || undefined,
+          }),
+        }),
+      3,
+      "Attach file"
+    );
+  } catch (err) {
+    // Local/dev without Supabase only — never multipart near Vercel body limits.
+    if (isStorageNotConfiguredError(err) && !shouldAvoidMultipartFallback(file.size)) {
+      const fd = new FormData();
+      fd.append("file", file);
+      if (caption) fd.append("caption", caption);
+      return apiJson(`/api/events/${eventId}/${type === "gallery" ? "gallery" : type}`, {
+        method: "POST",
+        body: fd,
+      });
+    }
+    if (err instanceof ApiError) throw err;
+    throw new ApiError("Could not upload file. Please try again.", 0);
+  }
 }

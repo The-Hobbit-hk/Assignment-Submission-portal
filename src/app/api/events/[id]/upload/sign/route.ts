@@ -1,30 +1,36 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
-import { handleRouteError, apiError } from "@/lib/api-errors";
+import { canManageEventRecord } from "@/lib/club-access";
+import { handleRouteError, apiError, forbidden, notFound } from "@/lib/api-errors";
+import type { UserRole } from "@/types/auth";
 import {
-  assertReportingEventUploadable,
-  buildReportingEventObjectPath,
+  EVENT_FILE_KINDS,
+  buildEventFileObjectPath,
   getSupabaseAdmin,
-  isAllowedReportingEventFile,
+  isAllowedEventFile,
   isSupabaseStorageEnabled,
-  MAX_REPORTING_EVENT_UPLOAD_BYTES,
-  MAX_REPORTING_EVENT_UPLOAD_LABEL,
-  REPORTING_EVENT_UPLOAD_KINDS,
+  MAX_EVENT_FILE_UPLOAD_BYTES,
+  MAX_EVENT_FILE_UPLOAD_LABEL,
   SUPABASE_UPLOAD_BUCKET,
-} from "@/lib/reporting-event-upload";
+} from "@/lib/event-file-upload";
+
+interface RouteParams {
+  params: Promise<{ id: string }>;
+}
 
 const bodySchema = z.object({
   fileName: z.string().min(1),
   contentType: z.string().optional(),
   size: z.number().positive(),
-  kind: z.enum(REPORTING_EVENT_UPLOAD_KINDS),
-  clubId: z.string().optional().nullable(),
+  kind: z.enum(EVENT_FILE_KINDS),
 });
 
-export async function POST(request: Request) {
+export async function POST(request: Request, { params }: RouteParams) {
   const { session, error } = await requireAuth();
   if (error) return error;
+  const { id } = await params;
 
   try {
     if (!isSupabaseStorageEnabled()) {
@@ -35,10 +41,24 @@ export async function POST(request: Request) {
       );
     }
 
+    const existing = await prisma.event.findUnique({
+      where: { id },
+      select: { id: true, clubId: true },
+    });
+    if (!existing) return notFound("Not found.");
+    if (
+      !canManageEventRecord(
+        { role: session!.user.role as UserRole, clubId: session!.user.clubId },
+        existing.clubId
+      )
+    ) {
+      return forbidden();
+    }
+
     const body = bodySchema.parse(await request.json());
     const contentType = body.contentType?.trim() || "application/octet-stream";
 
-    if (!isAllowedReportingEventFile({ name: body.fileName, type: contentType }, body.kind)) {
+    if (!isAllowedEventFile({ name: body.fileName, type: contentType }, body.kind)) {
       return apiError(
         body.kind === "minutes"
           ? "Minutes must be a PDF."
@@ -46,15 +66,12 @@ export async function POST(request: Request) {
         400
       );
     }
-    if (body.size > MAX_REPORTING_EVENT_UPLOAD_BYTES) {
+    if (body.size > MAX_EVENT_FILE_UPLOAD_BYTES) {
       return apiError(
-        `File exceeds maximum size of ${MAX_REPORTING_EVENT_UPLOAD_LABEL}.`,
+        `File exceeds maximum size of ${MAX_EVENT_FILE_UPLOAD_LABEL}.`,
         413
       );
     }
-
-    const gate = await assertReportingEventUploadable(session!, body.clubId ?? null);
-    if (!gate.ok) return gate.response;
 
     const supabase = getSupabaseAdmin();
     if (!supabase) {
@@ -63,8 +80,9 @@ export async function POST(request: Request) {
       });
     }
 
-    const objectPath = buildReportingEventObjectPath(
+    const objectPath = buildEventFileObjectPath(
       session!.user.id,
+      id,
       body.kind,
       body.fileName,
       contentType
