@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { invalidateUserClaims } from "@/lib/auth";
+import { invalidateUserClaims, clearLoginFailLimit } from "@/lib/auth";
 import { requireRole } from "@/lib/api-auth";
 import { DISTRICT_ROLES } from "@/lib/roles";
 import {
@@ -78,6 +78,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     });
 
     invalidateUserClaims(id);
+    clearLoginFailLimit(updated.email);
 
     return NextResponse.json({
       user: serializeManagedUser({

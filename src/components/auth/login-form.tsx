@@ -35,18 +35,22 @@ export function LoginForm({ portal }: { portal?: PortalMeta }) {
 
     try {
       const result = await signIn("credentials", {
-        email,
-        password,
+        email: email.trim().toLowerCase(),
+        password: password.replace(/[\u200B-\u200D\uFEFF]/g, "").replace(/\u00A0/g, " ").trim(),
         redirect: false,
       });
 
       if (result?.error) {
-        const rateLimited = result.error.toLowerCase().includes("too many");
+        const err = result.error.toLowerCase();
+        const rateLimited =
+          err.includes("rate_limited") ||
+          err.includes("too many") ||
+          err.includes("accessdenied");
         setError(
           reportError(
             rateLimited
-              ? "Too many failed attempts for this account. Please wait a few minutes and try again."
-              : "Invalid email or password. Please try again."
+              ? "Too many failed login attempts for this account. Wait about 15 minutes, or ask a district admin to reset your password in User Management (that also clears the lockout)."
+              : "Invalid email or password. Tip: paste carefully with no extra spaces. If an admin just reset you, use the temporary password, then change it when prompted."
           )
         );
         return;

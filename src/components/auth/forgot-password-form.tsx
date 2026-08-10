@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { Loader2, MailCheck } from "lucide-react";
+import { KeyRound, MailWarning } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -14,84 +11,46 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { toast } from "@/lib/toast";
 
+/**
+ * Self-serve email reset is not wired yet. Clubs must use the temporary password
+ * from district admin (User Management) — the previous fake "email sent" flow
+ * caused many "wrong password" reports after clubs thought they had reset.
+ */
 export function ForgotPasswordForm() {
-  const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Password reset flow will be implemented in a later module
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    setIsSubmitted(true);
-    toast.success("If an account exists, reset instructions will be emailed shortly.");
-    setIsLoading(false);
-  }
-
-  if (isSubmitted) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center gap-4 py-10 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-accent/20 text-accent">
-            <MailCheck className="h-7 w-7" />
-          </div>
-          <div className="space-y-2">
-            <h3 className="text-lg font-semibold">Check your email</h3>
-            <p className="text-sm text-muted-foreground">
-              If an account exists for <strong>{email}</strong>, you will
-              receive password reset instructions shortly.
-            </p>
-          </div>
-          <Button variant="outline" asChild>
-            <Link href="/login">Back to sign in</Link>
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>Reset password</CardTitle>
         <CardDescription>
-          Enter your email and we&apos;ll send you reset instructions.
+          Club portal passwords are reset by district admins — not by email yet.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@rotaract3131.org"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              disabled={isLoading}
-            />
+      <CardContent className="space-y-4">
+        <div className="flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-3 text-sm">
+          <MailWarning className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+          <div className="space-y-1 text-foreground">
+            <p className="font-medium">Contact your district admin or ZR</p>
+            <p className="text-muted-foreground">
+              Ask them to open <strong>User Management</strong> and click{" "}
+              <strong>Reset</strong> for your club login. They will get a temporary
+              password to share with you.
+            </p>
           </div>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading && <Loader2 className="animate-spin" />}
-            Send reset link
-          </Button>
-          <p className="text-center text-sm text-muted-foreground">
-            Remember your password?{" "}
-            <Link href="/login" className="text-accent hover:underline">
-              Sign in
-            </Link>
+        </div>
+        <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-3 text-sm text-muted-foreground">
+          <KeyRound className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            After login with the temporary password, you will be asked to set your own
+            password. Use that new password from then on — not the temporary one.
           </p>
-        </CardFooter>
-      </form>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button asChild className="w-full">
+          <Link href="/login">Back to sign in</Link>
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

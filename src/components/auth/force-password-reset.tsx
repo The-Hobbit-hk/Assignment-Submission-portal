@@ -57,7 +57,11 @@ export function ForcePasswordReset() {
       await apiJson("/api/auth/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+        body: JSON.stringify({
+          currentPassword: currentPassword.trim(),
+          newPassword: newPassword.trim(),
+          confirmPassword: confirmPassword.trim(),
+        }),
       });
       toast.success("Password updated. Welcome aboard!");
       // Refresh the session token so mustChangePassword flips to false.

@@ -13,6 +13,22 @@ const credentialsSchema = z.object({
   password: z.string().min(8),
 });
 
+function normalizeEmail(value: string) {
+  return value.trim().toLowerCase();
+}
+
+/** Strip copy/paste junk that commonly breaks bcrypt compares. */
+function normalizePassword(value: string) {
+  return value
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/\u00A0/g, " ")
+    .trim();
+}
+
+export function loginFailKey(email: string) {
+  return `login-fail:${normalizeEmail(email)}`;
+}
+
 type UserClaims = {
   clubId: string | null;
   role: UserRole;
@@ -55,6 +71,11 @@ export function invalidateUserClaims(userId: string) {
   claimsCache.delete(userId);
 }
 
+/** Clear failed-login lockout after an admin password reset. */
+export function clearLoginFailLimit(email: string) {
+  clearRateLimit(loginFailKey(email));
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
   callbacks: {
@@ -95,47 +116,77 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const parsed = credentialsSchema.safeParse(credentials);
+        const rawEmail =
+          typeof credentials?.email === "string" ? normalizeEmail(credentials.email) : "";
+        const rawPassword =
+          typeof credentials?.password === "string"
+            ? normalizePassword(credentials.password)
+            : "";
+
+        const parsed = credentialsSchema.safeParse({
+          email: rawEmail,
+          password: rawPassword,
+        });
         if (!parsed.success) {
           return null;
         }
 
         const { email, password } = parsed.data;
-        const emailKey = email.toLowerCase().trim();
+        const failKey = loginFailKey(email);
 
         const locked = isRateLimited(
-          `login-fail:${emailKey}`,
+          failKey,
           RATE_LIMITS.loginFailed.limit,
           RATE_LIMITS.loginFailed.windowMs
         );
         if (!locked.success) {
-          return null;
+          // Distinct from wrong-password so the login form can show a clear message.
+          throw new Error("RATE_LIMITED");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: emailKey },
+        // Prefer exact match (emails are stored lowercased), then insensitive fallback.
+        let user = await prisma.user.findUnique({
+          where: { email },
         });
+        if (!user) {
+          user = await prisma.user.findFirst({
+            where: { email: { equals: email, mode: "insensitive" } },
+          });
+        }
 
         if (!user?.password) {
           rateLimit(
-            `login-fail:${emailKey}`,
+            failKey,
             RATE_LIMITS.loginFailed.limit,
             RATE_LIMITS.loginFailed.windowMs
           );
           return null;
+        }
+
+        // Normalize stored email if it was saved with mixed case historically.
+        if (user.email !== email) {
+          try {
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { email },
+            });
+            user = { ...user, email };
+          } catch {
+            // Unique conflict — keep looking up by insensitive match only.
+          }
         }
 
         const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) {
           rateLimit(
-            `login-fail:${emailKey}`,
+            failKey,
             RATE_LIMITS.loginFailed.limit,
             RATE_LIMITS.loginFailed.windowMs
           );
           return null;
         }
 
-        clearRateLimit(`login-fail:${emailKey}`);
+        clearRateLimit(failKey);
 
         return {
           id: user.id,

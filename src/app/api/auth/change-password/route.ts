@@ -42,17 +42,20 @@ export async function POST(request: Request) {
       return apiError("Password change is not available for this account.", 400);
     }
 
-    const isValid = await bcrypt.compare(currentPassword, user.password);
+    const current = currentPassword.trim();
+    const next = newPassword.trim();
+
+    const isValid = await bcrypt.compare(current, user.password);
     if (!isValid) {
       return apiError("Your current password is incorrect.", 400);
     }
 
-    const isSame = await bcrypt.compare(newPassword, user.password);
+    const isSame = await bcrypt.compare(next, user.password);
     if (isSame) {
       return apiError("Choose a password different from your current one.", 400);
     }
 
-    const hash = await bcrypt.hash(newPassword, 12);
+    const hash = await bcrypt.hash(next, 12);
     await prisma.user.update({
       where: { id: user.id },
       data: { password: hash, mustChangePassword: false },
