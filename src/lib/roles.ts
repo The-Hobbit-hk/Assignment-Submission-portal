@@ -13,6 +13,7 @@ import {
   ClipboardList,
   FileBarChart2,
   History,
+  KeyRound,
   LayoutDashboard,
   Shield,
   UserCheck,
@@ -185,6 +186,11 @@ export function canManageClubs(role: UserRole) {
   return DISTRICT_ROLES.includes(role) || role === "REPORTING_SECRETARY";
 }
 
+/** Admin user directory + password reset controls. */
+export function canManageUsers(role: UserRole) {
+  return DISTRICT_ROLES.includes(role);
+}
+
 /** Create / edit / delete district events and their media. */
 export function canManageEvents(role: UserRole) {
   return SECRETARY_ROLES.includes(role);
@@ -323,6 +329,14 @@ export function getNavigationForRole(
       { title: "Members", href: `/dashboard/members?clubId=${clubId}`, icon: Users },
       { title: "My Club", href: `/dashboard/clubs/${clubId}`, icon: Building2 }
     );
+  }
+
+  if (canManageUsers(role)) {
+    nav.push({
+      title: "User Management",
+      href: "/dashboard/users",
+      icon: KeyRound,
+    });
   }
 
   if (canViewCouncilStandings(role)) {
