@@ -244,8 +244,16 @@ export function getNavigationForRole(
           },
         ],
       },
-      { title: "My Profile", href: "/dashboard/profile", icon: UserCircle },
     ];
+    // Same council standings access as other council members (page/API already allow).
+    if (canViewCouncilStandings(role)) {
+      zrNav.push({
+        title: "Council Live Scores",
+        href: "/dashboard/council-scores",
+        icon: BarChart3,
+      });
+    }
+    zrNav.push({ title: "My Profile", href: "/dashboard/profile", icon: UserCircle });
     if (canViewMyCouncilBluebook(role)) {
       zrNav.push({
         title: "My Bluebook",
