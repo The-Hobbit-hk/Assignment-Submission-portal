@@ -163,6 +163,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
+        // Capture after null-check — reassigning `user` below widens password to string | null again.
+        const passwordHash = user.password;
+
         // Normalize stored email if it was saved with mixed case historically.
         if (user.email !== email) {
           try {
@@ -176,7 +179,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         }
 
-        const isValid = await bcrypt.compare(password, user.password);
+        const isValid = await bcrypt.compare(password, passwordHash);
         if (!isValid) {
           rateLimit(
             failKey,
