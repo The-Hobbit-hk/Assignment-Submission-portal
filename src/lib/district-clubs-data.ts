@@ -2,7 +2,7 @@ import type { ClubStatus } from "@/generated/prisma/client";
 
 /**
  * Official Rotaract District 3131 club roster (Zones 1–7).
- * Source: district zone-wise club listing.
+ * Source: Zonal Allocation RIY 2026–27.
  */
 
 export type DistrictClubRecord = {
@@ -22,14 +22,19 @@ export type DistrictZoneMeta = {
 };
 
 export const DISTRICT_ZONE_META: DistrictZoneMeta[] = [
-  { zone: "Zone 1", reps: ["Rtr. Aniket Sardar", "Rtr. Rohan Puri"], totalClubs: 12 },
-  { zone: "Zone 2", reps: ["Rtr. Rajas Uchagaonkar", "Rtr. Sumedh Gite"], totalClubs: 16 },
-  { zone: "Zone 3", reps: ["Rtr. Pratham Pokharkar", "Rtr. Sarthak Ambhore"], totalClubs: 15 },
+  { zone: "Zone 1", reps: ["Rtr. Aniket Sardar"], totalClubs: 12 },
+  { zone: "Zone 2", reps: ["Rtr. Rajas Uchagaonkar", "Rtr. Sumedh Gite"], totalClubs: 13 },
+  { zone: "Zone 3", reps: ["Rtr. Pratham Pokharkar", "Rtr. Sarthak Ambhore"], totalClubs: 16 },
   { zone: "Zone 4", reps: ["Rtr. Vedant Chirmade", "Rtr. Aditya Verma"], totalClubs: 13 },
-  { zone: "Zone 5", reps: ["Rtr. Vedant Chaudhari", "Rtr. Prerna Bhilare"], totalClubs: 16 },
-  { zone: "Zone 6", reps: ["Rtr. Tisha Sancheti", "Rtr. Rohit Kumbhar"], totalClubs: 16 },
+  { zone: "Zone 5", reps: ["Rtr. Vedant Chaudhari", "Rtr. Prerna Bhilare"], totalClubs: 17 },
+  { zone: "Zone 6", reps: ["Rtr. Tisha Sancheti", "Rtr. Rohit Kumbhar"], totalClubs: 17 },
   { zone: "Zone 7", reps: ["Rtr. Prem Bansode", "Rtr. Shrushti Shirore"], totalClubs: 14 },
 ];
+
+export const DISTRICT_OFFICIAL_CLUB_COUNT = DISTRICT_ZONE_META.reduce(
+  (sum, zone) => sum + zone.totalClubs,
+  0
+);
 
 const Z1: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Konkan Gyanpeeth Rahul Dharkar College Of Pharmacy Karjat", riClubId: "8825261", sponsoringClub: "Karjat (Rotary Club)", charterDate: "5 November 2022", city: "Karjat" },
@@ -56,13 +61,10 @@ const Z2: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Bavdhan Pioneers", riClubId: "8827103", sponsoringClub: "Hadapsar Central (Rotary Club)", charterDate: "26 March 2025", city: "Bavdhan" },
   { name: "Rotaract Club of Golden Talegaon Dabhade", riClubId: "8827547", sponsoringClub: "Talegaon Dabhade City (Rotary Club)", charterDate: "13 August 2025", city: "Talegaon Dabhade" },
   { name: "Rotaract Club of Udyognagri Drishti", riClubId: "3131-Z2-09", city: "Pune" },
-  { name: "Rotaract Club of MIT Academy of Engineering", riClubId: "8824993", sponsoringClub: "Pimpri Elite (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of MU College of Commerce Pimpri", riClubId: "8825176", sponsoringClub: "Khadki (Rotary Club)", city: "Pimpri" },
-  { name: "Rotaract Club of AIT", riClubId: "217438", sponsoringClub: "Poona Airport (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Disha Alandi", riClubId: "8825319", sponsoringClub: "Pune Central (Rotary Club)", city: "Alandi" },
   { name: "Rotaract Club of MIMA Institute of Management", riClubId: "8826782", sponsoringClub: "Pune Sports City (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Dr. Babasaheb Ambedkar College Aundh", riClubId: "8826851", sponsoringClub: "Aundh (Rotaract Club)", city: "Aundh" },
-  { name: "Rotaract Club of S. B. Patil College of Architecture and Design", riClubId: "8826968", sponsoringClub: "Self sponsored", city: "Pune" },
 ];
 
 const Z3: Omit<DistrictClubRecord, "zone">[] = [
@@ -81,11 +83,18 @@ const Z3: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Pune Nexus", riClubId: "8825267", sponsoringClub: "ALUMNI (Rotaract Club)", status: "INACTIVE" },
   { name: "Rotaract Club of Pune Pristine", riClubId: "218320", sponsoringClub: "Pune Pristine (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Indian Institute of Education and Business Management", riClubId: "8825312", sponsoringClub: "Pune Baner (Rotary Club)", city: "Pune" },
+  { name: "Rotaract Club of S. B. Patil College of Architecture and Design", riClubId: "8826968", sponsoringClub: "Self sponsored", city: "Pune" },
 ];
 
 const Z4: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Pune Heritage", riClubId: "213166", sponsoringClub: "Pune Heritage (Rotary Club)", charterDate: "18 December 2015", city: "Pune" },
-  { name: "Rotaract Club of Balewadi High Street", riClubId: "8826659", sponsoringClub: "Pune Mideast (Rotaract Club)", charterDate: "28 August 2024", city: "Balewadi" },
+  {
+    name: "Rotaract Club of Balewadi High Street",
+    riClubId: "8826659",
+    sponsoringClub: "Pune Mideast (Rotaract Club); Scon Pro (Rotary Club)",
+    charterDate: "28 August 2024",
+    city: "Balewadi",
+  },
   { name: "Rotaract Club of Sancheti Healthcare Academy", riClubId: "8825271", sponsoringClub: "Pune Phoenix (Rotary Club)", charterDate: "10 November 2022", city: "Pune" },
   { name: "Rotaract Club of Pune Royal", riClubId: "214473", sponsoringClub: "Pune South (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Christ University Lavasa", riClubId: "8826293", sponsoringClub: "Pune Central (Rotary Club)", charterDate: "18 March 2024", city: "Lavasa" },
@@ -116,6 +125,7 @@ const Z5: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Modern College Ganeshkhind Pune", riClubId: "216452", sponsoringClub: "Pune Up-Town (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of DIVYAZEP (S.P. College Pune)", riClubId: "8824256", sponsoringClub: "Pune East (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Modern College of Arts, Science & Commerce", riClubId: "212931", sponsoringClub: "Pune-Shivajinagar (Rotary Club)", city: "Pune" },
+  { name: "Rotaract Club of MIT Academy of Engineering", riClubId: "8824993", sponsoringClub: "Pimpri Elite (Rotary Club)", city: "Pune" },
 ];
 
 const Z6: Omit<DistrictClubRecord, "zone">[] = [
@@ -129,12 +139,14 @@ const Z6: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Pune Renaissance", riClubId: "218199", city: "Pune" },
   { name: "Rotaract Club of Pune Vishwam", riClubId: "8826725", sponsoringClub: "Pune Laxmi Road (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Pune Wisdom", riClubId: "8824638", sponsoringClub: "Pune Wisdom (Rotary Club)", city: "Pune" },
-  { name: "Rotaract Club of Roar NIBM", riClubId: "8827434", sponsoringClub: "Rotary Club of Poona", city: "Pune" },
+  { name: "Rotaract Club of Roar NIBM", riClubId: "8827434", sponsoringClub: "Pune Pristine Paradise (Rotaract Club)", city: "Pune" },
   { name: "Rotaract Club of Genba Sopanrao Moze College of Engineering", riClubId: "8826700", sponsoringClub: "Poona West (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Sinhgad Institute of Management and Computer Application", riClubId: "8825382", sponsoringClub: "Pune Heritage (Rotary Club)", city: "Pune" },
   { name: "Rotaract Club of Pune Baner", riClubId: "8825923", sponsoringClub: "Pune Baner (Rotary Club)", charterDate: "18 September 2024", city: "Baner" },
   { name: "Rotaract Club of Anekant Institute of Management Studies", riClubId: "8826390", sponsoringClub: "Baramati (Rotary Club)", charterDate: "1 September 2023", city: "Pune" },
-  { name: "Rotaract Club of Symbiosis Artificial Intelligence Institute", riClubId: "3131-SAII-01", city: "Pune" },
+  { name: "Rotaract Club of AIT", riClubId: "217438", sponsoringClub: "Poona Airport (Rotary Club)", charterDate: "1 September 2023", city: "Pune" },
+  // Spreadsheet listed Baner's charter ID again for SAII — keep stable district placeholder until RI ID confirmed.
+  { name: "Rotaract Club of Symbiosis Artificial Intelligence Institute", riClubId: "3131-SAII-01", charterDate: "1 September 2023", city: "Pune" },
 ];
 
 const Z7: Omit<DistrictClubRecord, "zone">[] = [

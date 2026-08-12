@@ -1,3 +1,5 @@
+import { DISTRICT_OFFICIAL_CLUB_COUNT } from "@/lib/district-clubs-data";
+
 /** Short, curiosity-driven welcome lines shown at the top of each public page. */
 export function getSiteWelcomeMessage(pathname: string): string {
   if (pathname === "/") {
@@ -7,7 +9,7 @@ export function getSiteWelcomeMessage(pathname: string): string {
     return "Every great movement starts with a story — discover ours.";
   }
   if (pathname === "/clubs") {
-    return "101 clubs across Pune & Raigad — which community will you find?";
+    return `${DISTRICT_OFFICIAL_CLUB_COUNT} clubs across Pune & Raigad — which community will you find?`;
   }
   if (pathname === "/council" || pathname.startsWith("/council/")) {
     return "Meet the minds steering District 3131 this Rotary year.";

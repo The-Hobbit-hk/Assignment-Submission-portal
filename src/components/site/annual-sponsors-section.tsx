@@ -6,6 +6,7 @@ import {
   type AnnualSponsor,
   type SponsorTier,
 } from "@/lib/site-content";
+import { DISTRICT_OFFICIAL_CLUB_COUNT } from "@/lib/district-clubs-data";
 import { cn } from "@/lib/utils";
 
 const TIER_ORDER: SponsorTier[] = ["Gold Partner", "Silver Partner", "Community Partner"];
@@ -252,7 +253,7 @@ function SponsorsComingSoonBoard({ compact }: { compact?: boolean }) {
               </p>
               <p className="mt-2 text-xs leading-relaxed text-zinc-600">
                 Gold, Silver &amp; Community slots are open for RIY 2026-27. Reach
-                2,700+ Rotaractors across 101 clubs with CSR-ready visibility.
+                2,700+ Rotaractors across {DISTRICT_OFFICIAL_CLUB_COUNT} clubs with CSR-ready visibility.
               </p>
             </div>
           </div>

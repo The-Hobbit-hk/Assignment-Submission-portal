@@ -1,3 +1,5 @@
+import { DISTRICT_OFFICIAL_CLUB_COUNT } from "@/lib/district-clubs-data";
+
 export type ContentPage = {
   title: string;
   badge?: string;
@@ -29,10 +31,8 @@ export const ANNUAL_SPONSORS: AnnualSponsor[] = [];
 
 export const SPONSORSHIP = {
   title: "Partner with Rotaract District 3131",
-  homeTeaser:
-    "Reach 2,700+ Rotaractors across 101 clubs — CSR-ready visibility at district flagship events.",
-  intro:
-    "Support youth leadership, community service, and professional development across Pune and Raigad. Our district events reach 2700+ Rotaractors and 101 official clubs.",
+  homeTeaser: `Reach 2,700+ Rotaractors across ${DISTRICT_OFFICIAL_CLUB_COUNT} clubs — CSR-ready visibility at district flagship events.`,
+  intro: `Support youth leadership, community service, and professional development across Pune and Raigad. Our district events reach 2700+ Rotaractors and ${DISTRICT_OFFICIAL_CLUB_COUNT} official clubs.`,
   thankYou:
     "To our RIY 2026-27 partners — your belief in young leaders powers district assemblies, installations, service projects, and the REIGN journey across Pune and Raigad. We are proud to showcase you.",
   valueProps: [
@@ -42,7 +42,7 @@ export const SPONSORSHIP = {
       detail: "Engaged young professionals across the district every Rotary year",
     },
     {
-      label: "101",
+      label: String(DISTRICT_OFFICIAL_CLUB_COUNT),
       title: "Official clubs",
       detail: "Zone-wise presence from Pune to Raigad for sustained brand recall",
     },

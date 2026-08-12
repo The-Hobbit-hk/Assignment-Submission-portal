@@ -7,6 +7,7 @@ import { SiteReveal } from "@/components/site/site-reveal";
 import { SponsorshipPreview } from "@/components/site/sponsorship-preview";
 import { TestimonialsSection } from "@/components/site/testimonials-section";
 import { siteConfig } from "@/config/site";
+import { DISTRICT_OFFICIAL_CLUB_COUNT } from "@/lib/district-clubs-data";
 
 export function HomePage() {
   return (
@@ -14,7 +15,7 @@ export function HomePage() {
       <PageHero
         title="Rotaract District 3131"
         subtitle="REIGN — Rotaract Empowering Individuals for Growth and Networking · RIY 2026-27"
-        trustLine="Official district website · A program of Rotary International · 101 clubs across Pune & Raigad"
+        trustLine={`Official district website · A program of Rotary International · ${DISTRICT_OFFICIAL_CLUB_COUNT} clubs across Pune & Raigad`}
         backgroundImage={siteConfig.homeHeroBackground}
         large
       />

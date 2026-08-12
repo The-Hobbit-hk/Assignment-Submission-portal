@@ -2,6 +2,7 @@ import Image from "next/image";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { SiteReveal } from "@/components/site/site-reveal";
 import { siteConfig } from "@/config/site";
+import { DISTRICT_OFFICIAL_CLUB_COUNT } from "@/lib/district-clubs-data";
 import { ABOUT_PAGES, ABOUT_SECTION_ORDER, type ContentPage } from "@/lib/site-content";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +49,7 @@ function AboutSectionBlock({ id, content }: { id: string; content: ContentPage }
                   </p>
                 </div>
                 <div className="flex flex-wrap justify-center gap-2">
-                  {["101 Clubs", "2,700+ Rotaractors", "Pune & Raigad"].map((chip) => (
+                  {[`${DISTRICT_OFFICIAL_CLUB_COUNT} Clubs`, "2,700+ Rotaractors", "Pune & Raigad"].map((chip) => (
                     <span
                       key={chip}
                       className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-xs font-medium text-zinc-600 shadow-sm"

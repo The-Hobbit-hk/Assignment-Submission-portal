@@ -1,8 +1,9 @@
 import { siteConfig } from "@/config/site";
+import { DISTRICT_OFFICIAL_CLUB_COUNT } from "@/lib/district-clubs-data";
 
 /** Public-facing trust metrics shown on the landing page and district materials. */
 export const DISTRICT_PUBLIC_STATS = [
-  { label: "Rotaract Clubs", value: "101" },
+  { label: "Rotaract Clubs", value: String(DISTRICT_OFFICIAL_CLUB_COUNT) },
   { label: "Rotary Year", value: siteConfig.rotaryYear },
   { label: "Region", value: "Pune & Raigad" },
   { label: "Rotary Intl. District", value: "3131" },
