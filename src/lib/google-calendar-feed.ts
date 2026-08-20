@@ -74,7 +74,14 @@ function clean(value: unknown): string | null {
 }
 
 function isCancelledStatus(value: unknown): boolean {
-  return String(value ?? "").toUpperCase() === "CANCELLED";
+  const status = String(value ?? "")
+    .toUpperCase()
+    .replace(/[^A-Z]/g, "");
+  return status === "CANCELLED" || status === "CANCELED";
+}
+
+function titleLooksCancelled(title: string): boolean {
+  return /\bcancell?ed\b/i.test(title) || /\[cancell?ed\]/i.test(title);
 }
 
 function matchesInstallationFilters(title: string, keyword: string, excludes: string[]) {
@@ -122,7 +129,7 @@ export async function fetchGoogleCalendarInstallationFeed(): Promise<GoogleCalen
       const start = component.start ? new Date(component.start) : null;
       if (!start || Number.isNaN(start.getTime()) || start < yearStart) continue;
 
-      if (isCancelledStatus(component.status)) {
+      if (isCancelledStatus(component.status) || titleLooksCancelled(title)) {
         cancelledKeys.push(calendarEventDedupKey(title, start));
         continue;
       }
@@ -158,6 +165,9 @@ export async function syncCancelledInstallationsToDb(cancelledKeys: string[]) {
   if (cancelledKeys.length === 0) return;
 
   const cancelled = new Set(cancelledKeys);
+  const cancelledTitles = new Set(
+    cancelledKeys.map((key) => key.split("|")[0]).filter(Boolean)
+  );
 
   try {
     const installations = await prisma.event.findMany({
@@ -170,7 +180,11 @@ export async function syncCancelledInstallationsToDb(cancelledKeys: string[]) {
     });
 
     const ids = installations
-      .filter((event) => cancelled.has(calendarEventDedupKey(event.title, event.startDate)))
+      .filter((event) => {
+        const dayKey = calendarEventDedupKey(event.title, event.startDate);
+        if (cancelled.has(dayKey)) return true;
+        return cancelledTitles.has(calendarEventTitleKey(event.title));
+      })
       .map((event) => event.id);
 
     if (ids.length === 0) return;
@@ -184,6 +198,48 @@ export async function syncCancelledInstallationsToDb(cancelledKeys: string[]) {
   }
 }
 
+/**
+ * Google often deletes cancelled events from the ICS feed instead of leaving
+ * STATUS:CANCELLED. Mark previously synced Google rows that vanished as cancelled.
+ */
+export async function syncStaleGoogleInstallationsToDb(activeFeed: GoogleFeedEvent[]) {
+  try {
+    const activeIds = new Set(
+      activeFeed.map((event) => event.id.replace(/^gcal-/i, "").trim()).filter(Boolean)
+    );
+    const activeTitles = new Set(
+      activeFeed.map((event) => calendarEventTitleKey(event.title))
+    );
+
+    const googleSynced = await prisma.event.findMany({
+      where: {
+        type: "INSTALLATION",
+        status: { not: "CANCELLED" },
+        startDate: { gte: rotaryYearStart() },
+        description: { contains: "calendar-key:" },
+      },
+      select: { id: true, title: true, description: true },
+    });
+
+    const ids = googleSynced
+      .filter((event) => {
+        const key = event.description?.match(/calendar-key:([^\s]+)/i)?.[1]?.trim();
+        if (key && activeIds.has(key)) return false;
+        if (activeTitles.has(calendarEventTitleKey(event.title))) return false;
+        return true;
+      })
+      .map((event) => event.id);
+
+    if (ids.length === 0) return;
+
+    await prisma.event.updateMany({
+      where: { id: { in: ids } },
+      data: { status: "CANCELLED" },
+    });
+  } catch (error) {
+    console.error("Failed to sync stale Google installations to DB", error);
+  }
+}
 
 /**
  * Sync Google Calendar installations into the DB:
@@ -334,5 +390,6 @@ export async function fetchGoogleCalendarInstallations(): Promise<GoogleFeedEven
   const feed = await fetchGoogleCalendarInstallationFeed();
   await syncCancelledInstallationsToDb(feed.cancelledKeys);
   await syncActiveInstallationsToDb(feed.active);
+  await syncStaleGoogleInstallationsToDb(feed.active);
   return feed.active;
 }

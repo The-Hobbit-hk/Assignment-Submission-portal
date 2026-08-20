@@ -8,6 +8,7 @@ import {
   fetchGoogleCalendarInstallationFeed,
   syncActiveInstallationsToDb,
   syncCancelledInstallationsToDb,
+  syncStaleGoogleInstallationsToDb,
   type GoogleFeedEvent,
 } from "@/lib/google-calendar-feed";
 import {
@@ -180,6 +181,7 @@ const getCachedGoogleInstallationFeed = unstable_cache(
     await syncCancelledInstallationsToDb(feed.cancelledKeys);
     // Create/update DB rows so /events/[id] links work for installations.
     const googleToDbId = await syncActiveInstallationsToDb(feed.active);
+    await syncStaleGoogleInstallationsToDb(feed.active);
     return {
       ...feed,
       active: feed.active.map((event) => ({
@@ -188,7 +190,7 @@ const getCachedGoogleInstallationFeed = unstable_cache(
       })),
     };
   },
-  ["public-google-installations-v3"],
+  ["public-google-installations-v4"],
   { revalidate: GOOGLE_FEED_REVALIDATE, tags: ["public-events"] }
 );
 
@@ -230,6 +232,9 @@ export async function getPublicCalendarEvents() {
   ]);
 
   const cancelledKeys = new Set(googleFeed.cancelledKeys);
+  const cancelledTitles = new Set(
+    googleFeed.cancelledKeys.map((key) => key.split("|")[0]).filter(Boolean)
+  );
   const googleByDay = new Map(
     googleFeed.active.map((event) => [
       calendarEventDedupKey(event.title, event.startDate),
@@ -244,9 +249,12 @@ export async function getPublicCalendarEvents() {
 
   const hydratedDb = dbEvents
     .map(hydratePublicEvent)
-    .filter(
-      (event) => !cancelledKeys.has(calendarEventDedupKey(event.title, event.startDate))
-    )
+    .filter((event) => {
+      const dayKey = calendarEventDedupKey(event.title, event.startDate);
+      const titleKey = calendarEventTitleKey(event.title);
+      if (cancelledKeys.has(dayKey) || cancelledTitles.has(titleKey)) return false;
+      return true;
+    })
     .map((event) => applyGoogleUpdatesToDbEvent(event, googleByDay, googleByTitle));
 
   // Prefer the (Google-refreshed) DB copy when an installation exists in both sources.
