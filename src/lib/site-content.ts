@@ -112,11 +112,11 @@ export const VENT_OUT_2_ME = {
   url: "https://www.ventout2.me",
   referralCode: "ROTARACT DISTRICT 3131",
   intro:
-    "Between meetings, deadlines, and responsibilities, don’t forget to take a moment for the person behind the service you.",
+    "Between meetings, deadlines, and responsibilities, don't forget to take a moment for the person behind the service you.",
   body:
     "Rotaract District 3131, in collaboration with VentOut2Me, brings you access to a free, online, and completely anonymous platform where you can connect with a certified psychotherapist in a safe and confidential space.",
   support:
-    "Whether you need to vent, reflect, or simply be heard, remember you don’t have to carry everything alone.",
+    "Whether you need to vent, reflect, or simply be heard, remember you don't have to carry everything alone.",
   closing: "Because taking care of yourself is the first step towards taking care of others.",
   stepsHeading: "Book your 30-minute session in 3 simple steps",
   steps: [
