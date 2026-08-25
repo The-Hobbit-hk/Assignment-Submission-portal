@@ -28,6 +28,7 @@
     "db:repair-reporting-clubs": "npx tsx scripts/repair-reporting-clubs.ts",
     "db:ensure-storage": "npx tsx scripts/ensure-storage-bucket.ts",
     "db:import-presidents": "npx tsx scripts/import-presidents.ts",
+    "db:mark-dues-paid": "npx tsx scripts/mark-dues-paid.ts",
     "db:ensure-district-assembly": "npx tsx scripts/ensure-district-assembly.ts",
     "db:purge-legacy-events": "npx tsx scripts/purge-legacy-events.ts",
     "db:reset-production": "npx tsx scripts/reset-production.ts",
