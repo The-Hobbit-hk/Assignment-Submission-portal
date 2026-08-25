@@ -36,6 +36,8 @@ export interface MemberFilters {
   clubId?: string;
   role?: MemberRole;
   status?: MemberStatus;
+  /** yes = paid, unpaid = not marked paid */
+  duesPaid?: "yes" | "unpaid";
   page?: number;
   limit?: number;
 }

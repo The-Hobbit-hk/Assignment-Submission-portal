@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MemberRoleBadge, MemberStatusBadge } from "@/components/members/member-status-badge";
+import { MemberRoleBadge, MemberStatusBadge, MemberDuesBadge } from "@/components/members/member-status-badge";
 import { useMember } from "@/hooks/use-members";
 
 interface MemberProfileCardProps {
@@ -63,9 +63,10 @@ export function MemberProfileCard({ memberId }: MemberProfileCardProps) {
                 {member.lastName[0]}
               </AvatarFallback>
             </Avatar>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap justify-center gap-2">
               <MemberRoleBadge role={member.role} />
               <MemberStatusBadge status={member.status} />
+              <MemberDuesBadge duesPaid={member.duesPaid} />
             </div>
             <div className="flex items-center gap-2 text-accent">
               <Trophy className="h-5 w-5" />

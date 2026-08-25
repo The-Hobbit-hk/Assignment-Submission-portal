@@ -3,13 +3,28 @@
  * Add more clubs as lists arrive; then run: npm run db:mark-dues-paid
  */
 
+export type DuesPaidMemberEntry =
+  | string
+  | {
+      name: string;
+      riId?: string;
+    };
+
 export type ClubDuesPaidList = {
   /** Official club name (or unique substring). */
   clubName: string;
   /** RI / district charter id when known — preferred for matching. */
   clubCharterId?: string;
-  members: string[];
+  members: DuesPaidMemberEntry[];
 };
+
+export function duesPaidEntryName(entry: DuesPaidMemberEntry) {
+  return typeof entry === "string" ? entry : entry.name;
+}
+
+export function duesPaidEntryRiId(entry: DuesPaidMemberEntry) {
+  return typeof entry === "string" ? undefined : entry.riId?.trim() || undefined;
+}
 
 export const DUES_PAID_LISTS: ClubDuesPaidList[] = [
   {
@@ -31,6 +46,27 @@ export const DUES_PAID_LISTS: ClubDuesPaidList[] = [
       "Rounaak Shrivastava",
       "Kaustubh Kakade",
       "Jui Rahul Karkhele",
+    ],
+  },
+  {
+    clubName: "Rotaract Club of Sinhgad College of Pharmacy",
+    clubCharterId: "8826281",
+    members: [
+      { name: "Arya Chavan", riId: "12367548" },
+      { name: "Amruta Potdukhe", riId: "12366808" },
+      { name: "Chaitrali Dave", riId: "12380216" },
+      { name: "Prerna Bhilare", riId: "12022291" },
+      { name: "Pragama Magotra", riId: "11996355" },
+      { name: "Rajadnya Khandale", riId: "12609782" },
+      { name: "Sushant Chavan", riId: "12374782" },
+      { name: "Prayag Pokale", riId: "12143166" },
+      { name: "Ameet Bhosale", riId: "12385238" },
+      { name: "Yogiraj Aspingekar", riId: "12434377" },
+      { name: "Shubham Pawar" },
+      { name: "Geeta Wagh", riId: "12698868" },
+      { name: "Aditi Gandhi", riId: "12345797" },
+      { name: "Anushka Choudhari", riId: "12378801" },
+      { name: "Dhanashri Choudhari", riId: "12374720" },
     ],
   },
 ];

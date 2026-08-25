@@ -24,7 +24,7 @@ export const createMemberSchema = z.object({
   avatar: z.string().max(1000).optional(),
   gender: z.string().max(30).optional(),
   dateOfBirth: z.string().datetime().optional(),
-  duesPaid: z.enum(["yes", "no", ""]).optional(),
+  duesPaid: z.enum(["yes", "no", ""]).optional().nullable(),
   bloodGroup: z.string().max(10).optional(),
   whatsapp: z.string().max(20).optional(),
   points: z.number().int().min(0).optional(),
@@ -55,6 +55,7 @@ export const memberQuerySchema = z.object({
   clubId: z.string().optional(),
   role: memberRoleEnum.optional(),
   status: memberStatusEnum.optional(),
+  duesPaid: z.enum(["yes", "unpaid"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(10),
 });

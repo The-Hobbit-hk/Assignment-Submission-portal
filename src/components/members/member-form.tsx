@@ -54,6 +54,7 @@ export function MemberForm({
     profession: initialData?.profession ?? "",
     bio: initialData?.bio ?? "",
     points: initialData?.points ?? 0,
+    duesPaid: initialData?.duesPaid === "yes" ? "yes" : initialData?.duesPaid === "no" ? "no" : "",
   });
 
   function update(field: string, value: string | number) {
@@ -80,6 +81,7 @@ export function MemberForm({
         payload.role = form.role;
         payload.status = form.status;
         payload.points = Number(form.points);
+        payload.duesPaid = form.duesPaid || null;
       }
       await onSubmit(payload);
       toast.success(
@@ -231,6 +233,19 @@ export function MemberForm({
                   <SelectItem value="INACTIVE">Inactive</SelectItem>
                   <SelectItem value="ALUMNI">Alumni</SelectItem>
                   <SelectItem value="PROSPECTIVE">Prospective</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>District dues</Label>
+              <Select value={form.duesPaid || "unset"} onValueChange={(v) => update("duesPaid", v === "unset" ? "" : v)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unset">Unpaid / not marked</SelectItem>
+                  <SelectItem value="yes">Paid</SelectItem>
+                  <SelectItem value="no">Unpaid</SelectItem>
                 </SelectContent>
               </Select>
             </div>

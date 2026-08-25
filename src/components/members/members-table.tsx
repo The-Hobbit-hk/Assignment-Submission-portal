@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MemberRoleBadge, MemberStatusBadge } from "@/components/members/member-status-badge";
+import { MemberRoleBadge, MemberStatusBadge, MemberDuesBadge } from "@/components/members/member-status-badge";
 import { useDeleteMember } from "@/hooks/use-members";
 import type { MemberListItem } from "@/types/member";
 
@@ -58,6 +58,7 @@ export function MembersTable({ members, isLoading }: MembersTableProps) {
             <TableHead className="hidden md:table-cell">Club</TableHead>
             <TableHead className="hidden sm:table-cell">Role</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Dues</TableHead>
             <TableHead className="hidden lg:table-cell">Points</TableHead>
             <TableHead className="w-10" />
           </TableRow>
@@ -95,6 +96,9 @@ export function MembersTable({ members, isLoading }: MembersTableProps) {
               </TableCell>
               <TableCell>
                 <MemberStatusBadge status={member.status} />
+              </TableCell>
+              <TableCell>
+                <MemberDuesBadge duesPaid={member.duesPaid} />
               </TableCell>
               <TableCell className="hidden lg:table-cell">
                 <span className="font-medium text-accent">{member.points}</span>

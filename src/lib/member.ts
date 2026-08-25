@@ -53,6 +53,7 @@ export function buildMemberWhere(params: {
   clubId?: string;
   role?: string;
   status?: string;
+  duesPaid?: string;
 }) {
   const where: Prisma.MemberWhereInput = {};
 
@@ -60,13 +61,25 @@ export function buildMemberWhere(params: {
   if (params.role) where.role = params.role as MemberRole;
   if (params.status) where.status = params.status as MemberStatus;
 
+  if (params.duesPaid === "yes") {
+    where.duesPaid = "yes";
+  } else if (params.duesPaid === "unpaid") {
+    where.OR = [{ duesPaid: null }, { duesPaid: { not: "yes" } }];
+  }
+
   if (params.search) {
-    where.OR = [
-      { firstName: { contains: params.search, mode: "insensitive" } },
-      { lastName: { contains: params.search, mode: "insensitive" } },
-      { email: { contains: params.search, mode: "insensitive" } },
-      { riId: { contains: params.search, mode: "insensitive" } },
+    const searchClause = [
+      { firstName: { contains: params.search, mode: "insensitive" as const } },
+      { lastName: { contains: params.search, mode: "insensitive" as const } },
+      { email: { contains: params.search, mode: "insensitive" as const } },
+      { riId: { contains: params.search, mode: "insensitive" as const } },
     ];
+    if (where.OR) {
+      where.AND = [{ OR: where.OR }, { OR: searchClause }];
+      delete where.OR;
+    } else {
+      where.OR = searchClause;
+    }
   }
 
   return where;

@@ -11,6 +11,7 @@ function buildQueryString(filters: MemberFilters) {
   if (filters.clubId) params.set("clubId", filters.clubId);
   if (filters.role) params.set("role", filters.role);
   if (filters.status) params.set("status", filters.status);
+  if (filters.duesPaid) params.set("duesPaid", filters.duesPaid);
   if (filters.page) params.set("page", String(filters.page));
   if (filters.limit) params.set("limit", String(filters.limit));
   return params.toString();

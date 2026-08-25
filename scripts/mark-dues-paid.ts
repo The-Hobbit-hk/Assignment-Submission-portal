@@ -4,14 +4,16 @@
  *   npm run db:mark-dues-paid
  *   npm run db:mark-dues-paid -- --dry-run
  *   npm run db:mark-dues-paid -- --club="Aundh"
+ *   npm run db:mark-dues-paid -- --club="Sinhgad College of Pharmacy"
  */
 import { config } from "dotenv";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import {
   DUES_PAID_LISTS,
+  duesPaidEntryName,
+  duesPaidEntryRiId,
   namesMatch,
-  normalizePersonName,
 } from "../src/lib/dues-paid-lists";
 
 config({ path: ".env.local" });
@@ -59,12 +61,8 @@ async function main() {
           where: { charterNumber: list.clubCharterId },
           select: { id: true, name: true, charterNumber: true },
         })
-      : await prisma.club.findFirst({
-          where: { name: { contains: list.clubName, mode: "insensitive" } },
-          select: { id: true, name: true, charterNumber: true },
-        });
+      : null;
 
-    // Prefer exact Aundh over Aundh Smartcity when matching by name.
     const clubResolved =
       club ??
       (await prisma.club.findFirst({
@@ -89,19 +87,29 @@ async function main() {
         firstName: true,
         lastName: true,
         email: true,
+        riId: true,
         duesPaid: true,
         status: true,
       },
     });
 
-    for (const paidName of list.members) {
-      const matches = roster.filter((member) =>
-        namesMatch(paidName, member.firstName, member.lastName)
-      );
+    for (const entry of list.members) {
+      const paidName = duesPaidEntryName(entry);
+      const riId = duesPaidEntryRiId(entry);
+
+      let matches = riId
+        ? roster.filter((member) => (member.riId || "").trim() === riId)
+        : [];
+
+      if (matches.length === 0) {
+        matches = roster.filter((member) =>
+          namesMatch(paidName, member.firstName, member.lastName)
+        );
+      }
 
       if (matches.length === 0) {
         missing += 1;
-        console.log(`  MISSING  ${paidName}`);
+        console.log(`  MISSING  ${paidName}${riId ? ` (RI ${riId})` : ""}`);
         continue;
       }
 
@@ -125,7 +133,10 @@ async function main() {
       if (!dryRun) {
         await prisma.member.update({
           where: { id: member.id },
-          data: { duesPaid: "yes" },
+          data: {
+            duesPaid: "yes",
+            ...(riId && !member.riId ? { riId } : {}),
+          },
         });
       }
       marked += 1;

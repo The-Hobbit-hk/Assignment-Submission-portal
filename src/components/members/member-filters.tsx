@@ -103,6 +103,26 @@ export function MemberFiltersBar({
           <SelectItem value="PROSPECTIVE">Prospective</SelectItem>
         </SelectContent>
       </Select>
+
+      <Select
+        value={filters.duesPaid ?? "all"}
+        onValueChange={(v) =>
+          onChange({
+            ...filters,
+            duesPaid: v === "all" ? undefined : (v as MemberFilters["duesPaid"]),
+            page: 1,
+          })
+        }
+      >
+        <SelectTrigger className="w-full sm:w-[150px]">
+          <SelectValue placeholder="All dues" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All dues</SelectItem>
+          <SelectItem value="yes">Paid</SelectItem>
+          <SelectItem value="unpaid">Unpaid</SelectItem>
+        </SelectContent>
+      </Select>
     </div>
   );
 }

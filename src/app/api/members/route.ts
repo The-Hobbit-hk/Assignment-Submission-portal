@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   }
 
   const ownClubId = getClubUserClubId({ role, clubId: session!.user.clubId });
-  const { search, role: memberRole, status, page, limit } = parsed.data;
+  const { search, role: memberRole, status, duesPaid, page, limit } = parsed.data;
   let { clubId } = parsed.data;
 
   if (ownClubId) {
@@ -37,7 +37,13 @@ export async function GET(request: Request) {
   const { skip } = getPaginationParams(searchParams, limit);
 
   try {
-    const where = buildMemberWhere({ search, clubId, role: memberRole, status });
+    const where = buildMemberWhere({
+      search,
+      clubId,
+      role: memberRole,
+      status,
+      duesPaid,
+    });
 
     const [members, total] = await Promise.all([
       prisma.member.findMany({

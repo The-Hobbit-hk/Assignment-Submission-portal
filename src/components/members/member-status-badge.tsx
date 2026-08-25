@@ -27,3 +27,13 @@ export function MemberStatusBadge({ status }: { status: MemberStatus }) {
 export function MemberRoleBadge({ role }: { role: MemberRole }) {
   return <Badge variant="outline">{roleLabels[role]}</Badge>;
 }
+
+export function MemberDuesBadge({ duesPaid }: { duesPaid: string | null }) {
+  if (duesPaid === "yes") {
+    return <Badge variant="success">Paid</Badge>;
+  }
+  if (duesPaid === "no") {
+    return <Badge variant="destructive">Unpaid</Badge>;
+  }
+  return <Badge variant="secondary">Unpaid</Badge>;
+}
