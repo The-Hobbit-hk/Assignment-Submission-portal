@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, Mail, Pencil, Phone, Trophy } from "lucide-react";
+import { ArrowLeft, Mail, Pencil, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -67,10 +67,6 @@ export function MemberProfileCard({ memberId }: MemberProfileCardProps) {
               <MemberRoleBadge role={member.role} />
               <MemberStatusBadge status={member.status} />
               <MemberDuesBadge duesPaid={member.duesPaid} />
-            </div>
-            <div className="flex items-center gap-2 text-accent">
-              <Trophy className="h-5 w-5" />
-              <span className="text-xl font-bold">{member.points} points</span>
             </div>
           </CardContent>
         </Card>

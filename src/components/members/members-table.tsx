@@ -59,7 +59,6 @@ export function MembersTable({ members, isLoading }: MembersTableProps) {
             <TableHead className="hidden sm:table-cell">Role</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Dues</TableHead>
-            <TableHead className="hidden lg:table-cell">Points</TableHead>
             <TableHead className="w-10" />
           </TableRow>
         </TableHeader>
@@ -99,9 +98,6 @@ export function MembersTable({ members, isLoading }: MembersTableProps) {
               </TableCell>
               <TableCell>
                 <MemberDuesBadge duesPaid={member.duesPaid} />
-              </TableCell>
-              <TableCell className="hidden lg:table-cell">
-                <span className="font-medium text-accent">{member.points}</span>
               </TableCell>
               <TableCell>
                 <DropdownMenu>
