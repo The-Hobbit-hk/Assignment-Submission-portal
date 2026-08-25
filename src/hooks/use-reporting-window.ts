@@ -81,6 +81,42 @@ export function useDistrictDues(month: number, year: number) {
   });
 }
 
+export type DistrictDuesPaidMember = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  riId: string | null;
+  role: string;
+  status: string;
+};
+
+export type DistrictDuesPaidClubGroup = {
+  club: { id: string; name: string; zone: string | null; charterNumber: string | null };
+  paidCount: number;
+  rosterCount: number;
+  members: DistrictDuesPaidMember[];
+};
+
+export type DistrictDuesPaidMembersResponse = {
+  summary: {
+    clubsWithPaidMembers: number;
+    totalPaidMembers: number;
+    totalRosterMembers: number;
+  };
+  clubs: DistrictDuesPaidClubGroup[];
+};
+
+export function useDistrictDuesPaidMembers() {
+  return useQuery({
+    queryKey: ["reporting", "district-dues", "members"],
+    queryFn: () =>
+      apiJson<DistrictDuesPaidMembersResponse>(
+        "/api/reporting/district-dues/members"
+      ),
+  });
+}
+
 export type AdminSubmissionRow = {
   club: { id: string; name: string; zone: string | null };
   status: "SUBMITTED" | "DRAFT" | "NOT SUBMITTED";
