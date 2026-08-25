@@ -6,6 +6,7 @@ import { PageHero } from "@/components/site/page-hero";
 import { SiteReveal } from "@/components/site/site-reveal";
 import { SponsorshipPreview } from "@/components/site/sponsorship-preview";
 import { TestimonialsSection } from "@/components/site/testimonials-section";
+import { VentOutSection } from "@/components/site/vent-out-section";
 import { siteConfig } from "@/config/site";
 import { DISTRICT_OFFICIAL_CLUB_COUNT } from "@/lib/district-clubs-data";
 
@@ -52,6 +53,10 @@ export function HomePage() {
             </div>
           </div>
         </section>
+      </SiteReveal>
+
+      <SiteReveal delay={60}>
+        <VentOutSection />
       </SiteReveal>
 
       <SiteReveal delay={80}>

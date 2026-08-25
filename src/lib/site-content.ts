@@ -104,6 +104,28 @@ export const JOIN_ROTARACT = {
     "Rotaract is for young professionals aged 18+ who want to lead, serve, and grow. Find a club in your zone or contact the district team to start a new club.",
 } as const;
 
+/** District DEI wellbeing partnership — public home section (not a sponsor block). */
+export const VENT_OUT_2_ME = {
+  title: "Vent Out 2 Me",
+  badge: "A District DEI Initiative",
+  logo: "/partners/vent-out-2-me.png",
+  url: "https://www.ventout2.me",
+  referralCode: "ROTARACT DISTRICT 3131",
+  intro:
+    "Between meetings, deadlines, and responsibilities, don’t forget to take a moment for the person behind the service you.",
+  body:
+    "Rotaract District 3131, in collaboration with VentOut2Me, brings you access to a free, online, and completely anonymous platform where you can connect with a certified psychotherapist in a safe and confidential space.",
+  support:
+    "Whether you need to vent, reflect, or simply be heard, remember you don’t have to carry everything alone.",
+  closing: "Because taking care of yourself is the first step towards taking care of others.",
+  stepsHeading: "Book your 30-minute session in 3 simple steps",
+  steps: [
+    "Visit www.ventout2.me",
+    "Use the referral code: ROTARACT DISTRICT 3131",
+    "Speak freely in a safe, confidential, and non-judgmental environment.",
+  ],
+} as const;
+
 export const DISTRICT_TESTIMONIALS = [
   {
     quote: `My Rotaract Journey – A Journey of Service, Leadership & Transformation
