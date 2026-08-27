@@ -18,7 +18,7 @@ export function CouncilScoresWidget({ limit = 5 }: { limit?: number }) {
     entityType: "MEMBER",
     month: now.getMonth() + 1,
     year: now.getFullYear(),
-    period: "monthly",
+    period: "yearly",
     page: 1,
     limit,
   });
@@ -81,7 +81,7 @@ export function CouncilScoresWidget({ limit = 5 }: { limit?: number }) {
                 <div className="shrink-0 rounded-lg bg-accent/10 px-2.5 py-1.5 text-right">
                   <p className="text-sm font-bold text-accent">{entry.score}</p>
                   <p className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
-                    pts
+                    %
                   </p>
                 </div>
               </div>

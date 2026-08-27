@@ -24,10 +24,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight, Search, Trophy, Users } from "lucide-react";
 import { useCouncilData } from "@/hooks/use-council";
 import { cn } from "@/lib/utils";
-import { getReportingPeriodLabel } from "@/lib/reporting";
 import {
   getCurrentRotaryYear,
   getRotaryYearLabel,
+  rotaryQuarterMonths,
+  rotaryQuarterOfMonth,
+  rotaryQuarterRangeLabel,
   rotaryYearMonths,
 } from "@/lib/rotary-year";
 
@@ -66,45 +68,37 @@ function RankBadge({ rank }: { rank: number | null }) {
   );
 }
 
-function periodKey(month: number, year: number) {
-  return `${year}-${month}`;
-}
-
-function parsePeriodKey(value: string): { month: number; year: number } {
-  const [year, month] = value.split("-").map((part) => parseInt(part, 10));
-  return { month, year };
-}
+type ScoreView = "overall" | "quarterly";
 
 export function CouncilContent() {
   const now = useMemo(() => new Date(), []);
   const rotaryYear = useMemo(() => getCurrentRotaryYear(now), [now]);
-  const monthOptions = useMemo(
-    () =>
-      rotaryYearMonths(rotaryYear.startYear).map(({ month, year }) => ({
-        month,
-        year,
-        value: periodKey(month, year),
-        label: getReportingPeriodLabel(month, year),
-      })),
-    [rotaryYear.startYear]
-  );
+  const currentMonth = now.getMonth() + 1;
+  const currentYear = now.getFullYear();
 
-  const [periodValue, setPeriodValue] = useState(() =>
-    periodKey(now.getMonth() + 1, now.getFullYear())
-  );
+  const [scoreView, setScoreView] = useState<ScoreView>("overall");
+  const [quarter, setQuarter] = useState(() => rotaryQuarterOfMonth(currentMonth));
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(100);
 
-  const { month, year } = parsePeriodKey(periodValue);
-  const selectedOption =
-    monthOptions.find((option) => option.value === periodValue) ?? monthOptions[0];
+  const periodMonths = useMemo(() => {
+    if (scoreView === "overall") return rotaryYearMonths(rotaryYear.startYear);
+    return rotaryQuarterMonths(rotaryYear.startYear, quarter);
+  }, [scoreView, rotaryYear.startYear, quarter]);
+
+  // Use the latest month in the selected range as the API anchor month/year.
+  const anchor = periodMonths[periodMonths.length - 1] ?? {
+    month: currentMonth,
+    year: currentYear,
+  };
+  const apiPeriod = scoreView === "overall" ? "yearly" : "quarterly";
 
   const { data, isLoading } = useCouncilData({
     entityType: "MEMBER",
-    month,
-    year,
-    period: "monthly",
+    month: anchor.month,
+    year: anchor.year,
+    period: apiPeriod,
     search: search || undefined,
     page,
     limit: rowsPerPage,
@@ -126,7 +120,10 @@ export function CouncilContent() {
     ].filter((slot) => slot.entry);
   }, [podium]);
 
-  const periodLabel = selectedOption?.label ?? getReportingPeriodLabel(month, year);
+  const periodLabel =
+    scoreView === "overall"
+      ? `RIY ${getRotaryYearLabel(rotaryYear.startYear)} · Overall`
+      : `Q${quarter} ${getRotaryYearLabel(rotaryYear.startYear)} (${rotaryQuarterRangeLabel(quarter)})`;
   const topScore = podium?.[0]?.score ?? 0;
 
   return (
@@ -150,28 +147,57 @@ export function CouncilContent() {
               </p>
             </div>
           </div>
-          <div className="w-full sm:w-auto sm:min-w-[12rem]">
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Month
-            </p>
-            <Select
-              value={periodValue}
-              onValueChange={(value) => {
-                setPeriodValue(value);
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="border-border/60 bg-card/80 backdrop-blur-sm">
-                <SelectValue placeholder="Select month" />
-              </SelectTrigger>
-              <SelectContent>
-                {monthOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:items-end">
+            <div className="inline-flex rounded-full border border-border/60 bg-muted/30 p-1">
+              {(
+                [
+                  { id: "overall", label: "Overall" },
+                  { id: "quarterly", label: "Quarterly" },
+                ] as const
+              ).map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => {
+                    setScoreView(option.id);
+                    setPage(1);
+                  }}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-xs font-medium transition sm:px-4 sm:text-sm",
+                    scoreView === option.id
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {scoreView === "quarterly" && (
+              <div className="w-full sm:w-auto sm:min-w-[10rem]">
+                <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Quarter
+                </p>
+                <Select
+                  value={String(quarter)}
+                  onValueChange={(value) => {
+                    setQuarter(parseInt(value, 10));
+                    setPage(1);
+                  }}
+                >
+                  <SelectTrigger className="border-border/60 bg-card/80 backdrop-blur-sm">
+                    <SelectValue placeholder="Select quarter" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[1, 2, 3, 4].map((q) => (
+                      <SelectItem key={q} value={String(q)}>
+                        Q{q} ({rotaryQuarterRangeLabel(q)})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </div>
 
@@ -203,7 +229,10 @@ export function CouncilContent() {
             </p>
             <p className="mt-1 text-sm font-medium text-foreground">{periodLabel}</p>
             <p className="text-xs text-muted-foreground">
-              RIY {getRotaryYearLabel(rotaryYear.startYear)} · updates after Blue Book reviews
+              {scoreView === "overall"
+                ? "Average completion across the Rotary year"
+                : "Average completion across the quarter"}{" "}
+              · updates after Blue Book reviews
             </p>
           </div>
         </div>

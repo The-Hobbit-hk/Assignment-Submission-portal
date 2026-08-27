@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { PageHeading } from "@/components/layout/page-heading";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -22,6 +23,38 @@ const CATEGORIES = [
   "Professional Development",
 ];
 
+const OVERVIEW_STATE_KEY = "council-bluebook-overview-state";
+
+type OverviewPersistedState = {
+  month: number;
+  year: number;
+  status?: string;
+  memberId?: string;
+  category?: string;
+  reviewStatus?: string;
+};
+
+function readPersistedState(): OverviewPersistedState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(OVERVIEW_STATE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as OverviewPersistedState;
+    if (!parsed?.month || !parsed?.year) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writePersistedState(state: OverviewPersistedState) {
+  try {
+    sessionStorage.setItem(OVERVIEW_STATE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
 function SummaryCard({
   label,
   value,
@@ -40,19 +73,90 @@ function SummaryCard({
 }
 
 export function CouncilBluebookOverview() {
-  const now = new Date();
-  const monthOptions = rotaryMonthOptions(getCurrentRotaryYear(now).startYear, {
-    long: true,
-    withYear: true,
-  });
-  const [period, setPeriod] = useState(
-    () => `${now.getMonth() + 1}-${now.getFullYear()}`
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const now = useMemo(() => new Date(), []);
+  const monthOptions = useMemo(
+    () =>
+      rotaryMonthOptions(getCurrentRotaryYear(now).startYear, {
+        long: true,
+        withYear: true,
+      }),
+    [now]
   );
-  const [month, year] = period.split("-").map(Number);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [memberFilter, setMemberFilter] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("");
-  const [reviewStatusFilter, setReviewStatusFilter] = useState("");
+
+  const urlMonth = searchParams.get("month");
+  const urlYear = searchParams.get("year");
+  const hasUrlPeriod = Boolean(urlMonth && urlYear);
+
+  const [hydrated, setHydrated] = useState(hasUrlPeriod);
+
+  // Restore from session when landing without query params (e.g. sidebar nav).
+  useEffect(() => {
+    if (hasUrlPeriod) {
+      setHydrated(true);
+      return;
+    }
+    const saved = readPersistedState();
+    const params = new URLSearchParams();
+    if (saved) {
+      params.set("month", String(saved.month));
+      params.set("year", String(saved.year));
+      if (saved.status) params.set("status", saved.status);
+      if (saved.memberId) params.set("memberId", saved.memberId);
+      if (saved.category) params.set("category", saved.category);
+      if (saved.reviewStatus) params.set("reviewStatus", saved.reviewStatus);
+    } else {
+      params.set("month", String(now.getMonth() + 1));
+      params.set("year", String(now.getFullYear()));
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    setHydrated(true);
+  }, [hasUrlPeriod, now, pathname, router]);
+
+  const month = Number(urlMonth) || now.getMonth() + 1;
+  const year = Number(urlYear) || now.getFullYear();
+  const period = `${month}-${year}`;
+  const statusFilter = searchParams.get("status") ?? "";
+  const memberFilter = searchParams.get("memberId") ?? "";
+  const categoryFilter = searchParams.get("category") ?? "";
+  const reviewStatusFilter = searchParams.get("reviewStatus") ?? "";
+
+  useEffect(() => {
+    if (!hydrated || !hasUrlPeriod) return;
+    writePersistedState({
+      month,
+      year,
+      status: statusFilter || undefined,
+      memberId: memberFilter || undefined,
+      category: categoryFilter || undefined,
+      reviewStatus: reviewStatusFilter || undefined,
+    });
+  }, [
+    hydrated,
+    hasUrlPeriod,
+    month,
+    year,
+    statusFilter,
+    memberFilter,
+    categoryFilter,
+    reviewStatusFilter,
+  ]);
+
+  const updateParams = useCallback(
+    (patch: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
+      for (const [key, value] of Object.entries(patch)) {
+        if (value == null || value === "") params.delete(key);
+        else params.set(key, value);
+      }
+      if (!params.has("month")) params.set("month", String(month));
+      if (!params.has("year")) params.set("year", String(year));
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [searchParams, pathname, router, month, year]
+  );
 
   const { data, isLoading, isError } = useCouncilBluebookOverview(month, year, {
     status: statusFilter || undefined,
@@ -65,12 +169,25 @@ export function CouncilBluebookOverview() {
   const submissions = data?.submissions ?? [];
   const summary = data?.summary;
 
+  const overviewQuery = new URLSearchParams();
+  overviewQuery.set("month", String(month));
+  overviewQuery.set("year", String(year));
+  if (statusFilter) overviewQuery.set("status", statusFilter);
+  if (memberFilter) overviewQuery.set("memberId", memberFilter);
+  if (categoryFilter) overviewQuery.set("category", categoryFilter);
+  if (reviewStatusFilter) overviewQuery.set("reviewStatus", reviewStatusFilter);
+  const overviewReturnQs = overviewQuery.toString();
+
   if (isError) {
     return (
       <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
         You do not have access to the council bluebook overview.
       </div>
     );
+  }
+
+  if (!hydrated) {
+    return <Skeleton className="h-64 rounded-2xl" />;
   }
 
   return (
@@ -85,7 +202,10 @@ export function CouncilBluebookOverview() {
           <span className="text-muted-foreground">Reporting period</span>
           <select
             value={period}
-            onChange={(e) => setPeriod(e.target.value)}
+            onChange={(e) => {
+              const [nextMonth, nextYear] = e.target.value.split("-");
+              updateParams({ month: nextMonth, year: nextYear });
+            }}
             className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
           >
             {monthOptions.map((o) => (
@@ -99,7 +219,7 @@ export function CouncilBluebookOverview() {
           <span className="text-muted-foreground">Submission status</span>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => updateParams({ status: e.target.value || null })}
             className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
           >
             <option value="">All</option>
@@ -112,7 +232,7 @@ export function CouncilBluebookOverview() {
           <span className="text-muted-foreground">Council member</span>
           <select
             value={memberFilter}
-            onChange={(e) => setMemberFilter(e.target.value)}
+            onChange={(e) => updateParams({ memberId: e.target.value || null })}
             className="depth-card block max-w-[220px] rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
           >
             <option value="">All members</option>
@@ -127,7 +247,7 @@ export function CouncilBluebookOverview() {
           <span className="text-muted-foreground">Department</span>
           <select
             value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
+            onChange={(e) => updateParams({ category: e.target.value || null })}
             className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
           >
             <option value="">All departments</option>
@@ -142,7 +262,7 @@ export function CouncilBluebookOverview() {
           <span className="text-muted-foreground">Review status</span>
           <select
             value={reviewStatusFilter}
-            onChange={(e) => setReviewStatusFilter(e.target.value)}
+            onChange={(e) => updateParams({ reviewStatus: e.target.value || null })}
             className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
           >
             <option value="">All</option>
@@ -234,7 +354,7 @@ export function CouncilBluebookOverview() {
                           {row.assignedCount > 0 && (
                             <Button size="sm" variant="outline" asChild>
                               <Link
-                                href={`/dashboard/bluebook/review/${row.member.id}?month=${month}&year=${year}`}
+                                href={`/dashboard/bluebook/review/${row.member.id}?month=${month}&year=${year}&from=${encodeURIComponent(`/dashboard/bluebook/council-overview?${overviewReturnQs}`)}`}
                               >
                                 Review
                               </Link>

@@ -5,11 +5,18 @@ import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
 import { forbidden, handleRouteError } from "@/lib/api-errors";
 import { canViewCouncilStandings, isCouncilMember } from "@/lib/roles";
 import {
+  councilPeriodMonths,
   ensureCouncilScoresSynced,
   fetchCouncilLeaderboard,
   fetchCouncilPodium,
   serializeCouncilEntry,
+  type CouncilScorePeriod,
 } from "@/lib/council";
+
+function parsePeriod(value: string | null): CouncilScorePeriod {
+  if (value === "yearly" || value === "quarterly") return value;
+  return "monthly";
+}
 
 export async function GET(request: Request) {
   const { session, error } = await requireAuth();
@@ -29,17 +36,20 @@ export async function GET(request: Request) {
   const year = parseInt(
     searchParams.get("year") ?? String(new Date().getFullYear())
   );
-  const period = searchParams.get("period") ?? "monthly";
+  const period = parsePeriod(searchParams.get("period"));
   const search = searchParams.get("search") ?? "";
   const page = parseInt(searchParams.get("page") ?? "1");
   const limit = parseInt(searchParams.get("limit") ?? "5");
   const { skip } = getPaginationParams(searchParams, limit);
 
   try {
-    await ensureCouncilScoresSynced(prisma, month, year);
+    const monthsToSync = councilPeriodMonths(period, month, year);
+    await Promise.all(
+      monthsToSync.map((p) => ensureCouncilScoresSynced(prisma, p.month, p.year))
+    );
 
     const [podium, leaderboard] = await Promise.all([
-      fetchCouncilPodium(prisma, entityType, month, year),
+      fetchCouncilPodium(prisma, entityType, month, year, period),
       fetchCouncilLeaderboard(prisma, {
         entityType,
         month,

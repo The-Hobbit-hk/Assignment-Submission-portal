@@ -14,26 +14,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useCreateAndAssignTask } from "@/hooks/use-council-assignments";
 import { cn } from "@/lib/utils";
 import { formErrorMessage, notifyValidation, toast } from "@/lib/toast";
-
-const CATEGORIES = [
-  "Reporting",
-  "Service",
-  "Membership",
-  "Governance",
-  "Administration",
-  "Events",
-  "Professional Development",
-];
 
 type Member = { id: string; name: string | null; email: string };
 
@@ -50,8 +33,6 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Reporting");
-  const [maxScore, setMaxScore] = useState("50");
   const [dueDate, setDueDate] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -60,8 +41,6 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
   const resetForm = () => {
     setTitle("");
     setDescription("");
-    setCategory("Reporting");
-    setMaxScore("50");
     setDueDate("");
     setNotes("");
     setSelectedMembers([]);
@@ -103,8 +82,6 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
       await createAndAssign.mutateAsync({
         title: title.trim(),
         description: description.trim() || undefined,
-        category,
-        maxScore: parseInt(maxScore, 10) || 50,
         dueDate: due.toISOString(),
         month: due.getMonth() + 1,
         year: due.getFullYear(),
@@ -169,36 +146,6 @@ export function CreateTaskDialog({ members, month, year }: CreateTaskDialogProps
               placeholder="Instructions or details for the council member"
               rows={3}
             />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="max-score">Max score</Label>
-              <Input
-                id="max-score"
-                type="number"
-                min={1}
-                max={1000}
-                value={maxScore}
-                onChange={(e) => setMaxScore(e.target.value)}
-                required
-              />
-            </div>
           </div>
 
           <div className="space-y-2">

@@ -335,8 +335,8 @@ export function useCouncilMembers() {
 export type CreateAndAssignInput = {
   title: string;
   description?: string;
-  category: string;
-  maxScore: number;
+  category?: string;
+  maxScore?: number;
   dueDate: string;
   month: number;
   year: number;

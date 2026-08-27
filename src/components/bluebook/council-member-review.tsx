@@ -37,10 +37,12 @@ export function CouncilMemberReview({
   memberId,
   month,
   year,
+  returnTo,
 }: {
   memberId: string;
   month: number;
   year: number;
+  returnTo?: string;
 }) {
   const { data, isLoading } = useCouncilMemberReview(memberId, month, year);
   const review = useReviewCouncilMember(memberId);
@@ -127,7 +129,12 @@ export function CouncilMemberReview({
   return (
     <div className="space-y-6">
       <Button variant="ghost" size="sm" asChild className="-ml-2">
-        <Link href={`/dashboard/bluebook/council-overview?month=${month}&year=${year}`}>
+        <Link
+          href={
+            returnTo ??
+            `/dashboard/bluebook/council-overview?month=${month}&year=${year}`
+          }
+        >
           <ArrowLeft className="h-4 w-4" />
           Back to overview
         </Link>

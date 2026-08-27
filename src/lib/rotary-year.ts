@@ -83,6 +83,25 @@ export function rotaryQuarterOfMonth(month: number): number {
   return Math.floor(index / 3) + 1;
 }
 
+/**
+ * The 3 calendar (month, year) pairs for a Rotary quarter within a Rotary year.
+ * Quarter 1 = Jul–Sep … Quarter 4 = Apr–Jun.
+ */
+export function rotaryQuarterMonths(
+  startYear: number,
+  quarter: number
+): Array<{ month: number; year: number }> {
+  const q = Math.min(4, Math.max(1, Math.floor(quarter)));
+  const start = (q - 1) * 3;
+  return rotaryYearMonths(startYear).slice(start, start + 3);
+}
+
+/** Short month range label for a Rotary quarter, e.g. "Jul–Sep". */
+export function rotaryQuarterRangeLabel(quarter: number): string {
+  const names = ["Jul–Sep", "Oct–Dec", "Jan–Mar", "Apr–Jun"];
+  return names[Math.min(4, Math.max(1, Math.floor(quarter))) - 1] ?? "";
+}
+
 const MONTH_SHORT = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",

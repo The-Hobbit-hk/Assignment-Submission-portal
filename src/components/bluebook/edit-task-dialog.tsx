@@ -13,25 +13,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useUpdateTask } from "@/hooks/use-council-assignments";
 import { formErrorMessage, notifyValidation, toast } from "@/lib/toast";
-
-const CATEGORIES = [
-  "Reporting",
-  "Service",
-  "Membership",
-  "Governance",
-  "Administration",
-  "Events",
-  "Professional Development",
-];
 
 export type EditableTask = {
   id: string;
@@ -54,8 +37,6 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Reporting");
-  const [maxScore, setMaxScore] = useState("50");
   const [dueDate, setDueDate] = useState("");
 
   // Hydrate when the dialog opens for a task — not on every parent refetch mid-edit.
@@ -63,8 +44,6 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
     if (!open || !task) return;
     setTitle(task.title);
     setDescription(task.description ?? "");
-    setCategory(task.category);
-    setMaxScore(String(task.maxScore));
     setDueDate(task.dueDate ? task.dueDate.slice(0, 10) : "");
     setError("");
   }, [open, task?.id]);
@@ -86,8 +65,6 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
         id: task.id,
         title: title.trim(),
         description: description.trim() ? description.trim() : null,
-        category,
-        maxScore: parseInt(maxScore, 10) || 50,
         dueDate: due.toISOString(),
       });
       toast.success("Task updated");
@@ -132,36 +109,6 @@ export function EditTaskDialog({ task, open, onOpenChange }: EditTaskDialogProps
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
             />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="edit-max-score">Max score</Label>
-              <Input
-                id="edit-max-score"
-                type="number"
-                min={1}
-                max={1000}
-                value={maxScore}
-                onChange={(e) => setMaxScore(e.target.value)}
-                required
-              />
-            </div>
           </div>
 
           <div className="space-y-2">

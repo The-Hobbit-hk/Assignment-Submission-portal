@@ -11,8 +11,9 @@ export const submissionStatusEnum = z.enum([
 export const createTaskSchema = z.object({
   title: z.string().min(2).max(200),
   description: z.string().max(5000).optional(),
-  category: z.string().min(1).max(100),
-  maxScore: z.number().int().min(1).max(1000),
+  /** Optional in UI — defaults keep DB compatibility. */
+  category: z.string().min(1).max(100).optional().default("General"),
+  maxScore: z.number().int().min(1).max(1000).optional().default(50),
   dueDate: z.string().datetime(),
   month: z.number().int().min(1).max(12),
   year: z.number().int().min(2020).max(2100),

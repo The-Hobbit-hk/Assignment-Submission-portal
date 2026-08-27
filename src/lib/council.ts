@@ -5,7 +5,28 @@ import {
   OFFICIAL_DISTRICT_CLUB_FILTER,
   OFFICIAL_ROTARACT_MEMBER_FILTER,
 } from "@/lib/district-clubs-data";
-import { rotaryYearMonths, rotaryYearOfMonth } from "@/lib/rotary-year";
+import {
+  rotaryQuarterMonths,
+  rotaryQuarterOfMonth,
+  rotaryYearMonths,
+  rotaryYearOfMonth,
+} from "@/lib/rotary-year";
+
+export type CouncilScorePeriod = "monthly" | "quarterly" | "yearly";
+
+/** Calendar months covered by a council score period for the given month/year. */
+export function councilPeriodMonths(
+  period: CouncilScorePeriod,
+  month: number,
+  year: number
+): Array<{ month: number; year: number }> {
+  const startYear = rotaryYearOfMonth(month, year);
+  if (period === "yearly") return rotaryYearMonths(startYear);
+  if (period === "quarterly") {
+    return rotaryQuarterMonths(startYear, rotaryQuarterOfMonth(month));
+  }
+  return [{ month, year }];
+}
 
 /** Club leaderboard badges (absolute Blue Book points). */
 export function getBadge(score: number): string | null {
@@ -233,19 +254,138 @@ const councilInclude = {
   },
 } as const;
 
+type CouncilScoreRow = {
+  id: string;
+  entityType: CouncilEntityType;
+  entityId: string;
+  month: number;
+  year: number;
+  score: number;
+  rank: number | null;
+  badge: string | null;
+  trend: number;
+  club?: { id: string; name: string } | null;
+  member?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    avatar?: string | null;
+    homeClub?: string | null;
+    club?: { name: string };
+  } | null;
+};
+
+function councilMemberScopeWhere(
+  entityType: CouncilEntityType,
+  search: string
+): Prisma.CouncilScoreWhereInput {
+  if (entityType === "MEMBER") {
+    return {
+      member: {
+        club: { charterNumber: DISTRICT_COUNCIL_CLUB.riClubId },
+        ...(search
+          ? {
+              OR: [
+                { firstName: { contains: search, mode: "insensitive" as const } },
+                { lastName: { contains: search, mode: "insensitive" as const } },
+                { email: { contains: search, mode: "insensitive" as const } },
+              ],
+            }
+          : {}),
+      },
+    };
+  }
+  return search
+    ? { club: { name: { contains: search, mode: "insensitive" as const } } }
+    : {};
+}
+
+/** Aggregate monthly CouncilScore rows across a set of months (overall / quarterly). */
+function aggregateCouncilScoreRows(
+  rows: CouncilScoreRow[],
+  entityType: CouncilEntityType
+) {
+  const grouped = new Map<
+    string,
+    { representative: CouncilScoreRow; score: number; trend: number; months: number }
+  >();
+
+  for (const row of rows) {
+    const existing = grouped.get(row.entityId);
+    if (existing) {
+      existing.score += row.score;
+      existing.trend += row.trend;
+      existing.months += 1;
+      if (
+        row.year > existing.representative.year ||
+        (row.year === existing.representative.year &&
+          row.month > existing.representative.month)
+      ) {
+        existing.representative = row;
+      }
+    } else {
+      grouped.set(row.entityId, {
+        representative: row,
+        score: row.score,
+        trend: row.trend,
+        months: 1,
+      });
+    }
+  }
+
+  return [...grouped.values()]
+    .map((group) => {
+      // Members store completion % — average across months; clubs keep summed points.
+      const score =
+        entityType === "MEMBER" && group.months > 0
+          ? Math.round(group.score / group.months)
+          : group.score;
+      return { ...group, score };
+    })
+    .sort((a, b) => b.score - a.score)
+    .map((group, index) => ({
+      ...group.representative,
+      score: group.score,
+      trend: group.trend,
+      badge:
+        entityType === "MEMBER"
+          ? getCompletionBadge(group.score)
+          : getBadge(group.score),
+      rank: index + 1,
+    }));
+}
+
 export async function fetchCouncilPodium(
   prisma: typeof import("@/lib/prisma").prisma,
   entityType: CouncilEntityType,
   month: number,
-  year: number
+  year: number,
+  period: CouncilScorePeriod = "monthly"
 ) {
-  const top3 = await prisma.councilScore.findMany({
-    where: { entityType, month, year },
-    orderBy: { rank: "asc" },
-    take: 3,
+  if (period === "monthly") {
+    const top3 = await prisma.councilScore.findMany({
+      where: { entityType, month, year },
+      orderBy: { rank: "asc" },
+      take: 3,
+      include: councilInclude,
+    });
+    return top3.map(serializeCouncilEntry);
+  }
+
+  const pairs = councilPeriodMonths(period, month, year);
+  const rows = await prisma.councilScore.findMany({
+    where: {
+      entityType,
+      OR: pairs.map((p) => ({ month: p.month, year: p.year })),
+      ...councilMemberScopeWhere(entityType, ""),
+    },
     include: councilInclude,
   });
-  return top3.map(serializeCouncilEntry);
+
+  return aggregateCouncilScoreRows(rows, entityType)
+    .slice(0, 3)
+    .map(serializeCouncilEntry);
 }
 
 export async function fetchCouncilLeaderboard(
@@ -261,91 +401,27 @@ export async function fetchCouncilLeaderboard(
     skip: number;
   }
 ) {
-  const { entityType, month, year, period, search, page, limit, skip } = params;
-  const yearOnly = period === "yearly";
-  const councilMemberScope =
-    entityType === "MEMBER"
-      ? {
-          member: {
-            club: { charterNumber: DISTRICT_COUNCIL_CLUB.riClubId },
-            ...(search
-              ? {
-                  OR: [
-                    {
-                      firstName: { contains: search, mode: "insensitive" as const },
-                    },
-                    {
-                      lastName: { contains: search, mode: "insensitive" as const },
-                    },
-                    {
-                      email: { contains: search, mode: "insensitive" as const },
-                    },
-                  ],
-                }
-              : {}),
-          },
-        }
-      : search
-        ? { club: { name: { contains: search, mode: "insensitive" as const } } }
-        : {};
+  const { entityType, month, year, search, page, limit, skip } = params;
+  const period = (
+    params.period === "yearly" || params.period === "quarterly"
+      ? params.period
+      : "monthly"
+  ) as CouncilScorePeriod;
+  const scope = councilMemberScopeWhere(entityType, search);
 
-  // Yearly view: aggregate every monthly CouncilScore in the Rotary year
-  // (Jul -> Jun) that contains the selected month, summing per entity.
-  if (yearOnly) {
-    const pairs = rotaryYearMonths(rotaryYearOfMonth(month, year));
+  // Overall (yearly) / quarterly: aggregate monthly CouncilScore rows in range.
+  if (period === "yearly" || period === "quarterly") {
+    const pairs = councilPeriodMonths(period, month, year);
     const rows = await prisma.councilScore.findMany({
       where: {
         entityType,
         OR: pairs.map((p) => ({ month: p.month, year: p.year })),
-        ...councilMemberScope,
+        ...scope,
       },
       include: councilInclude,
     });
 
-    const grouped = new Map<
-      string,
-      { representative: (typeof rows)[number]; score: number; trend: number; months: number }
-    >();
-    for (const row of rows) {
-      const existing = grouped.get(row.entityId);
-      if (existing) {
-        existing.score += row.score;
-        existing.trend += row.trend;
-        existing.months += 1;
-        // Keep the most recent row for its relation data / id.
-        if (row.year > existing.representative.year || (row.year === existing.representative.year && row.month > existing.representative.month)) {
-          existing.representative = row;
-        }
-      } else {
-        grouped.set(row.entityId, {
-          representative: row,
-          score: row.score,
-          trend: row.trend,
-          months: 1,
-        });
-      }
-    }
-
-    const ranked = [...grouped.values()]
-      .map((group) => {
-        // Members store completion % — average across months; clubs keep summed points.
-        const score =
-          entityType === "MEMBER" && group.months > 0
-            ? Math.round(group.score / group.months)
-            : group.score;
-        return { ...group, score };
-      })
-      .sort((a, b) => b.score - a.score)
-      .map((group, index) => ({
-        ...group.representative,
-        score: group.score,
-        trend: group.trend,
-        badge:
-          entityType === "MEMBER"
-            ? getCompletionBadge(group.score)
-            : getBadge(group.score),
-        rank: index + 1,
-      }));
+    const ranked = aggregateCouncilScoreRows(rows, entityType);
 
     return {
       entries: ranked.slice(skip, skip + limit),
@@ -359,7 +435,7 @@ export async function fetchCouncilLeaderboard(
     entityType,
     month,
     year,
-    ...councilMemberScope,
+    ...scope,
   };
 
   const [entries, total] = await Promise.all([

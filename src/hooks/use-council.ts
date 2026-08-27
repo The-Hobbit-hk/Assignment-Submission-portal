@@ -21,7 +21,7 @@ interface CouncilFilters {
   entityType?: "CLUB" | "MEMBER";
   month?: number;
   year?: number;
-  period?: "monthly" | "yearly";
+  period?: "monthly" | "quarterly" | "yearly";
   search?: string;
   page?: number;
   limit?: number;
