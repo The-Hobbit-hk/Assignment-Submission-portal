@@ -120,13 +120,20 @@ export async function importCouncilRoster(prisma: PrismaClient) {
 
   let users = 0;
   let members = 0;
+  const createdEmails: string[] = [];
 
   for (let i = 0; i < COUNCIL_USERS.length; i++) {
     const councilUser = COUNCIL_USERS[i];
+    const email = councilUser.email.toLowerCase().trim();
+    const existed = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    });
     const user = await upsertCouncilUser(prisma, councilUser, passwordHash);
     await upsertCouncilMember(prisma, councilUser, councilClub.id, user.id, i);
     users++;
     members++;
+    if (!existed) createdEmails.push(email);
   }
 
   const rosterEmails = COUNCIL_USERS.map((u) => u.email.toLowerCase().trim());
@@ -139,5 +146,46 @@ export async function importCouncilRoster(prisma: PrismaClient) {
     data: { status: "INACTIVE" },
   });
 
-  return { users, members, clubId: councilClub.id, deactivated: deactivated.count };
+  // Demote / lock login for council accounts no longer on the official roster.
+  const staleUsers = await prisma.user.findMany({
+    where: {
+      email: { notIn: rosterEmails },
+      role: {
+        in: [
+          "COUNCIL_MEMBER",
+          "DISTRICT_SECRETARY",
+          "REPORTING_SECRETARY",
+        ],
+      },
+    },
+    select: { id: true, email: true, name: true, role: true },
+  });
+
+  const lockedPassword = await bcrypt.hash(
+    `revoked-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    12
+  );
+  for (const stale of staleUsers) {
+    await prisma.user.update({
+      where: { id: stale.id },
+      data: {
+        role: "MEMBER",
+        password: lockedPassword,
+        mustChangePassword: true,
+      },
+    });
+  }
+
+  return {
+    users,
+    members,
+    clubId: councilClub.id,
+    deactivated: deactivated.count,
+    createdEmails,
+    removedUsers: staleUsers.map((u) => ({
+      email: u.email,
+      name: u.name,
+      previousRole: u.role,
+    })),
+  };
 }

@@ -29,7 +29,20 @@ async function main() {
     `Council roster import complete: ${result.users} users, ${result.members} member profiles` +
       (result.deactivated ? `, ${result.deactivated} stale profile(s) deactivated.` : ".")
   );
-  console.log(`Default password for council logins: ${COUNCIL_PASSWORD}`);
+  if (result.createdEmails.length) {
+    console.log("\nNew council logins (must change password on first login):");
+    console.log(`  Password: ${COUNCIL_PASSWORD}`);
+    for (const email of result.createdEmails) {
+      console.log(`  - ${email}`);
+    }
+  }
+  if (result.removedUsers.length) {
+    console.log("\nRemoved / locked council accounts:");
+    for (const u of result.removedUsers) {
+      console.log(`  - ${u.name ?? "—"} <${u.email}> (was ${u.previousRole})`);
+    }
+  }
+  console.log(`\nDefault password for council logins: ${COUNCIL_PASSWORD}`);
 }
 
 main()
