@@ -78,9 +78,15 @@ export function CitationsReviewContent() {
 
   const queue = useMemo(() => {
     const list = [...(assignments ?? [])].sort((a, b) => {
+      const clubCmp = a.club.name.localeCompare(b.club.name, "en", {
+        sensitivity: "base",
+      });
+      if (clubCmp !== 0) return clubCmp;
+
       const aTime = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
       const bTime = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
-      if (aTime !== bTime) return aTime - bTime; // oldest first for review fairness
+      if (aTime !== bTime) return aTime - bTime;
+
       return (
         citationTitleSortKey(a.definition.title) - citationTitleSortKey(b.definition.title)
       );
@@ -93,6 +99,31 @@ export function CitationsReviewContent() {
       return title.includes(q) || a.club.name.toLowerCase().includes(q);
     });
   }, [assignments, search]);
+
+  const groupedQueue = useMemo(() => {
+    const groups: {
+      clubId: string;
+      clubName: string;
+      zone: string | null;
+      assignments: SerializedCitationAssignment[];
+    }[] = [];
+
+    for (const assignment of queue) {
+      const last = groups[groups.length - 1];
+      if (last && last.clubId === assignment.clubId) {
+        last.assignments.push(assignment);
+      } else {
+        groups.push({
+          clubId: assignment.clubId,
+          clubName: assignment.club.name,
+          zone: assignment.club.zone,
+          assignments: [assignment],
+        });
+      }
+    }
+
+    return groups;
+  }, [queue]);
 
   const total = assignments?.length ?? 0;
   const uniqueClubs = useMemo(() => {
@@ -154,8 +185,8 @@ export function CitationsReviewContent() {
               </p>
               <p className="text-sm font-semibold text-foreground">
                 {queue.length === total
-                  ? `${total} awaiting review`
-                  : `${queue.length} of ${total} shown`}
+                  ? `${total} awaiting review · grouped by club`
+                  : `${queue.length} of ${total} shown · grouped by club`}
               </p>
             </div>
             <div className="relative w-full sm:max-w-xs">
@@ -177,9 +208,32 @@ export function CitationsReviewContent() {
               No submissions match your search.
             </p>
           ) : (
-            <div className="divide-y-0">
-              {queue.map((assignment) => (
-                <QueueRow key={assignment.id} assignment={assignment} />
+            <div>
+              {groupedQueue.map((group) => (
+                <section key={group.clubId}>
+                  <div className="sticky top-0 z-[1] flex items-center justify-between gap-3 border-b border-border/40 bg-muted/50 px-4 py-2.5 backdrop-blur-sm sm:px-5">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <Building2 className="h-4 w-4 shrink-0 text-accent" aria-hidden />
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {group.clubName}
+                        </p>
+                        {group.zone && (
+                          <p className="text-[11px] text-muted-foreground">{group.zone}</p>
+                        )}
+                      </div>
+                    </div>
+                    <span className="shrink-0 rounded-md bg-background/80 px-2 py-0.5 text-xs font-medium text-muted-foreground ring-1 ring-border/50">
+                      {group.assignments.length} citation
+                      {group.assignments.length === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                  <div>
+                    {group.assignments.map((assignment) => (
+                      <QueueRow key={assignment.id} assignment={assignment} />
+                    ))}
+                  </div>
+                </section>
               ))}
             </div>
           )}
