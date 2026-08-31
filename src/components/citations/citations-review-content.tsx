@@ -95,6 +95,10 @@ export function CitationsReviewContent() {
   }, [assignments, search]);
 
   const total = assignments?.length ?? 0;
+  const uniqueClubs = useMemo(() => {
+    if (!assignments?.length) return 0;
+    return new Set(assignments.map((a) => a.clubId)).size;
+  }, [assignments]);
 
   return (
     <div className="space-y-6">
@@ -114,13 +118,23 @@ export function CitationsReviewContent() {
               </p>
             </div>
           </div>
-          <div className="rounded-xl border border-border/40 bg-card/70 px-4 py-3 backdrop-blur-sm sm:min-w-[8.5rem] sm:text-right">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Pending
-            </p>
-            <p className="mt-0.5 text-2xl font-bold text-foreground">
-              {isLoading ? "—" : total}
-            </p>
+          <div className="flex flex-wrap gap-3 sm:justify-end">
+            <div className="rounded-xl border border-border/40 bg-card/70 px-4 py-3 backdrop-blur-sm sm:min-w-[8.5rem] sm:text-right">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Pending
+              </p>
+              <p className="mt-0.5 text-2xl font-bold text-foreground">
+                {isLoading ? "—" : total}
+              </p>
+            </div>
+            <div className="rounded-xl border border-border/40 bg-card/70 px-4 py-3 backdrop-blur-sm sm:min-w-[8.5rem] sm:text-right">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Clubs submitted
+              </p>
+              <p className="mt-0.5 text-2xl font-bold text-foreground">
+                {isLoading ? "—" : uniqueClubs}
+              </p>
+            </div>
           </div>
         </div>
       </section>
