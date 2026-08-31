@@ -19,18 +19,40 @@ export function SiteReveal({
     const node = ref.current;
     if (!node) return;
 
+    let revealed = false;
+    const reveal = () => {
+      if (revealed) return;
+      revealed = true;
+      setVisible(true);
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
+        if (entry?.isIntersecting) {
+          reveal();
           observer.disconnect();
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.01, rootMargin: "0px 0px 10% 0px" }
     );
 
     observer.observe(node);
-    return () => observer.disconnect();
+
+    // IntersectionObserver can miss content that is already on screen after hydration.
+    const checkInView = () => {
+      const rect = node.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+      if (rect.top < viewportHeight && rect.bottom > 0) reveal();
+    };
+
+    checkInView();
+    requestAnimationFrame(checkInView);
+    const fallback = window.setTimeout(checkInView, 150);
+
+    return () => {
+      observer.disconnect();
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   return (

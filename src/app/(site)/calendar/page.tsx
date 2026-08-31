@@ -3,7 +3,6 @@ export const revalidate = 600;
 import Link from "next/link";
 import { DistrictCalendar } from "@/components/site/district-calendar";
 import { PageHero } from "@/components/site/page-hero";
-import { SiteReveal } from "@/components/site/site-reveal";
 import { getPublicCalendarEvents } from "@/lib/public-site-data";
 
 export default async function CalendarPage() {
@@ -36,9 +35,7 @@ export default async function CalendarPage() {
       />
       <section className="py-8 sm:py-10">
         <div className="mx-auto max-w-7xl px-4 lg:px-8">
-          <SiteReveal>
-            <DistrictCalendar events={serialized} />
-          </SiteReveal>
+          <DistrictCalendar events={serialized} />
           <Link
             href="/resources/district-calendar"
             className="mt-8 inline-block text-sm text-accent hover:underline"
