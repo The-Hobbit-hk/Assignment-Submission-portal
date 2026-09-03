@@ -17,6 +17,7 @@ import {
 } from "@/lib/legacy-demo-events";
 import { prisma } from "@/lib/prisma";
 import { rotaryYearStart } from "@/lib/rotary-year";
+import { istDateKey } from "@/lib/timezone";
 
 const PUBLIC_EVENTS_REVALIDATE = 600;
 const PUBLIC_CLUBS_REVALIDATE = 900;
@@ -190,7 +191,7 @@ const getCachedGoogleInstallationFeed = unstable_cache(
       })),
     };
   },
-  ["public-google-installations-v4"],
+  ["public-google-installations-v5"],
   { revalidate: GOOGLE_FEED_REVALIDATE, tags: ["public-events"] }
 );
 
@@ -207,9 +208,16 @@ function applyGoogleUpdatesToDbEvent<
 >(event: T, googleByDay: Map<string, GoogleFeedEvent>, googleByTitle: Map<string, GoogleFeedEvent>) {
   if (event.type !== "INSTALLATION") return event;
 
+  const dayKey = calendarEventDedupKey(event.title, event.startDate);
   const feed =
-    googleByDay.get(calendarEventDedupKey(event.title, event.startDate)) ??
-    googleByTitle.get(calendarEventTitleKey(event.title));
+    googleByDay.get(dayKey) ??
+    // Title-only fallback: only when the Google occurrence is the same calendar day.
+    (() => {
+      const byTitle = googleByTitle.get(calendarEventTitleKey(event.title));
+      if (!byTitle) return undefined;
+      if (istDateKey(byTitle.startDate) !== istDateKey(event.startDate)) return undefined;
+      return byTitle;
+    })();
 
   if (!feed) return event;
 
@@ -223,6 +231,26 @@ function applyGoogleUpdatesToDbEvent<
     registrationUrl:
       (feed.registrationUrl || "").trim() || event.registrationUrl || null,
   };
+}
+
+function dedupePublicCalendarEvents<
+  T extends { id: string; title: string; startDate: Date; type: string },
+>(events: T[]): T[] {
+  const byDay = new Map<string, T>();
+  for (const event of events) {
+    const key =
+      event.type === "INSTALLATION"
+        ? calendarEventDedupKey(event.title, event.startDate)
+        : event.id;
+    const existing = byDay.get(key);
+    if (!existing) {
+      byDay.set(key, event);
+      continue;
+    }
+    // Prefer the row that looks more recently updated / later id when colliding.
+    if (event.id.localeCompare(existing.id) > 0) byDay.set(key, event);
+  }
+  return [...byDay.values()];
 }
 
 export async function getPublicCalendarEvents() {
@@ -253,6 +281,14 @@ export async function getPublicCalendarEvents() {
       const dayKey = calendarEventDedupKey(event.title, event.startDate);
       const titleKey = calendarEventTitleKey(event.title);
       if (cancelledKeys.has(dayKey) || cancelledTitles.has(titleKey)) return false;
+
+      // Drop stale DB leftovers after Google rescheduled the same installation.
+      if (event.type === "INSTALLATION") {
+        const google = googleByTitle.get(titleKey);
+        if (google && istDateKey(google.startDate) !== istDateKey(event.startDate)) {
+          return false;
+        }
+      }
       return true;
     })
     .map((event) => applyGoogleUpdatesToDbEvent(event, googleByDay, googleByTitle));
@@ -271,7 +307,7 @@ export async function getPublicCalendarEvents() {
       return true;
     });
 
-  return [...hydratedDb, ...hydratedGoogle].sort(
+  return dedupePublicCalendarEvents([...hydratedDb, ...hydratedGoogle]).sort(
     (a, b) => a.startDate.getTime() - b.startDate.getTime()
   );
 }

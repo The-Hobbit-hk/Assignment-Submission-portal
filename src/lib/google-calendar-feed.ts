@@ -228,8 +228,10 @@ export async function syncStaleGoogleInstallationsToDb(activeFeed: GoogleFeedEve
     const ids = googleSynced
       .filter((event) => {
         const key = event.description?.match(/calendar-key:([^\s]+)/i)?.[1]?.trim();
+        // Superseded Google UIDs (rescheduled installations) must be cancelled even
+        // when another active feed event still shares the same club title.
         if (key && activeIds.has(key)) return false;
-        if (activeTitles.has(calendarEventTitleKey(event.title))) return false;
+        if (!key && activeTitles.has(calendarEventTitleKey(event.title))) return false;
         return true;
       })
       .map((event) => event.id);
