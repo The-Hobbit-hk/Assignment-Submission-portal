@@ -56,6 +56,10 @@ const DEFAULT_EXCLUDE_KEYWORDS = [
   "dg &",
   "mdio",
   "meeting",
+  // Manually removed from public calendar — do not re-import from Google.
+  "aurelis",
+  "kalyaninagar",
+  "kalyani nagar",
 ];
 
 function excludeKeywords(): string[] {
