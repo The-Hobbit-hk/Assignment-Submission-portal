@@ -283,7 +283,12 @@ export function DistrictCalendar({ events }: { events: SerializedCalendarEvent[]
   );
 
   const completed = useMemo(
-    () => sorted.filter((e) => getEventLifecycle(toLifecycleEvent(e)) === "completed"),
+    () =>
+      sorted
+        .filter((e) => getEventLifecycle(toLifecycleEvent(e)) === "completed")
+        .sort(
+          (a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+        ),
     [sorted]
   );
 
@@ -300,10 +305,18 @@ export function DistrictCalendar({ events }: { events: SerializedCalendarEvent[]
     return map;
   }, [filtered]);
 
+  // Full schedule prioritizes upcoming; completed installations sit in Past events below.
   const agendaEvents = useMemo(() => {
-    if (!selected) return sorted;
-    return sorted.filter((e) => sameDay(new Date(e.startDate), selected));
-  }, [sorted, selected]);
+    if (!selected) return upcoming;
+    return [...sorted]
+      .filter((e) => sameDay(new Date(e.startDate), selected))
+      .sort((a, b) => {
+        const aDone = getEventLifecycle(toLifecycleEvent(a)) === "completed" ? 1 : 0;
+        const bDone = getEventLifecycle(toLifecycleEvent(b)) === "completed" ? 1 : 0;
+        if (aDone !== bDone) return aDone - bDone;
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+      });
+  }, [sorted, selected, upcoming]);
 
   const groupedAgenda = useMemo(() => {
     const groups = new Map<string, SerializedCalendarEvent[]>();
@@ -478,7 +491,9 @@ export function DistrictCalendar({ events }: { events: SerializedCalendarEvent[]
 
           {groupedAgenda.length === 0 ? (
             <p className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50/50 p-6 text-center text-sm text-zinc-500">
-              No events match this view. Try another filter or date.
+              {completed.length > 0 && !selected
+                ? "No upcoming events right now — past installations are listed below."
+                : "No events match this view. Try another filter or date."}
             </p>
           ) : (
             <div className="space-y-6">
@@ -497,13 +512,13 @@ export function DistrictCalendar({ events }: { events: SerializedCalendarEvent[]
             </div>
           )}
 
-          {completed.length > 0 && !selected && filter !== "INSTALLATION" && (
+          {completed.length > 0 && !selected && (
             <details className="rounded-xl border border-zinc-200 bg-zinc-50/50 p-4">
               <summary className="cursor-pointer text-sm font-semibold text-zinc-600">
                 Past events ({completed.length})
               </summary>
               <ul className="mt-3 space-y-2">
-                {completed.slice(0, 12).map((event) => (
+                {completed.map((event) => (
                   <AgendaRow key={event.id} event={event} />
                 ))}
               </ul>
