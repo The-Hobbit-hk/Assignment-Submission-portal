@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { canAccessClubRecord } from "@/lib/club-access";
-import { findClubRosterMembers } from "@/lib/club-home";
+import { buildClubRosterWhere, filterHomeClubAffiliates } from "@/lib/club-home";
 import { serializeMemberListItem } from "@/lib/member";
 import { handleRouteError, forbidden, notFound } from "@/lib/api-errors";
 import type { UserRole } from "@/types/auth";
@@ -29,10 +29,12 @@ export async function GET(_request: Request, { params }: RouteParams) {
     });
     if (!club) return notFound("Club not found.");
 
-    const members = await findClubRosterMembers(prisma, club, {
-      include: { club: { select: { id: true, name: true } } },
+    const rows = await prisma.member.findMany({
+      where: buildClubRosterWhere(club),
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+      include: { club: { select: { id: true, name: true } } },
     });
+    const members = filterHomeClubAffiliates(rows, club);
 
     return NextResponse.json(members.map(serializeMemberListItem));
   } catch (err) {

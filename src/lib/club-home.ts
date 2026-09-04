@@ -84,19 +84,18 @@ export function filterHomeClubAffiliates<T extends { clubId: string; homeClub?: 
   );
 }
 
-export async function findClubRosterMembers<T extends Prisma.MemberInclude>(
+export async function findClubRosterMembers(
   db: Db,
   club: { id: string; name: string },
   options?: {
     where?: Prisma.MemberWhereInput;
-    include?: T;
     orderBy?: Prisma.MemberOrderByWithRelationInput | Prisma.MemberOrderByWithRelationInput[];
   }
 ) {
   const members = await db.member.findMany({
     where: buildClubRosterWhere(club, options?.where),
-    include: options?.include,
     orderBy: options?.orderBy ?? [{ lastName: "asc" }, { firstName: "asc" }],
+    include: { club: { select: { id: true, name: true } } },
   });
   return filterHomeClubAffiliates(members, club);
 }
