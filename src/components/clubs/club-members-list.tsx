@@ -58,13 +58,13 @@ export function ClubMembersList({ clubId, canAdd = false }: ClubMembersListProps
             >
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="text-xs">
-                  {member.firstName[0]}
-                  {member.lastName[0]}
+                  {(member.firstName?.[0] ?? "?").toUpperCase()}
+                  {(member.lastName?.[0] ?? "").toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">
-                  {member.firstName} {member.lastName}
+                  {[member.firstName, member.lastName].filter(Boolean).join(" ")}
                 </p>
                 <p className="truncate text-xs text-muted-foreground">
                   {member.email}

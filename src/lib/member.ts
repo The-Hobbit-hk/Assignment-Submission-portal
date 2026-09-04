@@ -6,6 +6,7 @@ import type {
   MemberStatus,
 } from "@/generated/prisma/client";
 import type { MemberDetail, MemberListItem } from "@/types/member";
+import { buildClubRosterWhere } from "@/lib/club-home";
 
 type MemberWithClub = Member & { club: Pick<Club, "id" | "name"> };
 
@@ -51,35 +52,44 @@ export function serializeMemberDetail(member: MemberWithClub): MemberDetail {
 export function buildMemberWhere(params: {
   search?: string;
   clubId?: string;
+  /** When set with clubId, also includes council members whose homeClub matches. */
+  clubName?: string;
   role?: string;
   status?: string;
   duesPaid?: string;
 }) {
   const where: Prisma.MemberWhereInput = {};
 
-  if (params.clubId) where.clubId = params.clubId;
+  if (params.clubId && params.clubName) {
+    Object.assign(where, buildClubRosterWhere({ id: params.clubId, name: params.clubName }));
+  } else if (params.clubId) {
+    where.clubId = params.clubId;
+  }
   if (params.role) where.role = params.role as MemberRole;
   if (params.status) where.status = params.status as MemberStatus;
 
   if (params.duesPaid === "yes") {
     where.duesPaid = "yes";
   } else if (params.duesPaid === "unpaid") {
-    where.OR = [{ duesPaid: null }, { duesPaid: { not: "yes" } }];
+    const unpaid: Prisma.MemberWhereInput = {
+      OR: [{ duesPaid: null }, { duesPaid: { not: "yes" } }],
+    };
+    where.AND = [...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []), unpaid];
   }
 
   if (params.search) {
-    const searchClause = [
-      { firstName: { contains: params.search, mode: "insensitive" as const } },
-      { lastName: { contains: params.search, mode: "insensitive" as const } },
-      { email: { contains: params.search, mode: "insensitive" as const } },
-      { riId: { contains: params.search, mode: "insensitive" as const } },
+    const searchClause: Prisma.MemberWhereInput = {
+      OR: [
+        { firstName: { contains: params.search, mode: "insensitive" as const } },
+        { lastName: { contains: params.search, mode: "insensitive" as const } },
+        { email: { contains: params.search, mode: "insensitive" as const } },
+        { riId: { contains: params.search, mode: "insensitive" as const } },
+      ],
+    };
+    where.AND = [
+      ...(Array.isArray(where.AND) ? where.AND : where.AND ? [where.AND] : []),
+      searchClause,
     ];
-    if (where.OR) {
-      where.AND = [{ OR: where.OR }, { OR: searchClause }];
-      delete where.OR;
-    } else {
-      where.OR = searchClause;
-    }
   }
 
   return where;

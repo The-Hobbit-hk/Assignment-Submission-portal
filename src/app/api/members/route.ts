@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { getClubUserClubId } from "@/lib/club-access";
 import { canManageClubMembers, canReassignMemberPrivilegedFields } from "@/lib/roles";
 import { buildPaginatedResult, getPaginationParams } from "@/lib/pagination";
+import { filterHomeClubAffiliates } from "@/lib/club-home";
 import { buildMemberWhere, serializeMemberListItem, generateProspectiveId } from "@/lib/member";
 import { createMemberSchema, memberQuerySchema } from "@/lib/validators/member";
 import { logActivity } from "@/lib/activity";
@@ -37,13 +38,39 @@ export async function GET(request: Request) {
   const { skip } = getPaginationParams(searchParams, limit);
 
   try {
+    const club = clubId
+      ? await prisma.club.findUnique({
+          where: { id: clubId },
+          select: { id: true, name: true },
+        })
+      : null;
+
     const where = buildMemberWhere({
       search,
-      clubId,
+      clubId: club?.id ?? clubId,
+      clubName: club?.name,
       role: memberRole,
       status,
       duesPaid,
     });
+
+    if (club) {
+      const all = await prisma.member.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        include: { club: { select: { id: true, name: true } } },
+      });
+      const visible = filterHomeClubAffiliates(all, club);
+      const pageItems = visible.slice(skip, skip + limit);
+      return NextResponse.json(
+        buildPaginatedResult(
+          pageItems.map(serializeMemberListItem),
+          visible.length,
+          page,
+          limit
+        )
+      );
+    }
 
     const [members, total] = await Promise.all([
       prisma.member.findMany({

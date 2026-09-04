@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
 import { canAccessClubRecord } from "@/lib/club-access";
+import { findClubRosterMembers } from "@/lib/club-home";
 import { serializeMemberListItem } from "@/lib/member";
-import { handleRouteError, forbidden } from "@/lib/api-errors";
+import { handleRouteError, forbidden, notFound } from "@/lib/api-errors";
 import type { UserRole } from "@/types/auth";
 
 interface RouteParams {
@@ -22,10 +23,15 @@ export async function GET(_request: Request, { params }: RouteParams) {
   }
 
   try {
-    const members = await prisma.member.findMany({
-      where: { clubId: id },
-      orderBy: { lastName: "asc" },
+    const club = await prisma.club.findUnique({
+      where: { id },
+      select: { id: true, name: true },
+    });
+    if (!club) return notFound("Club not found.");
+
+    const members = await findClubRosterMembers(prisma, club, {
       include: { club: { select: { id: true, name: true } } },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     });
 
     return NextResponse.json(members.map(serializeMemberListItem));
