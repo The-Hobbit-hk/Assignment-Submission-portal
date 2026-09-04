@@ -540,6 +540,29 @@ export const DUES_PAID_LISTS: ClubDuesPaidList[] = [
       { name: "Anirudh Sawlekar", riId: "10108061" },
     ],
   },
+  {
+    clubName: "Rotaract Club of Nigdi-Pune",
+    clubCharterId: "8825815",
+    members: [
+      { name: "Sailendra Betu", riId: "11860934" },
+      { name: "Ajay Nehra", riId: "10999456" },
+      { name: "Deeya Lasaria", riId: "12343800" },
+      { name: "Onkar Salunke", riId: "11818697" },
+      { name: "Advait Dalal", riId: "12344318" },
+      { name: "Yash Mishra", riId: "11967048" },
+      { name: "Ivan Joshua", riId: "11277124" },
+      { name: "Divesh Panjabi", riId: "11829632" },
+      { name: "Omkar Pawar", riId: "11584025" },
+      { name: "Priya Bhagwani", riId: "12686491" },
+      { name: "Gunjan Chaudhari", riId: "11018579" },
+      { name: "Janya Chinappa", riId: "12423752" },
+      { name: "Jannika Chinappa", riId: "12423751" },
+      { name: "Sharwari Dashputre", riId: "11584597" },
+      { name: "Arnav Datta", riId: "11126181" },
+      { name: "Sandhyarani Kolnure", riId: "12424618" },
+      { name: "Sagar Gaikwad", riId: "11583950" },
+    ],
+  },
 ];
 
 /** Normalize person names for dues matching. */
