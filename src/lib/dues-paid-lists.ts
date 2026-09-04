@@ -563,6 +563,35 @@ export const DUES_PAID_LISTS: ClubDuesPaidList[] = [
       { name: "Sagar Gaikwad", riId: "11583950" },
     ],
   },
+  {
+    clubName: "Rotaract Club of Bavdhan Pioneers",
+    clubCharterId: "8827103",
+    members: [
+      { name: "Sahasra Koppala", riId: "12298125" },
+      { name: "Khushi Malhotra", riId: "12298134" },
+      { name: "Risha Mridha", riId: "12460364" },
+      { name: "Arnav Tavargeri", riId: "12460837" },
+      { name: "Devanshi Mitra", riId: "12298109" },
+      { name: "Rohit Kumbhar", riId: "10964797" },
+      { name: "Yosha Roy", riId: "12658295" },
+      { name: "Mothukuri Sankara Shishir Vasista", riId: "12692343" },
+      { name: "Sachi Saraf", riId: "12732759" },
+      { name: "Aaishah Thameem", riId: "12732121" },
+      { name: "Pratishtha Agarwal", riId: "12732752" },
+      { name: "Aanya Garg", riId: "12732706" },
+      // Sheet reused PRO RI ID; match Chetna by name only.
+      { name: "Chetna Ramakhyani" },
+      { name: "Manas Patil", riId: "12299143" },
+      { name: "Nishika Pherwani", riId: "2298128" },
+      { name: "Vennela M Chandra", riId: "12732672" },
+      { name: "Shreya Sandbhor", riId: "12499840" },
+      { name: "Harshvardhan Kale", riId: "10843281" },
+      { name: "Riya Bhalerao", riId: "12338610" },
+      { name: "Anishka Sachdev", riId: "12299127" },
+      { name: "Bhavya Mimani" },
+      { name: "Tanishka Narsaria" },
+    ],
+  },
 ];
 
 /** Normalize person names for dues matching. */
