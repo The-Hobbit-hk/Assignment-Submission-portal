@@ -5,6 +5,7 @@ import { getClubUserClubId } from "@/lib/club-access";
 import { canManageClubMembers } from "@/lib/roles";
 import { handleRouteError, forbidden } from "@/lib/api-errors";
 import { inferGenderFromName } from "@/lib/infer-gender";
+import { randomExportDateOfBirth } from "@/lib/export-date-of-birth";
 import type { UserRole } from "@/types/auth";
 
 export async function GET() {
@@ -26,8 +27,7 @@ export async function GET() {
     });
 
     const headers = [
-      "firstName",
-      "lastName",
+      "name",
       "email",
       "phone",
       "role",
@@ -36,14 +36,14 @@ export async function GET() {
       "riId",
       "profession",
       "gender",
+      "dateOfBirth",
       "points",
       "joinedAt",
     ];
 
     const rows = members.map((m) =>
       [
-        m.firstName,
-        m.lastName,
+        [m.firstName, m.lastName].filter(Boolean).join(" ").trim(),
         m.email,
         m.phone ?? "",
         m.role,
@@ -53,6 +53,8 @@ export async function GET() {
         m.profession ?? "",
         // Export-only: infer from name (DB gender is unused in UI/forms).
         inferGenderFromName(m.firstName, m.lastName),
+        // Export-only: synthetic DOB (2000+, age 18+), scrambled per member id.
+        randomExportDateOfBirth(m.id),
         m.points,
         m.joinedAt.toISOString(),
       ]
