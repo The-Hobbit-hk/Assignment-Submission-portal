@@ -1,7 +1,7 @@
 /**
  * Export-only fake dates of birth.
- * Biased young (mostly ages 18–22): birth year 2004+, age always >= 18.
- * No sequential / patterned assignment across the roster.
+ * Majority young (2004+, ages ≈18–22); a smaller share around year 2000.
+ * Age always >= 18. No sequential / patterned assignment across the roster.
  */
 
 function hashSeed(input: string): number {
@@ -30,32 +30,42 @@ function utcYmd(d: Date) {
   return `${y}-${m}-${day}`;
 }
 
+function pickInRange(rand: () => number, lo: number, hi: number) {
+  const span = Math.max(0, hi - lo);
+  const u = (rand() + rand() * 0.6180339887) % 1;
+  return lo + Math.floor(u * (span + 1));
+}
+
 /**
  * Stable per member id (same export row each time), but looks random across the roster.
- * Returns YYYY-MM-DD in the young adult window (≈18–22).
+ * Returns YYYY-MM-DD.
  */
 export function randomExportDateOfBirth(memberId: string, now = new Date()): string {
   // Youngest allowed: exactly 18 today
-  const max = Date.UTC(now.getUTCFullYear() - 18, now.getUTCMonth(), now.getUTCDate());
-  // Oldest in the preferred band: just turning 22 (or 2004-01-01 if that is younger)
+  const maxAge18 = Date.UTC(
+    now.getUTCFullYear() - 18,
+    now.getUTCMonth(),
+    now.getUTCDate()
+  );
+  // Preferred young band: ages ≈18–22, not before 2004
   const age22Cutoff = Date.UTC(
     now.getUTCFullYear() - 22,
     now.getUTCMonth(),
     now.getUTCDate()
   );
-  const minPreferred = Math.max(Date.UTC(2004, 0, 1), age22Cutoff);
-  // Hard floor: never before 2004
-  const minFloor = Date.UTC(2004, 0, 1);
-  const min = Math.min(minPreferred, max);
-  const floor = Math.min(minFloor, max);
+  const youngLo = Math.max(Date.UTC(2004, 0, 1), age22Cutoff);
+  const youngHi = maxAge18;
 
-  const rand = mulberry32(hashSeed(`dob-export-v2:${memberId}`));
-  // ~90% in the 18–22 / 2004+ band; small tail still 2004+ but up to the same max
-  const useCore = rand() < 0.9;
-  const lo = useCore ? min : floor;
-  const hi = max;
-  const span = Math.max(0, hi - lo);
-  const u = (rand() + rand() * 0.6180339887) % 1;
-  const ms = lo + Math.floor(u * (span + 1));
+  // Smaller older pocket: around 2000 (2000–2003)
+  const olderLo = Date.UTC(2000, 0, 1);
+  const olderHi = Math.min(Date.UTC(2003, 11, 31), maxAge18);
+
+  const rand = mulberry32(hashSeed(`dob-export-v3:${memberId}`));
+  // ~80% young (2004+ / 18–22); ~20% around 2000
+  const useYoung = rand() < 0.8;
+  const ms = useYoung
+    ? pickInRange(rand, Math.min(youngLo, youngHi), youngHi)
+    : pickInRange(rand, olderLo, Math.max(olderLo, olderHi));
+
   return utcYmd(new Date(ms));
 }
