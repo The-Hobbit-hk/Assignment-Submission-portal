@@ -53,7 +53,7 @@ export async function GET() {
         m.profession ?? "",
         // Export-only: infer from name (DB gender is unused in UI/forms).
         inferGenderFromName(m.firstName, m.lastName),
-        // Export-only: synthetic DOB (2000+, age 18+), scrambled per member id.
+        // Export-only: synthetic DOB (2004+, mostly ages 18–22), scrambled per member id.
         randomExportDateOfBirth(m.id),
         m.points,
         m.joinedAt.toISOString(),
