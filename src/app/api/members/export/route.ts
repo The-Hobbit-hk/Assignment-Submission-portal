@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { getClubUserClubId } from "@/lib/club-access";
 import { canManageClubMembers } from "@/lib/roles";
 import { handleRouteError, forbidden } from "@/lib/api-errors";
+import { inferGenderFromName } from "@/lib/infer-gender";
 import type { UserRole } from "@/types/auth";
 
 export async function GET() {
@@ -34,6 +35,7 @@ export async function GET() {
       "club",
       "riId",
       "profession",
+      "gender",
       "points",
       "joinedAt",
     ];
@@ -49,6 +51,8 @@ export async function GET() {
         m.club.name,
         m.riId ?? "",
         m.profession ?? "",
+        // Export-only: infer from name (DB gender is unused in UI/forms).
+        inferGenderFromName(m.firstName, m.lastName),
         m.points,
         m.joinedAt.toISOString(),
       ]

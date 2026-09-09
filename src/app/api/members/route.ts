@@ -150,7 +150,6 @@ export async function POST(request: Request) {
         riId,
         profession: data.profession,
         bio: data.bio,
-        gender: data.gender,
         dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth) : undefined,
         duesPaid: data.duesPaid || null,
         bloodGroup: data.bloodGroup,

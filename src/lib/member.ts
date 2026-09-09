@@ -27,7 +27,8 @@ export function serializeMemberListItem(member: MemberWithClub): MemberListItem 
     joinedAt: member.joinedAt.toISOString(),
     riId: member.riId,
     profession: member.profession,
-    gender: member.gender,
+    // gender is export-only (inferred in /api/members/export); omit from UI payloads
+    gender: null,
     dateOfBirth: member.dateOfBirth?.toISOString() ?? null,
     duesPaid: member.duesPaid,
     duesProofUrl: member.duesProofUrl,
