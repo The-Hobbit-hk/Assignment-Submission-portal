@@ -13,8 +13,8 @@ config({ path: ".env.local" });
 config();
 
 const CLUB_NAME = "Rotaract Club of Symbiosis Artificial Intelligence Institute";
-/** Provisional local charter id until official RI id is known. */
-const CHARTER = "3131-SAII-01";
+/** Official RI club id from zonal allocation sheet. */
+const CHARTER = "8828101";
 const ZONE = "Zone 6";
 const CITY = "Pune";
 

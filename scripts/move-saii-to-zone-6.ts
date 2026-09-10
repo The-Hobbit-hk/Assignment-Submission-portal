@@ -24,7 +24,7 @@ async function main() {
     const updated = await prisma.club.updateMany({
       where: {
         OR: [
-          { charterNumber: "3131-SAII-01" },
+          { charterNumber: "8828101" },
           { name: { contains: "Symbiosis Artificial Intelligence", mode: "insensitive" } },
         ],
       },
@@ -34,7 +34,7 @@ async function main() {
     const club = await prisma.club.findFirst({
       where: {
         OR: [
-          { charterNumber: "3131-SAII-01" },
+          { charterNumber: "8828101" },
           { name: { contains: "Symbiosis Artificial Intelligence", mode: "insensitive" } },
         ],
       },
