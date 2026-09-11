@@ -74,14 +74,49 @@ export function buildClubRosterWhere(
 }
 
 /** Keep only true homeClub matches (avoids loose contains false positives). */
-export function filterHomeClubAffiliates<T extends { clubId: string; homeClub?: string | null }>(
-  members: T[],
-  club: { id: string; name: string }
-) {
-  return members.filter(
+export function filterHomeClubAffiliates<
+  T extends {
+    clubId: string;
+    homeClub?: string | null;
+    email?: string | null;
+    riId?: string | null;
+  },
+>(members: T[], club: { id: string; name: string }) {
+  const affiliated = members.filter(
     (member) =>
       member.clubId === club.id || homeClubMatches(member.homeClub, club.name)
   );
+
+  // Prefer the club roster row when the same person also appears as a council
+  // homeClub affiliate (same email / RI ID) — avoids duplicate list entries that
+  // club officers cannot open (council clubId ≠ their club).
+  const clubEmails = new Set(
+    affiliated
+      .filter((m) => m.clubId === club.id && m.email)
+      .map((m) => m.email!.toLowerCase().trim())
+  );
+  const clubRiIds = new Set(
+    affiliated
+      .filter((m) => m.clubId === club.id && m.riId?.trim())
+      .map((m) => m.riId!.trim())
+  );
+
+  return affiliated.filter((member) => {
+    if (member.clubId === club.id) return true;
+    const email = member.email?.toLowerCase().trim();
+    if (email && clubEmails.has(email)) return false;
+    const riId = member.riId?.trim();
+    if (riId && clubRiIds.has(riId)) return false;
+    return true;
+  });
+}
+
+/** Club officers may view (not mutate) council members whose homeClub is their club. */
+export function isHomeClubAffiliateOf(
+  member: { homeClub?: string | null },
+  clubName: string | null | undefined
+) {
+  return !!clubName && homeClubMatches(member.homeClub, clubName);
 }
 
 export async function findClubRosterMembers(

@@ -71,21 +71,55 @@ export async function GET() {
       select: paidMemberSelect,
     });
 
+    const clubIds = clubs.map((c) => c.id);
+    const clubRosterKeys = await prisma.member.findMany({
+      where: { clubId: { in: clubIds } },
+      select: { clubId: true, email: true, riId: true },
+    });
+    const emailsByClub = new Map<string, Set<string>>();
+    const riIdsByClub = new Map<string, Set<string>>();
+    for (const row of clubRosterKeys) {
+      if (row.email) {
+        const set = emailsByClub.get(row.clubId) ?? new Set<string>();
+        set.add(row.email.toLowerCase().trim());
+        emailsByClub.set(row.clubId, set);
+      }
+      if (row.riId?.trim()) {
+        const set = riIdsByClub.get(row.clubId) ?? new Set<string>();
+        set.add(row.riId.trim());
+        riIdsByClub.set(row.clubId, set);
+      }
+    }
+
     const allCouncilHome = await prisma.member.findMany({
       where: { homeClub: { not: null } },
-      select: { id: true, clubId: true, homeClub: true },
+      select: { id: true, clubId: true, homeClub: true, email: true, riId: true },
     });
 
     const groups: DistrictDuesPaidClubGroup[] = clubs
       .map((club) => {
         const directPaid = club.members;
-        const affiliatePaid = paidCouncil.filter(
-          (member) =>
-            member.clubId !== club.id && homeClubMatches(member.homeClub, club.name)
-        );
-        const byId = new Map<string, DistrictDuesPaidMember>();
+        const rosterEmails = emailsByClub.get(club.id) ?? new Set<string>();
+        const rosterRiIds = riIdsByClub.get(club.id) ?? new Set<string>();
+        const affiliatePaid = paidCouncil.filter((member) => {
+          if (member.clubId === club.id || !homeClubMatches(member.homeClub, club.name)) {
+            return false;
+          }
+          const email = member.email?.toLowerCase().trim();
+          if (email && rosterEmails.has(email)) return false;
+          const riId = member.riId?.trim();
+          if (riId && rosterRiIds.has(riId)) return false;
+          return true;
+        });
+
+        const byKey = new Map<string, DistrictDuesPaidMember>();
         for (const member of [...directPaid, ...affiliatePaid]) {
-          byId.set(member.id, {
+          const key =
+            member.email?.toLowerCase().trim() ||
+            member.riId?.trim() ||
+            member.id;
+          if (byKey.has(key)) continue;
+          byKey.set(key, {
             id: member.id,
             firstName: member.firstName,
             lastName: member.lastName,
@@ -95,14 +129,20 @@ export async function GET() {
             status: member.status,
           });
         }
-        const members = [...byId.values()].sort((a, b) =>
+        const members = [...byKey.values()].sort((a, b) =>
           `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
         );
 
-        const affiliateRosterCount = allCouncilHome.filter(
-          (member) =>
-            member.clubId !== club.id && homeClubMatches(member.homeClub, club.name)
-        ).length;
+        const affiliateRosterCount = allCouncilHome.filter((member) => {
+          if (member.clubId === club.id || !homeClubMatches(member.homeClub, club.name)) {
+            return false;
+          }
+          const email = member.email?.toLowerCase().trim();
+          if (email && rosterEmails.has(email)) return false;
+          const riId = member.riId?.trim();
+          if (riId && rosterRiIds.has(riId)) return false;
+          return true;
+        }).length;
 
         return {
           club: {

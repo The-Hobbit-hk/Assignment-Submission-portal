@@ -27,7 +27,9 @@ export function MemberProfileCard({ memberId }: MemberProfileCardProps) {
 
   if (error || !member) {
     return (
-      <div className="text-center text-destructive">Member not found.</div>
+      <div className="text-center text-destructive">
+        {error instanceof Error ? error.message : "Member not found."}
+      </div>
     );
   }
 

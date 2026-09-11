@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/api-auth";
-import { canAccessMemberRecord } from "@/lib/club-access";
+import { canAccessMemberRecord, getClubUserClubId } from "@/lib/club-access";
 import { canReassignMemberPrivilegedFields } from "@/lib/roles";
+import { isHomeClubAffiliateOf } from "@/lib/club-home";
 import { serializeMemberDetail, generateProspectiveId } from "@/lib/member";
 import { updateMemberSchema, MEMBER_SELF_EDITABLE_FIELDS } from "@/lib/validators/member";
 import { logActivity } from "@/lib/activity";
@@ -27,12 +28,33 @@ function isOwnMemberRecord(
   );
 }
 
+async function canViewMember(
+  session: { user: { role: UserRole; clubId?: string | null; id?: string; email?: string | null } },
+  member: { clubId: string; homeClub?: string | null; userId: string | null; email: string }
+) {
+  const role = session.user.role;
+  if (canAccessMemberRecord({ role, clubId: session.user.clubId }, member.clubId)) {
+    return true;
+  }
+  if (isOwnMemberRecord(session, member)) {
+    return true;
+  }
+
+  const ownClubId = getClubUserClubId({ role, clubId: session.user.clubId });
+  if (!ownClubId || !member.homeClub) return false;
+
+  const club = await prisma.club.findUnique({
+    where: { id: ownClubId },
+    select: { name: true },
+  });
+  return isHomeClubAffiliateOf(member, club?.name);
+}
+
 export async function GET(_request: Request, { params }: RouteParams) {
   const { session, error } = await requireAuth();
   if (error) return error;
 
   const { id } = await params;
-  const role = session!.user.role as UserRole;
 
   try {
     const member = await prisma.member.findUnique({
@@ -44,13 +66,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
       return notFound("Member not found.");
     }
 
-    if (
-      !canAccessMemberRecord(
-        { role, clubId: session!.user.clubId },
-        member.clubId
-      ) &&
-      !isOwnMemberRecord(session!, member)
-    ) {
+    if (!(await canViewMember(session!, member))) {
       return forbidden();
     }
 
