@@ -283,6 +283,8 @@ export const RESOURCE_PAGES: Record<
     title: "Rotaract Directory",
     description:
       "District directory of Rotaract clubs, office bearers, and council contacts for RID 3131.",
+    externalUrl:
+      "https://drive.google.com/file/d/1VKiMpUO2H-Icieznds2GX6BJVvU3qT8K/view?usp=sharing",
   },
   "district-calendar": {
     title: "District Calendar",
