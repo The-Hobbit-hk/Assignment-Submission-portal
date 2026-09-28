@@ -102,7 +102,7 @@ export function ResourcesExplorer() {
               const Icon = meta?.icon;
               const cat = meta?.category ?? "District";
               const gradient = CATEGORY_GRADIENT[cat];
-              const isExternal = Boolean(resource.externalUrl);
+              const isExternal = Boolean(resource.externalUrl) && !resource.coverImage;
               const href = isExternal ? resource.externalUrl! : `/resources/${slug}`;
 
               const card = (

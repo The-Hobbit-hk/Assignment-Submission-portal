@@ -257,7 +257,12 @@ export const ABOUT_PAGES: Record<string, ContentPage> = {
 
 export const RESOURCE_PAGES: Record<
   string,
-  { title: string; description: string; externalUrl?: string }
+  {
+    title: string;
+    description: string;
+    externalUrl?: string;
+    coverImage?: string;
+  }
 > = {
   "rotaract-handbook": {
     title: "Rotaract Handbook",
@@ -283,6 +288,7 @@ export const RESOURCE_PAGES: Record<
     title: "Rotaract Directory",
     description:
       "District directory of Rotaract clubs, office bearers, and council contacts for RID 3131.",
+    coverImage: "/rotaract-directory-cover.jpg",
     externalUrl:
       "https://drive.google.com/file/d/1VKiMpUO2H-Icieznds2GX6BJVvU3qT8K/view?usp=sharing",
   },
