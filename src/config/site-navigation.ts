@@ -25,7 +25,7 @@ export const SITE_NAV: SiteNavItem[] = [
       { label: "Council on Legislation (COL)", href: "/resources/council-on-legislation" },
       { label: "Rotaract Directory", href: "/resources/rotaract-directory" },
       { label: "District Calendar", href: "/resources/district-calendar" },
-      { label: "Rotary Standard Constitution", href: "/resources/rotary-standard-constitution" },
+      { label: "Standard Bylaws", href: "/resources/rotary-standard-constitution" },
       { label: "MOP - Manual of procedure", href: "/resources/manual-of-procedure" },
       { label: "Logo Resources", href: "/resources/logo-resources" },
       { label: "Awards Structure RIY 2026-27", href: "/resources/awards-structure-riy-2026-27" },

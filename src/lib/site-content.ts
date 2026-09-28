@@ -268,11 +268,15 @@ export const RESOURCE_PAGES: Record<
     title: "Rotaract Handbook",
     description:
       "Official handbook covering Rotaract structure, club operations, reporting standards, and district guidelines for RIY 2026-27.",
+    externalUrl:
+      "https://drive.google.com/file/d/1gi-h2Tji-06B1PqOwJdxMMrS6tyBdbeN/view?usp=sharing",
   },
   "rotary-code-of-policies": {
     title: "Rotary Code of Policies",
     description:
       "Reference document for Rotary International policies governing clubs, districts, and member conduct.",
+    externalUrl:
+      "https://drive.google.com/file/d/1JsfXC5ozhW5ZO8hR0exZkdEymzl1YEUK/view?usp=sharing",
   },
   "rotary-club-excellence-guide": {
     title: "Rotary Club Excellence Guide",
@@ -283,6 +287,8 @@ export const RESOURCE_PAGES: Record<
     title: "Council on Legislation (COL)",
     description:
       "Materials related to the Council on Legislation — Rotary's legislative body for constitutional and policy matters.",
+    externalUrl:
+      "https://drive.google.com/file/d/1PPDhLwpMY-3AUaic0bWu77yGmufiQrQ0/view?usp=sharing",
   },
   "rotaract-directory": {
     title: "Rotaract Directory",
@@ -296,22 +302,29 @@ export const RESOURCE_PAGES: Record<
     title: "District Calendar",
     description:
       "Key dates, district events, reporting windows, and council milestones for the Rotary year.",
+    externalUrl:
+      "https://drive.google.com/file/d/1uSjE8ulR3W5BiZPVbqWFWVXedGr2F9sv/view?usp=sharing",
   },
   "rotary-standard-constitution": {
-    title: "Rotary Standard Constitution",
+    title: "Standard Bylaws",
     description:
-      "Standard constitution document for Rotary clubs — foundational governance reference.",
+      "Standard bylaws document for Rotary clubs — foundational governance reference.",
+    externalUrl:
+      "https://docs.google.com/document/d/1i3FLFdjBxqOxAMYmPCMjq3FkfBaIJMts/edit?usp=sharing",
   },
   "manual-of-procedure": {
     title: "MOP - Manual of Procedure",
     description:
       "Rotary Manual of Procedure — procedural rules for districts, clubs, and RI governance.",
+    externalUrl:
+      "https://drive.google.com/drive/folders/1MTRvVuTCeuQW-n4B2yAskfDho8cjDcFe?usp=sharing",
   },
   "logo-resources": {
     title: "Logo Resources",
     description:
       "Official Rotaract and Rotary logos, brand guidelines, and approved assets for district use.",
-    externalUrl: "/logo-rotaract-3131.png",
+    externalUrl:
+      "https://drive.google.com/drive/folders/1W3K-qaQQSKpoG_1HF5gl7PEImBw93psE?usp=sharing",
   },
   "awards-structure-riy-2026-27": {
     title: "Awards Structure RIY 2026-27",
