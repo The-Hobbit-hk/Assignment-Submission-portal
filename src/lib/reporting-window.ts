@@ -55,7 +55,7 @@ export async function getReportingPeriod(reportMonth: number, reportYear: number
 export async function isReportingWindowOpen(
   reportMonth?: number,
   reportYear?: number,
-  opts?: { userEmail?: string | null }
+  opts?: { userEmail?: string | null; role?: string | null }
 ) {
   const now = new Date();
   const active = getActiveReportPeriod(now);
@@ -64,7 +64,11 @@ export async function isReportingWindowOpen(
   const period = await ensureReportingPeriod(m, y);
   const labels = getSubmissionWindowLabel(m, y);
 
-  if (isSubmissionWindowsBypassEnabled() || isReportingAlwaysOpenUser(opts?.userEmail)) {
+  if (
+    isSubmissionWindowsBypassEnabled() ||
+    isReportingAlwaysOpenUser(opts?.userEmail) ||
+    opts?.role === "REPORTING_SECRETARY"
+  ) {
     return {
       open: true,
       period,

@@ -70,7 +70,7 @@ export function canSubmitCouncilBluebook(role: UserRole) {
 }
 
 export function canSubmitClubReporting(role: UserRole) {
-  return isClubUser(role) || DISTRICT_ROLES.includes(role);
+  return isClubUser(role) || isReportingSecretary(role);
 }
 
 export function canViewAllClubReports(role: UserRole) {
@@ -130,10 +130,10 @@ export function canGenerateMonthlyReportingDeck(
 
 /**
  * District Dues overview — the finance data submitted by clubs in Admin Reporting.
- * Visible to the DRR (district admin), Super Admin, and the District Treasurer.
+ * Visible to district admins, the Reporting Secretary, and the District Treasurer.
  */
 export function canViewDistrictDues(role: UserRole, email?: string | null) {
-  return DISTRICT_ROLES.includes(role) || isDistrictTreasurer(email);
+  return isReportingSecretary(role) || isDistrictTreasurer(email);
 }
 
 /** DRR / system admin only — create definitions, assign, and approve citations. */
@@ -293,7 +293,9 @@ export function getNavigationForRole(
       href: "/dashboard/reporting/club-reports",
       icon: Building2,
     });
-  } else if (DISTRICT_ROLES.includes(role)) {
+  }
+
+  if (canExportDistrictReports(role)) {
     reportingChildren.push({
       title: "Export",
       href: "/dashboard/reports",

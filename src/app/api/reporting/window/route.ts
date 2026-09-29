@@ -18,6 +18,7 @@ export async function GET(request: Request) {
 
   const result = await isReportingWindowOpen(month, year, {
     userEmail: session!.user.email,
+    role: session!.user.role,
   });
   const labels = getSubmissionWindowLabel(month, year);
 
