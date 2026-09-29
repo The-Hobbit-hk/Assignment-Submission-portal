@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
     "exceljs",
     "@supabase/supabase-js",
     "node-ical",
+    "sharp",
   ],
   images: {
     remotePatterns: [

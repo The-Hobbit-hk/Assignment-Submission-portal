@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
+import { compressForStorage } from "@/lib/compress-for-storage";
 import {
   getSupabaseAdmin,
   isSupabaseStorageEnabled,
@@ -68,12 +69,16 @@ async function savePrivateUploadToSupabase(file: File, subfolder: string): Promi
 
   const ext = path.extname(file.name) || getExtFromMime(file.type);
   const objectPath = `${subfolder}/${randomUUID()}${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const compressed = await compressForStorage(
+    Buffer.from(await file.arrayBuffer()),
+    file.type,
+    ext
+  );
 
   const { error } = await supabase.storage
     .from(SUPABASE_PRIVATE_BUCKET)
-    .upload(objectPath, buffer, {
-      contentType: file.type || "application/octet-stream",
+    .upload(objectPath, compressed.buffer, {
+      contentType: compressed.contentType,
       upsert: false,
     });
 
@@ -167,12 +172,16 @@ async function saveUploadToSupabase(file: File, subfolder: string): Promise<stri
 
   const ext = path.extname(file.name) || getExtFromMime(file.type);
   const objectPath = `${subfolder}/${randomUUID()}${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const compressed = await compressForStorage(
+    Buffer.from(await file.arrayBuffer()),
+    file.type,
+    ext
+  );
 
   const { error } = await supabase.storage
     .from(SUPABASE_UPLOAD_BUCKET)
-    .upload(objectPath, buffer, {
-      contentType: file.type || "application/octet-stream",
+    .upload(objectPath, compressed.buffer, {
+      contentType: compressed.contentType,
       upsert: false,
     });
 
@@ -190,10 +199,13 @@ async function saveUploadToSupabase(file: File, subfolder: string): Promise<stri
 }
 
 async function saveUploadToDisk(file: File, subfolder: string): Promise<string> {
-  const bytes = await file.arrayBuffer();
-  const buffer = Buffer.from(bytes);
-
   const ext = path.extname(file.name) || getExtFromMime(file.type);
+  const compressed = await compressForStorage(
+    Buffer.from(await file.arrayBuffer()),
+    file.type,
+    ext
+  );
+  const buffer = compressed.buffer;
   const filename = `${randomUUID()}${ext}`;
   const dir = path.join(UPLOAD_ROOT, subfolder);
 

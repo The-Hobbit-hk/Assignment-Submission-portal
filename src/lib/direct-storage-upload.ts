@@ -1,4 +1,5 @@
 import { ApiError } from "@/lib/api-client";
+import { compressFileForUpload } from "@/lib/compress-for-storage-client";
 
 /** Normalize phone/browser MIME quirks before signing uploads. */
 export function guessContentType(fileName: string, type?: string | null): string {
@@ -74,6 +75,7 @@ export async function putFileToSignedUrl(
   attempts = 3
 ): Promise<void> {
   let lastErr: unknown;
+  const prepared = await compressFileForUpload(file);
 
   for (let i = 0; i < attempts; i++) {
     try {
@@ -82,7 +84,7 @@ export async function putFileToSignedUrl(
         headers: {
           "Content-Type": contentType || "application/octet-stream",
         },
-        body: file,
+        body: prepared,
       });
 
       if (put.ok) return;
