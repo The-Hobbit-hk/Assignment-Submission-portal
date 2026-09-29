@@ -100,12 +100,14 @@ export function ClubReportsView() {
               </Button>
               <Button variant="outline" size="sm" asChild>
                 <a href={`/api/reporting/export/admin?${exportParams}`} download>
-                  Admin only
+                  <Download className="h-4 w-4" />
+                  Admin Excel
                 </a>
               </Button>
               <Button variant="outline" size="sm" asChild>
                 <a href={`/api/reporting/export/events?${exportParams}`} download>
-                  Events only
+                  <Download className="h-4 w-4" />
+                  Events Excel
                 </a>
               </Button>
             </div>

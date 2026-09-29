@@ -75,6 +75,7 @@ export function AdminSubmissionsView() {
   const clubs = data?.clubs ?? [];
   const summary = data?.summary;
   const exportParams = new URLSearchParams({ month: String(month), year: String(year) });
+  if (zone) exportParams.set("zone", zone);
 
   const zoneOptions = useMemo(() => DISTRICT_ZONE_META.map((z) => z.zone), []);
 

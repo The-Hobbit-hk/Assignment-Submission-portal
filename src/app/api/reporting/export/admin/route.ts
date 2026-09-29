@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
 import { rowsToExcel } from "@/lib/export";
+import { adminReportExportRow, ADMIN_REPORT_EXPORT_HEADERS } from "@/lib/reporting-export-rows";
 import { OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { DISTRICT_ROLES } from "@/lib/roles";
 import { getActiveReportPeriod } from "@/lib/reporting-window";
@@ -19,57 +20,29 @@ export async function GET(request: Request) {
   const active = getActiveReportPeriod();
   const month = parseInt(searchParams.get("month") ?? String(active.month));
   const year = parseInt(searchParams.get("year") ?? String(active.year));
+  const zone = searchParams.get("zone")?.trim() || null;
 
   try {
     const clubs = await prisma.club.findMany({
-      where: OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER,
-      orderBy: { name: "asc" },
+      where: {
+        ...OFFICIAL_DISTRICT_REPORTING_CLUB_FILTER,
+        ...(zone ? { zone } : {}),
+      },
+      orderBy: [{ zone: "asc" }, { name: "asc" }],
     });
 
     const reports = await prisma.monthlyReport.findMany({
       where: { type: "ADMIN", month, year },
     });
 
-    const headers = [
-      "Club Name",
-      "New Members",
-      "Resolution Passed",
-      "Resolution Date of Passing",
-      "District Dues Paid",
-      "Dues Paid For (Members)",
-      "Dues Amount Paid",
-      "Bylaws Passed",
-      "Bylaws Date of Passing",
-      "Master Budget Passed",
-      "Master Budget Date of Passing",
-      "Host Club",
-      "District Event Attendance",
-      "Status",
-      "Submitted At",
-    ];
+    const rows = clubs.map((club) =>
+      adminReportExportRow(
+        club,
+        reports.find((rep) => rep.clubId === club.id)
+      )
+    );
 
-    const rows = clubs.map((club) => {
-      const r = reports.find((rep) => rep.clubId === club.id);
-      return [
-        club.name,
-        r?.newMembers ?? "",
-        r?.resolutionPassed ?? "",
-        r?.resolutionPassDate ? r.resolutionPassDate.toISOString().slice(0, 10) : "",
-        r?.districtDuesPaid ?? "",
-        r?.districtDuesMembersCount ?? "",
-        r?.districtDuesAmount ?? "",
-        r?.bylawsPassed ?? "",
-        r?.bylawsPassDate ? r.bylawsPassDate.toISOString().slice(0, 10) : "",
-        r?.masterBudgetPassed ?? "",
-        r?.masterBudgetPassDate ? r.masterBudgetPassDate.toISOString().slice(0, 10) : "",
-        r?.hostClub ?? "",
-        r?.districtEventAttendance ?? "",
-        r?.status ?? "NOT SUBMITTED",
-        r?.submittedAt?.toISOString() ?? "",
-      ];
-    });
-
-    const buffer = await rowsToExcel("Admin Reports", headers, rows);
+    const buffer = await rowsToExcel("Admin Reports", [...ADMIN_REPORT_EXPORT_HEADERS], rows);
     return new NextResponse(new Uint8Array(buffer), {
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -31,7 +31,15 @@ export async function multiSheetExcel(
   for (const { name, headers, rows } of sheets) {
     const sheet = workbook.addWorksheet(name.slice(0, 31));
     sheet.addRow(headers);
-    rows.forEach((row) => sheet.addRow(row));
+    rows.forEach((row) => {
+      const added = sheet.addRow(row);
+      added.eachCell((cell) => {
+        const value = cell.value;
+        if (typeof value === "string" && /^https?:\/\//i.test(value)) {
+          cell.value = { text: value, hyperlink: value };
+        }
+      });
+    });
     sheet.getRow(1).font = { bold: true };
   }
   const buffer = await workbook.xlsx.writeBuffer();

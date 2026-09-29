@@ -112,7 +112,15 @@ export function EventsReportingForm() {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  downloadEventsExcel(month, year, false);
+                  if (canExportDistrict) {
+                    const params = new URLSearchParams({
+                      month: String(month),
+                      year: String(year),
+                    });
+                    globalThis.location.href = `/api/reporting/export/events?${params}`;
+                  } else {
+                    downloadEventsExcel(month, year, false);
+                  }
                   toast.success("Downloading events Excel…");
                 }}
               >

@@ -73,8 +73,8 @@ export async function GET(request: Request) {
       "Attendance",
       "Max Attendees",
       "For District Newsletter",
-      "Banner URL",
-      "Minutes PDF URL",
+      "Minutes URL",
+      "Image URL",
     ];
 
     const rows = events.map((event) => [
@@ -92,8 +92,8 @@ export async function GET(request: Request) {
       event.attendees,
       event.maxAttendees ?? "",
       event.forDistrictNewsletter ? "Yes" : "No",
-      event.bannerUrl ?? "",
       event.minutesPdfUrl ?? "",
+      event.bannerUrl ?? "",
     ]);
 
     const sheetName = newsletterOnly ? "Newsletter Events" : "Club Events";

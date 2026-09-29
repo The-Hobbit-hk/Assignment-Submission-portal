@@ -11,6 +11,13 @@ import { getActiveReportPeriod } from "@/lib/reporting-window";
 import { OFFICIAL_DISTRICT_CLUB_FILTER } from "@/lib/district-clubs-data";
 import { DISTRICT_ROLES } from "@/lib/roles";
 import { handleRouteError } from "@/lib/api-errors";
+import {
+  ADMIN_REPORT_EXPORT_HEADERS,
+  EVENT_SUBMISSION_EXPORT_HEADERS,
+  adminReportExportRow,
+  eventSubmissionExportRow,
+  noEventSubmissionExportRow,
+} from "@/lib/reporting-export-rows";
 
 export async function GET(request: Request) {
   const { error } = await requireRole(["REPORTING_SECRETARY", ...DISTRICT_ROLES]);
@@ -77,46 +84,37 @@ export async function GET(request: Request) {
       countByClub.get(row.club.id) ?? 0,
     ]);
 
-    const adminHeaders = [
-      "Club",
-      "Zone",
-      "Club Status",
-      "New Members",
-      "Resolution Passed",
-      "Resolution Date of Passing",
-      "District Dues Paid",
-      "Dues Paid For (Members)",
-      "Dues Amount Paid",
-      "Host Club",
-      "District Event Attendance",
-      "Status",
-      "Submitted At",
-    ];
-    const adminRows = activeRows.map((row) => [
-      row.club.name,
-      row.club.zone ?? "",
-      row.club.status,
-      row.admin?.newMembers ?? "",
-      row.admin?.resolutionPassed ?? "",
-      row.admin?.resolutionPassDate ? row.admin.resolutionPassDate.slice(0, 10) : "",
-      row.admin?.districtDuesPaid ?? "",
-      row.admin?.districtDuesMembersCount ?? "",
-      row.admin?.districtDuesAmount ?? "",
-      row.admin?.hostClub ?? "",
-      row.admin?.districtEventAttendance ?? "",
-      row.admin?.status ?? "NOT SUBMITTED",
-      row.admin?.submittedAt ?? "",
-    ]);
+    const adminReports = reports.filter((report) => report.type === "ADMIN");
+    const eventsReports = reports.filter((report) => report.type === "EVENTS");
+    const adminByClub = new Map(adminReports.map((report) => [report.clubId, report]));
+    const eventsByClub = new Map(eventsReports.map((report) => [report.clubId, report]));
 
-    const eventsHeaders = ["Club", "Zone", "Club Status", "Events In Period", "Status", "Submitted At"];
-    const eventsRows = activeRows.map((row) => [
-      row.club.name,
-      row.club.zone ?? "",
-      row.club.status,
-      countByClub.get(row.club.id) ?? 0,
-      row.events?.status ?? "NOT SUBMITTED",
-      row.events?.submittedAt ?? "",
-    ]);
+    const adminRows = clubs.map((club) =>
+      adminReportExportRow(club, adminByClub.get(club.id))
+    );
+
+    const periodEvents = await prisma.event.findMany({
+      where: {
+        clubId: { in: clubIds },
+        startDate: {
+          gte: new Date(year, month - 1, 1),
+          lte: new Date(year, month, 0, 23, 59, 59, 999),
+        },
+      },
+      include: { club: { select: { id: true, name: true, zone: true } } },
+      orderBy: [{ startDate: "asc" }, { title: "asc" }],
+    });
+    const clubsWithEvents = new Set(
+      periodEvents.map((event) => event.clubId).filter((id): id is string => Boolean(id))
+    );
+    const eventRows = [
+      ...periodEvents.map((event) =>
+        eventSubmissionExportRow(event, event.clubId ? eventsByClub.get(event.clubId) : null)
+      ),
+      ...clubs
+        .filter((club) => !clubsWithEvents.has(club.id))
+        .map((club) => noEventSubmissionExportRow(club, eventsByClub.get(club.id))),
+    ];
 
     const analyticsHeaders = ["Metric", "Value"];
     const analyticsRows = [
@@ -131,8 +129,8 @@ export async function GET(request: Request) {
 
     const buffer = await multiSheetExcel([
       { name: "Overview", headers: overviewHeaders, rows: overviewRows },
-      { name: "Admin Reports", headers: adminHeaders, rows: adminRows },
-      { name: "Events Reports", headers: eventsHeaders, rows: eventsRows },
+      { name: "Admin Reports", headers: [...ADMIN_REPORT_EXPORT_HEADERS], rows: adminRows },
+      { name: "Events Reports", headers: [...EVENT_SUBMISSION_EXPORT_HEADERS], rows: eventRows },
       { name: "Summary", headers: analyticsHeaders, rows: analyticsRows },
     ]);
 
