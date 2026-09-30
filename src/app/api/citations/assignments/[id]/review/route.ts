@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/api-auth";
 import { assignmentInclude, serializeCitationAssignment } from "@/lib/citations";
+import { ensureCouncilScoresSynced } from "@/lib/council";
+import { istCalendarParts } from "@/lib/timezone";
 import { DISTRICT_ROLES } from "@/lib/roles";
 import { reviewCitationSchema } from "@/lib/validators/citations";
 import { apiError, notFound, validationError, handleRouteError } from "@/lib/api-errors";
@@ -45,6 +47,9 @@ export async function POST(request: Request, { params }: RouteParams) {
       },
       include: assignmentInclude,
     });
+
+    const approvedOn = istCalendarParts(updated.reviewedAt ?? new Date());
+    await ensureCouncilScoresSynced(prisma, approvedOn.month, approvedOn.year, true);
 
     return NextResponse.json(serializeCitationAssignment(updated));
   } catch (err) {

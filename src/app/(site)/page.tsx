@@ -1,9 +1,12 @@
 import { HomePage } from "@/components/site/home-page";
+import { getPublicClubLeaderboard } from "@/lib/club-live-scores";
 
-// Static: middleware already redirects logged-in users from "/" to /dashboard,
-// so rendering can be fully cached instead of running auth() per visit.
-export const dynamic = "force-static";
+export const revalidate = 900;
 
-export default function Home() {
-  return <HomePage />;
+export default async function Home() {
+  const board = await getPublicClubLeaderboard().catch(() => ({
+    label: "",
+    clubs: [],
+  }));
+  return <HomePage clubScores={board.clubs} scoreLabel={board.label} />;
 }

@@ -1,5 +1,6 @@
 import type { CouncilEntityType, Prisma } from "@/generated/prisma/client";
 import { runWithTtl } from "@/lib/cache";
+import { istCalendarParts } from "@/lib/timezone";
 import { COUNCIL_MEMBER_FILTER, DISTRICT_COUNCIL_CLUB } from "@/lib/council-roster-data";
 import {
   OFFICIAL_DISTRICT_CLUB_FILTER,
@@ -46,6 +47,15 @@ export function getCompletionBadge(score: number): string | null {
   return null;
 }
 
+/** Club live score: approved Blue Book + 10% of member points + citation points awarded that month. */
+export function clubLiveScore(parts: {
+  bluebook: number;
+  memberPoints: number;
+  citationPoints: number;
+}) {
+  return parts.bluebook + Math.round(parts.memberPoints * 0.1) + parts.citationPoints;
+}
+
 export function getTrendLabel(trend: number): "up" | "down" | "neutral" {
   if (trend > 0) return "up";
   if (trend < 0) return "down";
@@ -73,7 +83,7 @@ export async function syncCouncilScores(
   const prevMonth = month === 1 ? 12 : month - 1;
   const prevYear = month === 1 ? year - 1 : year;
 
-  const [clubs, bluebookByClub, memberPointsByClub, members, councilAssignments, prevScores] =
+  const [clubs, bluebookByClub, memberPointsByClub, members, councilAssignments, prevScores, citationAwards] =
     await Promise.all([
       prisma.club.findMany({
         where: { ...OFFICIAL_DISTRICT_CLUB_FILTER, status: "ACTIVE" },
@@ -101,7 +111,19 @@ export async function syncCouncilScores(
         where: { month: prevMonth, year: prevYear },
         select: { entityType: true, entityId: true, score: true },
       }),
+      prisma.citationAssignment.findMany({
+        where: { status: "APPROVED", awardedPoints: { gt: 0 } },
+        select: { clubId: true, awardedPoints: true, reviewedAt: true, updatedAt: true },
+      }),
     ]);
+
+  const citationMap = new Map<string, number>();
+  for (const award of citationAwards) {
+    const when = award.reviewedAt ?? award.updatedAt;
+    const parts = istCalendarParts(when);
+    if (parts.month !== month || parts.year !== year) continue;
+    citationMap.set(award.clubId, (citationMap.get(award.clubId) ?? 0) + award.awardedPoints);
+  }
 
   const bluebookMap = new Map(
     bluebookByClub.map((b) => [b.clubId, b._sum.allocatedScore ?? 0])
@@ -136,7 +158,11 @@ export async function syncCouncilScores(
       return {
         entityId: club.id,
         clubId: club.id,
-        score: bluebook + Math.round(memberPts * 0.1),
+        score: clubLiveScore({
+          bluebook,
+          memberPoints: memberPts,
+          citationPoints: citationMap.get(club.id) ?? 0,
+        }),
       };
     })
     .sort((a, b) => b.score - a.score);
