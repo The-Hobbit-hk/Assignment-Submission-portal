@@ -1,5 +1,5 @@
 import { unstable_cache } from "next/cache";
-import { OFFICIAL_ROTARACT_MEMBER_FILTER } from "@/lib/district-clubs-data";
+import { COUNCIL_MEMBER_FILTER } from "@/lib/council-roster-data";
 import { getPublicCalendarEvents } from "@/lib/public-site-data";
 import { prisma } from "@/lib/prisma";
 import type { DashboardData } from "@/types/dashboard";
@@ -11,8 +11,8 @@ async function fetchDashboardOverview(): Promise<
     // Same source as the public /calendar page (DB + Google Calendar sync).
     getPublicCalendarEvents(),
     prisma.member.findMany({
-      where: { status: "ACTIVE", ...OFFICIAL_ROTARACT_MEMBER_FILTER },
-      orderBy: { points: "desc" },
+      where: COUNCIL_MEMBER_FILTER,
+      orderBy: [{ points: "desc" }, { firstName: "asc" }],
       take: 3,
       select: {
         id: true,
@@ -20,6 +20,7 @@ async function fetchDashboardOverview(): Promise<
         lastName: true,
         points: true,
         avatar: true,
+        homeClub: true,
         club: { select: { name: true } },
       },
     }),
@@ -36,7 +37,7 @@ async function fetchDashboardOverview(): Promise<
       rank: i + 1,
       memberId: m.id,
       name: `${m.firstName} ${m.lastName}`,
-      clubName: m.club.name,
+      clubName: m.homeClub?.trim() || m.club.name,
       points: m.points,
       avatar: m.avatar,
     })),
@@ -45,7 +46,7 @@ async function fetchDashboardOverview(): Promise<
 
 const getCachedDashboardOverview = unstable_cache(
   fetchDashboardOverview,
-  ["dashboard-overview", "public-calendar-v2"],
+  ["dashboard-overview", "council-top-performers-v1"],
   { revalidate: 120, tags: ["public-events"] }
 );
 
