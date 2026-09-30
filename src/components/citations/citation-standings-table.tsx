@@ -23,13 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCitationStandings } from "@/hooks/use-citations";
 import { siteConfig } from "@/config/site";
 import type { CitationCadence } from "@/generated/prisma/client";
-import { ROTARY_MONTH_ORDER, rotaryQuarterOfMonth } from "@/lib/rotary-year";
 import { cn } from "@/lib/utils";
-
-const MONTHS = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
-];
 
 function RankBadge({ rank }: { rank: number }) {
   const styles =
@@ -59,20 +53,13 @@ interface CitationStandingsTableProps {
 }
 
 export function CitationStandingsTable({ limit, compact }: CitationStandingsTableProps) {
-  const now = new Date();
-  const [cadence, setCadence] = useState<CitationCadence>("MONTHLY");
-  const [month, setMonth] = useState(now.getMonth() + 1);
-  const [year, setYear] = useState(now.getFullYear());
-  const [quarter, setQuarter] = useState(rotaryQuarterOfMonth(now.getMonth() + 1));
+  const cadence: CitationCadence = "YEARLY";
   const [rotaryYear, setRotaryYear] = useState<string>(siteConfig.rotaryYear);
   const [search, setSearch] = useState("");
 
   const { data, isLoading } = useCitationStandings({
     cadence,
-    year,
-    month: cadence === "MONTHLY" ? month : undefined,
-    quarter: cadence === "QUARTERLY" ? quarter : undefined,
-    rotaryYearLabel: cadence === "YEARLY" ? rotaryYear : undefined,
+    rotaryYearLabel: rotaryYear,
     limit,
   });
 
@@ -90,12 +77,13 @@ export function CitationStandingsTable({ limit, compact }: CitationStandingsTabl
   const podium = filtered.slice(0, 3);
   const totalPointsInView = (data?.standings ?? []).reduce((sum, row) => sum + row.totalPoints, 0);
 
+  const yearlyPeriods = (data?.approvedPeriods ?? []).filter(
+    (hint) => hint.cadence === "YEARLY"
+  );
+
   const applyPeriodHint = (hint: CitationStandingsPeriodHint) => {
-    setCadence(hint.cadence);
-    setYear(hint.year);
-    if (hint.month) setMonth(hint.month);
-    if (hint.quarter) setQuarter(hint.quarter);
-    if (hint.rotaryYearLabel) setRotaryYear(hint.rotaryYearLabel);
+    if (hint.cadence !== "YEARLY" || !hint.rotaryYearLabel) return;
+    setRotaryYear(hint.rotaryYearLabel);
   };
 
   return (
@@ -126,74 +114,18 @@ export function CitationStandingsTable({ limit, compact }: CitationStandingsTabl
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        <div className="inline-flex rounded-full border border-border/60 bg-muted/30 p-1">
-          {(["MONTHLY", "QUARTERLY", "YEARLY"] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setCadence(option)}
-              className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-medium transition sm:px-4 sm:text-sm",
-                cadence === option
-                  ? "bg-card text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {option === "MONTHLY" ? "Monthly" : option === "QUARTERLY" ? "Quarterly" : "Yearly"}
-            </button>
-          ))}
-        </div>
-
-        {cadence === "MONTHLY" && (
-          <>
-            <Select value={String(month)} onValueChange={(v) => setMonth(parseInt(v, 10))}>
-              <SelectTrigger className="w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {ROTARY_MONTH_ORDER.map((m) => (
-                  <SelectItem key={m} value={String(m)}>{MONTHS[m - 1]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={String(year)} onValueChange={(v) => setYear(parseInt(v, 10))}>
-              <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {[year - 1, year, year + 1].map((y) => (
-                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        )}
-
-        {cadence === "QUARTERLY" && (
-          <>
-            <Select value={String(quarter)} onValueChange={(v) => setQuarter(parseInt(v, 10))}>
-              <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {[1, 2, 3, 4].map((q) => (
-                  <SelectItem key={q} value={String(q)}>Q{q}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={String(year)} onValueChange={(v) => setYear(parseInt(v, 10))}>
-              <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {[year - 1, year, year + 1].map((y) => (
-                  <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        )}
-
-        {cadence === "YEARLY" && (
-          <Select value={rotaryYear} onValueChange={setRotaryYear}>
-            <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value={siteConfig.rotaryYear}>RIY {siteConfig.rotaryYear}</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
+        <Select value={rotaryYear} onValueChange={setRotaryYear}>
+          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {[siteConfig.rotaryYear, ...yearlyPeriods.map((hint) => hint.rotaryYearLabel).filter(Boolean)]
+              .filter((value, index, all) => value && all.indexOf(value) === index)
+              .map((value) => (
+                <SelectItem key={value} value={value!}>
+                  RIY {value}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
 
         {!compact && (
           <div className="relative min-w-[180px] flex-1 sm:max-w-xs">
@@ -208,7 +140,7 @@ export function CitationStandingsTable({ limit, compact }: CitationStandingsTabl
         )}
       </div>
 
-      {!compact && !isLoading && (data?.approvedPeriods?.length ?? 0) > 0 && (
+      {!compact && !isLoading && yearlyPeriods.length > 0 && (
         <div className="space-y-2">
           {totalPointsInView === 0 && (
             <p className="rounded-lg border border-amber-500/30 bg-amber-50/80 px-3 py-2 text-sm text-amber-900 dark:bg-amber-950/20 dark:text-amber-200">
@@ -217,7 +149,7 @@ export function CitationStandingsTable({ limit, compact }: CitationStandingsTabl
             </p>
           )}
           <div className="flex flex-wrap gap-2">
-            {data!.approvedPeriods.map((hint) => {
+            {yearlyPeriods.map((hint) => {
               const active = hint.periodKey === data?.periodKey && hint.cadence === cadence;
               return (
                 <button

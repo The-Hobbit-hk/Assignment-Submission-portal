@@ -12,11 +12,9 @@ const RANK_META = [
 ] as const;
 
 export function CitationStandingsWidget({ limit = 5 }: { limit?: number }) {
-  const now = new Date();
   const { data, isLoading } = useCitationStandings({
-    cadence: "MONTHLY",
-    year: now.getFullYear(),
-    month: now.getMonth() + 1,
+    cadence: "YEARLY",
+    rotaryYearLabel: siteConfig.rotaryYear,
     limit,
   });
 
