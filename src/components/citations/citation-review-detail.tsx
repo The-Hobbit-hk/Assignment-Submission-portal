@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle2, ExternalLink } from "lucide-react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { CitationStatusBadge } from "@/components/citations/citation-status-badge";
@@ -13,6 +14,7 @@ import { useCitationAssignment, useReviewCitation } from "@/hooks/use-citations"
 import { toast } from "@/lib/toast";
 
 export function CitationReviewDetail({ assignmentId }: { assignmentId: string }) {
+  const router = useRouter();
   const { data, isLoading } = useCitationAssignment(assignmentId);
   const review = useReviewCitation(assignmentId);
   const [comment, setComment] = useState("");
@@ -46,6 +48,9 @@ export function CitationReviewDetail({ assignmentId }: { assignmentId: string })
             status === "APPROVED"
               ? `Citation approved — ${updated.awardedPoints} pts will show under ${updated.periodLabel} (${updated.cadence.toLowerCase()}) standings`
               : "Citation rejected"
+          );
+          router.push(
+            `/dashboard/citations/review?club=${encodeURIComponent(updated.clubId)}`
           );
         },
       }

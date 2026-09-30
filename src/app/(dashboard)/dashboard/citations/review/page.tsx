@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { CitationsReviewContent } from "@/components/citations/citations-review-content";
@@ -14,5 +15,9 @@ export default async function CitationsReviewPage() {
     redirect("/dashboard");
   }
 
-  return <CitationsReviewContent />;
+  return (
+    <Suspense>
+      <CitationsReviewContent />
+    </Suspense>
+  );
 }

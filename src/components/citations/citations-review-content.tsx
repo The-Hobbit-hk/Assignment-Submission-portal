@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   Building2,
@@ -73,6 +74,8 @@ function QueueRow({ assignment }: { assignment: SerializedCitationAssignment }) 
 }
 
 export function CitationsReviewContent() {
+  const searchParams = useSearchParams();
+  const focusClubId = searchParams.get("club");
   const { data: assignments, isLoading } = useCitationAssignments({ status: "SUBMITTED" });
   const [search, setSearch] = useState("");
 
@@ -124,6 +127,12 @@ export function CitationsReviewContent() {
 
     return groups;
   }, [queue]);
+
+  useEffect(() => {
+    if (isLoading || !focusClubId) return;
+    const section = document.getElementById(`citation-club-${focusClubId}`);
+    section?.scrollIntoView({ block: "start", behavior: "smooth" });
+  }, [isLoading, focusClubId, groupedQueue]);
 
   const total = assignments?.length ?? 0;
   const uniqueClubs = useMemo(() => {
@@ -210,7 +219,7 @@ export function CitationsReviewContent() {
           ) : (
             <div>
               {groupedQueue.map((group) => (
-                <section key={group.clubId}>
+                <section key={group.clubId} id={`citation-club-${group.clubId}`}>
                   <div className="sticky top-0 z-[1] flex items-center justify-between gap-3 border-b border-border/40 bg-muted/50 px-4 py-2.5 backdrop-blur-sm sm:px-5">
                     <div className="flex min-w-0 items-center gap-2">
                       <Building2 className="h-4 w-4 shrink-0 text-accent" aria-hidden />
