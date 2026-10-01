@@ -48,6 +48,7 @@ interface EventFilters {
   type?: string;
   status?: string;
   clubId?: string;
+  clubOnly?: boolean;
   month?: number;
   year?: number;
   page?: number;

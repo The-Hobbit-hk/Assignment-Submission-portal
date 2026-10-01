@@ -231,6 +231,7 @@ export function EventsReportingForm() {
         clubName={clubName}
         showAddEvent={clubUser && !!clubId && !reportingClosed && !noEvents && !declaredComplete}
         showDistrictSection={false}
+        clubEventsOnly={!clubUser}
         clubSectionTitle={clubUser ? "Your Club Events" : "Club Events"}
       />
 

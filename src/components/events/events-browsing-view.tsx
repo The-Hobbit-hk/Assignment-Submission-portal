@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Calendar, CalendarDays, Grid3X3, List, MapPin, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,8 @@ interface EventsBrowsingViewProps {
   ownClubId?: string | null;
   addEventDisabled?: boolean;
   showAddEvent?: boolean;
+  /** Admin reporting: only events that belong to a club. */
+  clubEventsOnly?: boolean;
   showDistrictSection?: boolean;
   districtSectionTitle?: string;
   clubSectionTitle?: string;
@@ -54,6 +56,7 @@ export function EventsBrowsingView({
   ownClubId,
   addEventDisabled,
   showAddEvent = true,
+  clubEventsOnly = false,
   showDistrictSection = true,
   districtSectionTitle = "District Events",
   clubSectionTitle = "Club Events",
@@ -63,14 +66,19 @@ export function EventsBrowsingView({
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
+  useEffect(() => {
+    setPage(1);
+  }, [month, year, clubEventsOnly]);
+
   const canAdd = showAddEvent && !!clubId;
 
-  const { data, isLoading } = useEvents({
+  const { data, isLoading, isError } = useEvents({
     search: search || undefined,
     page,
     limit: 50,
     month,
     year,
+    clubOnly: clubEventsOnly || undefined,
   });
 
   const events = (data?.data ?? []) as EventsBrowsingItem[];
@@ -92,6 +100,7 @@ export function EventsBrowsingView({
   const clubEmptyMessage = ownClubId
     ? "No events for your club this month. Click Add Event to register an activity."
     : "No club events this month.";
+  const clubEventTotal = clubEventsOnly ? (data?.pagination.total ?? clubEvents.length) : clubEvents.length;
 
   return (
     <div className="space-y-4">
@@ -129,7 +138,11 @@ export function EventsBrowsingView({
         </div>
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm text-destructive">
+          Could not load events for this month. Please refresh and try again.
+        </div>
+      ) : isLoading ? (
         <Skeleton className="h-64 w-full" />
       ) : view === "calendar" ? (
         <CalendarView
@@ -156,7 +169,7 @@ export function EventsBrowsingView({
 
           <EventsSection
             title={clubSectionTitle}
-            count={clubEvents.length}
+            count={clubEventTotal}
             action={addEventButton}
           >
             {clubEvents.length === 0 ? (
@@ -188,7 +201,7 @@ export function EventsBrowsingView({
 
           <EventsSection
             title={clubSectionTitle}
-            count={clubEvents.length}
+            count={clubEventTotal}
             action={addEventButton}
           >
             {clubEvents.length === 0 ? (

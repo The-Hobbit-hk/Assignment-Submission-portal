@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     return validationError(parsed.error);
   }
 
-  const { search, type, status, clubId, districtOnly, month, year, page, limit } = parsed.data;
+  const { search, type, status, clubId, districtOnly, clubOnly, month, year, page, limit } = parsed.data;
   const { skip } = getPaginationParams(searchParams, limit);
 
   try {
@@ -51,7 +51,9 @@ export async function GET(request: Request) {
               { OR: [{ clubId: null }, { clubId: session!.user.clubId }] },
             ],
           }
-        : baseWhere;
+        : clubOnly
+          ? { AND: [baseWhere, { clubId: { not: null } }] }
+          : baseWhere;
     const [events, total] = await Promise.all([
       prisma.event.findMany({
         where,

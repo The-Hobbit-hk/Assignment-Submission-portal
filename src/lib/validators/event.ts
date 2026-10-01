@@ -59,6 +59,7 @@ export const eventQuerySchema = z.object({
   status: eventStatusEnum.optional(),
   clubId: z.string().optional(),
   districtOnly: z.coerce.boolean().optional(),
+  clubOnly: z.coerce.boolean().optional(),
   month: z.coerce.number().int().min(1).max(12).optional(),
   year: z.coerce.number().int().optional(),
   page: z.coerce.number().int().min(1).default(1),
