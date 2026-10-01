@@ -1,5 +1,3 @@
-import sharp from "sharp";
-
 const MAX_EDGE = 1920;
 
 type Compressed = {
@@ -35,6 +33,7 @@ export async function compressForStorage(
   }
 
   try {
+    const sharp = (await import("sharp")).default;
     const pipeline = sharp(input, { failOn: "none" }).rotate();
     const meta = await pipeline.metadata();
     const edge = Math.max(meta.width ?? 0, meta.height ?? 0);

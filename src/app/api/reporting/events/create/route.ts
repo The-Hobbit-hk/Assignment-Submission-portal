@@ -8,7 +8,6 @@ import { syncEventsReportIfClubHasEvents } from "@/lib/events-reporting-sync";
 import { reportingEventSchema } from "@/lib/validators/reporting";
 import { isClubUser } from "@/lib/roles";
 import { logActivity } from "@/lib/activity";
-import { saveUpload } from "@/lib/upload";
 import { deriveEventStatus } from "@/lib/event-display";
 import { validationError, handleRouteError, apiError } from "@/lib/api-errors";
 import {
@@ -91,6 +90,7 @@ export async function POST(request: Request) {
         return apiError("Could not resolve uploaded minutes file.", 500);
       }
     } else if (minutesFile?.size) {
+      const { saveUpload } = await import("@/lib/upload");
       minutesPdfUrl = await saveUpload(minutesFile, "event-minutes", MAX_REPORTING_EVENT_UPLOAD_BYTES);
     }
 
@@ -103,6 +103,7 @@ export async function POST(request: Request) {
         return apiError("Could not resolve uploaded image.", 500);
       }
     } else if (imageFile?.size) {
+      const { saveUpload } = await import("@/lib/upload");
       bannerUrl = await saveUpload(imageFile, "event-banners", MAX_REPORTING_EVENT_UPLOAD_BYTES);
     }
 
