@@ -17,6 +17,7 @@ export const eventTypeEnum = z.enum([
   "DEI",
   "PUBLIC_IMAGE",
   "ROTARY_RELATIONS",
+  "OTHER",
 ]);
 
 export const eventStatusEnum = z.enum([
