@@ -190,11 +190,11 @@ export function EventsBrowsingView({
               {districtEvents.length === 0 ? (
                 <EmptySection message="No district events this month." />
               ) : (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {districtEvents.map((e) => (
-                    <EventGridCard key={e.id} event={e} eventLinkBase={eventLinkBase} />
-                  ))}
-                </div>
+              <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {districtEvents.map((e) => (
+                  <EventGridCard key={e.id} event={e} eventLinkBase={eventLinkBase} />
+                ))}
+              </div>
               )}
             </EventsSection>
           )}
@@ -207,7 +207,7 @@ export function EventsBrowsingView({
             {clubEvents.length === 0 ? (
               <EmptySection message={clubEmptyMessage} />
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {clubEvents.map((e) => (
                   <EventGridCard key={e.id} event={e} eventLinkBase={eventLinkBase} />
                 ))}
@@ -281,32 +281,34 @@ function EventGridCard({
   eventLinkBase: string;
 }) {
   return (
-    <Link href={`${eventLinkBase}/${event.id}`}>
-      <Card className="overflow-hidden transition-colors hover:border-accent/40">
-        {event.bannerUrl ? (
-          <div
-            className="h-32 bg-cover bg-center"
-            style={{ backgroundImage: `url(${event.bannerUrl})` }}
-          />
-        ) : (
-          <div className="flex h-32 items-center justify-center bg-accent/10">
-            <Calendar className="h-8 w-8 text-accent" />
-          </div>
-        )}
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between gap-2">
-            <CardTitle className="line-clamp-1 text-base">{event.title}</CardTitle>
-            <div className="flex shrink-0 flex-col items-end gap-1">
-              <Badge variant="outline" className="text-[10px]">
-                {getEventTypeLabel(event.type)}
-              </Badge>
-              {event.forDistrictNewsletter && (
-                <Badge className="bg-amber-100 text-[10px] text-amber-900">Newsletter</Badge>
-              )}
+    <Link href={`${eventLinkBase}/${event.id}`} className="block h-full">
+      <Card className="flex h-full flex-col overflow-hidden transition-colors hover:border-accent/40">
+        <div className="relative h-36 shrink-0">
+          {event.bannerUrl ? (
+            <div
+              className="h-full bg-cover bg-center"
+              style={{ backgroundImage: `url(${event.bannerUrl})` }}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center bg-accent/10">
+              <Calendar className="h-8 w-8 text-accent" />
             </div>
-          </div>
+          )}
+          {event.forDistrictNewsletter && (
+            <Badge className="absolute right-2 top-2 bg-amber-100 text-[10px] text-amber-900">
+              Newsletter
+            </Badge>
+          )}
+        </div>
+        <CardHeader className="space-y-2 pb-2">
+          <CardTitle className="line-clamp-2 min-h-12 text-base leading-6">
+            {event.title}
+          </CardTitle>
+          <Badge variant="outline" className="max-w-full truncate text-[10px]">
+            {getEventTypeLabel(event.type)}
+          </Badge>
         </CardHeader>
-        <CardContent className="text-xs text-muted-foreground">
+        <CardContent className="mt-auto space-y-1 text-xs text-muted-foreground">
           <p>
             {new Date(event.startDate).toLocaleDateString("en-US", {
               month: "short",
@@ -314,13 +316,11 @@ function EventGridCard({
               year: "numeric",
             })}
           </p>
-          {event.location && (
-            <p className="mt-1 flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              {event.location}
-            </p>
-          )}
-          {event.club?.name && <p className="mt-1">{event.club.name}</p>}
+          <p className="flex min-h-4 items-center gap-1">
+            <MapPin className="h-3 w-3 shrink-0" />
+            <span className="truncate">{event.location?.trim() || "Venue not added"}</span>
+          </p>
+          <p className="truncate">{event.club?.name ?? "District"}</p>
         </CardContent>
       </Card>
     </Link>
