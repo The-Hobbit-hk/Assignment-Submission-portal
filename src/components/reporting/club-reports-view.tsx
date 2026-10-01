@@ -51,6 +51,7 @@ export function ClubReportsView() {
   const [period, setPeriod] = useState(() => `${active.month}-${active.year}`);
   const [month, year] = period.split("-").map(Number);
   const [zone, setZone] = useState("");
+  const [completion, setCompletion] = useState<"" | "complete" | "incomplete">("");
 
   const { data: session } = useSession();
   const role = (session?.user?.role ?? "MEMBER") as UserRole;
@@ -61,6 +62,12 @@ export function ClubReportsView() {
   const periodLabel = getReportingPeriodLabel(month, year);
   const windowLabel = getSubmissionWindowLabel(month, year);
   const clubs = data?.clubs ?? [];
+  const visibleClubs = useMemo(() => {
+    if (!completion) return clubs;
+    return clubs.filter((row) =>
+      completion === "complete" ? row.completed : !row.completed
+    );
+  }, [clubs, completion]);
   const summary = data?.summary;
   const exportParams = new URLSearchParams({ month: String(month), year: String(year) });
   if (zone) exportParams.set("zone", zone);
@@ -147,6 +154,20 @@ export function ClubReportsView() {
             </select>
           </label>
         )}
+        <label className="space-y-1 text-sm">
+          <span className="text-muted-foreground">Completion</span>
+          <select
+            value={completion}
+            onChange={(e) =>
+              setCompletion(e.target.value as "" | "complete" | "incomplete")
+            }
+            className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+          >
+            <option value="">All</option>
+            <option value="complete">Completed</option>
+            <option value="incomplete">Not completed</option>
+          </select>
+        </label>
         {!districtView && data?.zones && data.zones.length > 0 && (
           <p className="text-sm text-muted-foreground">
             Your zone(s): <span className="font-medium text-foreground">{data.zones.join(", ")}</span>
@@ -183,14 +204,14 @@ export function ClubReportsView() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {clubs.length === 0 ? (
+                {visibleClubs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={districtView ? 7 : 6} className="text-center text-muted-foreground">
-                      No clubs found for this period.
+                      No clubs match this filter.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  clubs.map((row) => {
+                  visibleClubs.map((row) => {
                     const inactive = !row.countsTowardReporting;
                     return (
                       <TableRow

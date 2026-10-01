@@ -68,11 +68,18 @@ export function AdminSubmissionsView() {
   const [period, setPeriod] = useState(() => `${active.month}-${active.year}`);
   const [month, year] = period.split("-").map(Number);
   const [zone, setZone] = useState("");
+  const [completion, setCompletion] = useState<"" | "complete" | "incomplete">("");
 
   const { data, isLoading, isError } = useAdminSubmissions(month, year, zone || undefined);
 
   const periodLabel = getReportingPeriodLabel(month, year);
   const clubs = data?.clubs ?? [];
+  const visibleClubs = useMemo(() => {
+    if (!completion) return clubs;
+    return clubs.filter((row) =>
+      completion === "complete" ? row.status === "SUBMITTED" : row.status !== "SUBMITTED"
+    );
+  }, [clubs, completion]);
   const summary = data?.summary;
   const exportParams = new URLSearchParams({ month: String(month), year: String(year) });
   if (zone) exportParams.set("zone", zone);
@@ -133,6 +140,20 @@ export function AdminSubmissionsView() {
             ))}
           </select>
         </label>
+        <label className="space-y-1 text-sm">
+          <span className="text-muted-foreground">Completion</span>
+          <select
+            value={completion}
+            onChange={(e) =>
+              setCompletion(e.target.value as "" | "complete" | "incomplete")
+            }
+            className="depth-card block rounded-lg border border-border/60 bg-background px-3 py-2 text-sm"
+          >
+            <option value="">All</option>
+            <option value="complete">Completed</option>
+            <option value="incomplete">Not completed</option>
+          </select>
+        </label>
       </div>
 
       {isLoading ? (
@@ -180,14 +201,14 @@ export function AdminSubmissionsView() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {clubs.length === 0 ? (
+                {visibleClubs.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={17} className="text-center text-muted-foreground">
-                      No clubs found for this period.
+                      No clubs match this filter.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  clubs.map((row) => (
+                  visibleClubs.map((row) => (
                     <TableRow key={row.club.id}>
                       <TableCell className="font-medium">{row.club.name}</TableCell>
                       <TableCell className="text-muted-foreground">{row.club.zone ?? "—"}</TableCell>
