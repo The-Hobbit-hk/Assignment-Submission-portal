@@ -32,7 +32,6 @@ export const SITE_NAV: SiteNavItem[] = [
     ],
   },
   { label: "Clubs", href: "/clubs" },
-  { label: "Club Scores", href: "/clubs/scores" },
   { label: "Events", href: "/events" },
   { label: "Calendar", href: "/calendar" },
   { label: "Sponsorship", href: "/sponsorship" },

@@ -9,16 +9,8 @@ import { TestimonialsSection } from "@/components/site/testimonials-section";
 import { VentOutSection } from "@/components/site/vent-out-section";
 import { siteConfig } from "@/config/site";
 import { DISTRICT_OFFICIAL_CLUB_COUNT } from "@/lib/district-clubs-data";
-import type { PublicClubScore } from "@/lib/club-live-scores";
-import { ClubScoresBoard } from "@/components/site/club-scores-board";
 
-export function HomePage({
-  clubScores = [],
-  scoreLabel = "",
-}: {
-  clubScores?: PublicClubScore[];
-  scoreLabel?: string;
-}) {
+export function HomePage() {
   return (
     <>
       <PageHero
@@ -63,17 +55,7 @@ export function HomePage({
         </section>
       </SiteReveal>
 
-      {clubScores.length > 0 && (
-        <SiteReveal delay={40}>
-          <section className="pb-4 pt-2 sm:pb-6">
-            <div className="mx-auto max-w-3xl px-4 lg:px-8">
-              <ClubScoresBoard clubs={clubScores} label={scoreLabel} preview />
-            </div>
-          </section>
-        </SiteReveal>
-      )}
-
-      <SiteReveal delay={60}>
+      <SiteReveal delay={40}>
         <VentOutSection />
       </SiteReveal>
 

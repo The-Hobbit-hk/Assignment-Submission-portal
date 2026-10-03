@@ -16,6 +16,7 @@ import {
   KeyRound,
   LayoutDashboard,
   Shield,
+  Trophy,
   UserCheck,
   UserCircle,
   Users,
@@ -253,6 +254,11 @@ export function getNavigationForRole(
         icon: BarChart3,
       });
     }
+    zrNav.push({
+      title: "Club Live Scores",
+      href: "/clubs/scores",
+      icon: Trophy,
+    });
     zrNav.push({ title: "My Profile", href: "/dashboard/profile", icon: UserCircle });
     if (canViewMyCouncilBluebook(role)) {
       zrNav.push({
@@ -356,6 +362,12 @@ export function getNavigationForRole(
       icon: BarChart3,
     });
   }
+
+  nav.push({
+    title: "Club Live Scores",
+    href: "/clubs/scores",
+    icon: Trophy,
+  });
 
   if (isCouncilMember(role)) {
     nav.push({ title: "My Profile", href: "/dashboard/profile", icon: UserCircle });

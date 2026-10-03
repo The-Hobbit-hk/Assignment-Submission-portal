@@ -1,14 +1,19 @@
+import { redirect } from "next/navigation";
 import { ClubScoresBoard } from "@/components/site/club-scores-board";
 import { PageHero } from "@/components/site/page-hero";
+import { auth } from "@/lib/auth";
 import { getPublicClubLeaderboard } from "@/lib/club-live-scores";
-
-export const revalidate = 900;
 
 export const metadata = {
   title: "Club Live Scores",
 };
 
 export default async function ClubScoresPage() {
+  const session = await auth();
+  if (!session?.user) {
+    redirect("/login?callbackUrl=/clubs/scores");
+  }
+
   const board = await getPublicClubLeaderboard();
 
   return (
