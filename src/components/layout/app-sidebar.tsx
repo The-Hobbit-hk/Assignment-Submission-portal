@@ -19,7 +19,14 @@ interface AppSidebarProps {
 function isItemActive(pathname: string, item: NavItem): boolean {
   if (item.href) {
     if (item.href === "/dashboard") return pathname === item.href;
-    return pathname.startsWith(item.href);
+    // Club Live Scores owns /dashboard/citations/standings — don't mark Manage Citations active there.
+    if (item.href === "/dashboard/citations") {
+      return (
+        pathname === "/dashboard/citations" ||
+        pathname.startsWith("/dashboard/citations/review")
+      );
+    }
+    return pathname === item.href || pathname.startsWith(`${item.href}/`);
   }
   return item.children?.some((child) => isItemActive(pathname, child)) ?? false;
 }

@@ -254,11 +254,13 @@ export function getNavigationForRole(
         icon: BarChart3,
       });
     }
-    zrNav.push({
-      title: "Club Live Scores",
-      href: "/clubs/scores",
-      icon: Trophy,
-    });
+    if (canViewCitationStandings(role)) {
+      zrNav.push({
+        title: "Club Live Scores",
+        href: "/dashboard/citations/standings",
+        icon: Trophy,
+      });
+    }
     zrNav.push({ title: "My Profile", href: "/dashboard/profile", icon: UserCircle });
     if (canViewMyCouncilBluebook(role)) {
       zrNav.push({
@@ -363,11 +365,13 @@ export function getNavigationForRole(
     });
   }
 
-  nav.push({
-    title: "Club Live Scores",
-    href: "/clubs/scores",
-    icon: Trophy,
-  });
+  if (canViewCitationStandings(role)) {
+    nav.push({
+      title: "Club Live Scores",
+      href: "/dashboard/citations/standings",
+      icon: Trophy,
+    });
+  }
 
   if (isCouncilMember(role)) {
     nav.push({ title: "My Profile", href: "/dashboard/profile", icon: UserCircle });
@@ -403,16 +407,7 @@ export function getNavigationForRole(
       ],
     });
   } else if (canSubmitCitations(role)) {
-    nav.push(
-      { title: "My Citations", href: "/dashboard/citations/my", icon: Award },
-      { title: "Club Standings", href: "/dashboard/citations/standings", icon: BarChart3 }
-    );
-  } else if (canViewCitationStandings(role)) {
-    nav.push({
-      title: "Citation Standings",
-      href: "/dashboard/citations/standings",
-      icon: BarChart3,
-    });
+    nav.push({ title: "My Citations", href: "/dashboard/citations/my", icon: Award });
   }
 
   if (reportingChildren.length > 0) {
