@@ -34,9 +34,6 @@ export function clubSearchKeys(...names: string[]) {
     if (cleaned.length >= 4) keys.add(cleaned);
     const spaced = cleaned.replace(/-/g, " ").replace(/\s+/g, " ").trim();
     if (spaced.length >= 4) keys.add(spaced);
-    for (const token of spaced.split(" ")) {
-      if (token.length >= 5) keys.add(token);
-    }
   }
   return [...keys];
 }
@@ -44,38 +41,21 @@ export function clubSearchKeys(...names: string[]) {
 type Db = PrismaClient | Prisma.TransactionClient;
 
 /**
- * Members that belong on a club's roster UI:
- * - direct clubId membership, plus
- * - council members whose homeClub points at this club
+ * Members that belong on a club's roster UI: direct clubId membership only.
+ * Council members (homeClub) stay on the council roster so the same person
+ * is not listed twice under a club.
  */
 export function buildClubRosterWhere(
   club: { id: string; name: string },
   extra?: Prisma.MemberWhereInput
 ): Prisma.MemberWhereInput {
-  const keys = clubSearchKeys(club.name);
-  const homeClubOr =
-    keys.length === 0
-      ? undefined
-      : ({
-          AND: [
-            { homeClub: { not: null } },
-            {
-              OR: keys.map((key) => ({
-                homeClub: { contains: key, mode: "insensitive" as const },
-              })),
-            },
-          ],
-        } satisfies Prisma.MemberWhereInput);
-
-  const affiliation: Prisma.MemberWhereInput = homeClubOr
-    ? { OR: [{ clubId: club.id }, homeClubOr] }
-    : { clubId: club.id };
+  const affiliation: Prisma.MemberWhereInput = { clubId: club.id };
 
   if (!extra || Object.keys(extra).length === 0) return affiliation;
   return { AND: [affiliation, extra] };
 }
 
-/** Keep only true homeClub matches (avoids loose contains false positives). */
+/** Club rosters are direct members only — drop any stray council/homeClub rows. */
 export function filterHomeClubAffiliates<
   T extends {
     clubId: string;
@@ -84,33 +64,7 @@ export function filterHomeClubAffiliates<
     riId?: string | null;
   },
 >(members: T[], club: { id: string; name: string }) {
-  const affiliated = members.filter(
-    (member) =>
-      member.clubId === club.id || homeClubMatches(member.homeClub, club.name)
-  );
-
-  // Prefer the club roster row when the same person also appears as a council
-  // homeClub affiliate (same email / RI ID) — avoids duplicate list entries that
-  // club officers cannot open (council clubId ≠ their club).
-  const clubEmails = new Set(
-    affiliated
-      .filter((m) => m.clubId === club.id && m.email)
-      .map((m) => m.email!.toLowerCase().trim())
-  );
-  const clubRiIds = new Set(
-    affiliated
-      .filter((m) => m.clubId === club.id && m.riId?.trim())
-      .map((m) => m.riId!.trim())
-  );
-
-  return affiliated.filter((member) => {
-    if (member.clubId === club.id) return true;
-    const email = member.email?.toLowerCase().trim();
-    if (email && clubEmails.has(email)) return false;
-    const riId = member.riId?.trim();
-    if (riId && clubRiIds.has(riId)) return false;
-    return true;
-  });
+  return members.filter((member) => member.clubId === club.id);
 }
 
 /** Club officers may view (not mutate) council members whose homeClub is their club. */

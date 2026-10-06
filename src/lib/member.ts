@@ -53,7 +53,7 @@ export function serializeMemberDetail(member: MemberWithClub): MemberDetail {
 export function buildMemberWhere(params: {
   search?: string;
   clubId?: string;
-  /** When set with clubId, also includes council members whose homeClub matches. */
+  /** Club display name (kept for callers; roster is clubId-only). */
   clubName?: string;
   role?: string;
   status?: string;
