@@ -68,7 +68,7 @@ function homeClubMatches(homeClub: string | null | undefined, ...clubNames: stri
   return clubNames.some((name) => {
     const target = normalizeClubLabel(name);
     if (!target) return false;
-    return home === target || home.includes(target) || target.includes(home);
+    return home === target;
   });
 }
 

@@ -21,7 +21,9 @@ export function homeClubMatches(
   return clubNames.some((name) => {
     const target = normalizeClubLabel(name);
     if (!target) return false;
-    return home === target || home.includes(target) || target.includes(home);
+    // Exact label only — substring matches wrongly merge distinct clubs
+    // (e.g. "Aundh" vs "Aundh Smartcity").
+    return home === target;
   });
 }
 
