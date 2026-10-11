@@ -1,8 +1,14 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { PageHeading } from "@/components/layout/page-heading";
+import {
+  Building2,
+  ClipboardCheck,
+  RefreshCw,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DISTRICT_ZONE_META } from "@/lib/district-clubs-data";
 import type { CommandCenterPayload } from "@/lib/district-command-center";
 import type { RotaryMonthOption } from "@/lib/rotary-year";
@@ -12,6 +18,9 @@ const inr = new Intl.NumberFormat("en-IN", {
   currency: "INR",
   maximumFractionDigits: 0,
 });
+
+const fieldClass =
+  "h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 shadow-none";
 
 function dash(value: number | string | null | undefined) {
   if (value == null || value === "") return "—";
@@ -23,26 +32,67 @@ function Kpi({
   value,
   detail,
   unavailable,
+  icon: Icon,
 }: {
   label: string;
   value: string;
   detail: string;
   unavailable?: boolean;
+  icon: typeof Building2;
 }) {
   return (
-    <section className="depth-card rounded-xl p-4" aria-label={label}>
-      <h2 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</h2>
-      <p className="mt-2 text-2xl font-bold text-foreground">{unavailable ? "—" : value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
+    <section className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white px-3.5 py-3" aria-label={label}>
+      <div className="flex items-center gap-2">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
+          <Icon className="h-3.5 w-3.5" aria-hidden />
+        </span>
+        <h2 className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{label}</h2>
+      </div>
+      <p className="mt-2.5 text-[1.65rem] font-semibold leading-none tracking-tight text-zinc-950">
+        {unavailable ? "—" : value}
+      </p>
+      <p className="mt-2 text-xs leading-snug text-zinc-500">{detail}</p>
     </section>
   );
 }
 
 function SectionError({ message }: { message: string }) {
   return (
-    <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+    <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
       {message}
     </p>
+  );
+}
+
+function SectionTitle({
+  id,
+  title,
+  detail,
+  action,
+}: {
+  id: string;
+  title: string;
+  detail?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-2">
+      <div className="min-w-0">
+        <h2 id={id} className="text-sm font-semibold tracking-tight text-zinc-950">
+          {title}
+        </h2>
+        {detail ? <p className="mt-0.5 max-w-3xl text-xs leading-snug text-zinc-500">{detail}</p> : null}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function TextLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link href={href} className="shrink-0 text-xs font-medium text-accent underline-offset-4 hover:underline">
+      {children}
+    </Link>
   );
 }
 
@@ -72,49 +122,49 @@ export function CommandCenterView({
   }
 
   return (
-    <div className="space-y-8">
-      <PageHeading
-        title="District Command Center"
-        subtitle="Rotaract District 3131 | RIY 2026–27"
-        action={
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs text-muted-foreground">Updated {data.generatedAtLabel} IST</p>
+    <div className="mx-auto max-w-7xl space-y-5 text-zinc-900">
+      <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight text-zinc-950">District Command Center</h1>
+          <p className="mt-0.5 text-xs text-zinc-500">Rotaract District 3131 | RIY 2026–27</p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+          <form method="get" className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
+            <label className="min-w-[11rem] space-y-1">
+              <span className="text-[11px] font-medium text-zinc-500">Reporting period</span>
+              <select name="period" defaultValue={periodValue} aria-label="Reporting period" className={fieldClass}>
+                {monthOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="max-w-xs text-[11px] leading-snug text-zinc-500 sm:max-w-[16rem] sm:pb-1">
+              {data.period.label}. Window {data.period.windowLabel} IST.
+            </p>
+            {filters.zone ? <input type="hidden" name="zone" value={filters.zone} /> : null}
+            {filters.query ? <input type="hidden" name="q" value={filters.query} /> : null}
+            <input type="hidden" name="sort" value={filters.sort} />
+            <Button type="submit" size="sm">
+              Apply period
+            </Button>
+          </form>
+          <div className="flex items-center gap-2 sm:pb-0.5">
+            <p className="text-[11px] text-zinc-500">Updated {data.generatedAtLabel} IST</p>
             <Button variant="outline" size="sm" asChild>
-              <Link href={pageHref(data.citations?.page ?? 1)}>Refresh</Link>
+              <Link href={pageHref(data.citations?.page ?? 1)}>
+                <RefreshCw className="h-3.5 w-3.5" aria-hidden />
+                Refresh
+              </Link>
             </Button>
           </div>
-        }
-      />
+        </div>
+      </header>
 
-      <form method="get" className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-        <label className="space-y-1 text-sm">
-          <span className="text-xs font-medium text-muted-foreground">Reporting period</span>
-          <select
-            name="period"
-            defaultValue={periodValue}
-            aria-label="Reporting period"
-            className="flex h-9 w-full min-w-[12rem] rounded-md border border-input bg-background px-3 text-sm"
-          >
-            {monthOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <p className="text-xs text-muted-foreground sm:pb-2">
-          {data.period.label}. Submission window {data.period.windowLabel} IST.
-        </p>
-        {filters.zone ? <input type="hidden" name="zone" value={filters.zone} /> : null}
-        {filters.query ? <input type="hidden" name="q" value={filters.query} /> : null}
-        <input type="hidden" name="sort" value={filters.sort} />
-        <Button type="submit" size="sm" variant="secondary">
-          Apply period
-        </Button>
-      </form>
-
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
+          icon={Building2}
           label="Active clubs"
           unavailable={data.errors.clubs}
           value={String(dash(data.kpis.activeClubs))}
@@ -125,6 +175,7 @@ export function CommandCenterView({
           }
         />
         <Kpi
+          icon={Users}
           label="Active Rotaractors"
           unavailable={data.errors.members}
           value={String(dash(data.kpis.activeRotaractors))}
@@ -135,6 +186,7 @@ export function CommandCenterView({
           }
         />
         <Kpi
+          icon={ClipboardCheck}
           label="Reporting completion"
           unavailable={data.errors.reporting}
           value={data.kpis.reportingPercent == null ? "—" : `${data.kpis.reportingPercent}%`}
@@ -146,55 +198,50 @@ export function CommandCenterView({
                 : "No eligible active clubs for this period."
           }
         />
-        <Link href={duesHref} className="block rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">
+        <Link
+          href={duesHref}
+          className="block h-full rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        >
           <Kpi
-            label="District dues flags"
+            icon={Wallet}
+            label="District dues status"
             unavailable={data.errors.reporting}
-            value={
-              data.districtDues
-                ? `${data.districtDues.clubsFullyMarkedPaid} paid`
-                : "—"
-            }
+            value={data.districtDues ? `${data.districtDues.clubsFullyMarkedPaid} paid` : "—"}
             detail={
               data.errors.reporting || !data.districtDues
                 ? "District dues could not be loaded."
-                : `${data.districtDues.clubsMarkedUnpaid} marked unpaid, ${data.districtDues.clubsNotMarked} not marked. Opens the district dues page.`
+                : `${data.districtDues.clubsMarkedUnpaid} marked unpaid, ${data.districtDues.clubsNotMarked} not marked. Opens district dues.`
             }
           />
         </Link>
       </div>
 
       <section className="space-y-3" aria-labelledby="zone-reporting-heading">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <h2 id="zone-reporting-heading" className="text-base font-semibold">Zone reporting</h2>
-            <p className="text-xs text-muted-foreground">
-              Complete means both the admin report and the events report are submitted. Monthly reports are not approved or returned.
-            </p>
-          </div>
-          <Link href={reportingHref} className="text-sm font-medium text-accent underline-offset-4 hover:underline">
-            Open club reports
-          </Link>
-        </div>
+        <SectionTitle
+          id="zone-reporting-heading"
+          title="Zone reporting"
+          detail="Complete means both the admin report and the events report are submitted. Monthly reports are not approved or returned."
+          action={<TextLink href={reportingHref}>Open club reports</TextLink>}
+        />
         {data.errors.reporting ? (
           <SectionError message="Zone reporting could not be loaded. The rest of this page is unchanged." />
         ) : (
-          <div className="space-y-4">
-            <ul className="grid gap-3 md:grid-cols-2">
+          <div className="space-y-3">
+            <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {(data.zones ?? []).map((zone) => (
-                <li key={zone.zone}>
+                <li key={zone.zone} className="min-w-0">
                   <Link
                     href={`${reportingHref}&zone=${encodeURIComponent(zone.zone)}`}
-                    className="depth-card block rounded-xl p-3 hover:bg-accent/5"
+                    className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white px-3 py-2.5 hover:border-zinc-300"
                   >
                     <div className="flex items-baseline justify-between gap-3">
-                      <span className="text-sm font-medium">{zone.zone}</span>
-                      <span className="text-sm tabular-nums">
+                      <span className="text-sm font-semibold text-zinc-950">{zone.zone}</span>
+                      <span className="text-sm font-semibold tabular-nums text-zinc-950">
                         {zone.completionPercent == null ? "No eligible clubs" : `${zone.completionPercent}%`}
                       </span>
                     </div>
                     <div
-                      className="mt-2 h-2 overflow-hidden rounded-full bg-muted"
+                      className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100"
                       role="img"
                       aria-label={
                         zone.completionPercent == null
@@ -202,146 +249,158 @@ export function CommandCenterView({
                           : `${zone.zone} ${zone.completed} of ${zone.eligible} clubs complete, ${zone.completionPercent} percent`
                       }
                     >
-                      <div
-                        className="h-full bg-accent"
-                        style={{ width: `${zone.completionPercent ?? 0}%` }}
-                      />
+                      <div className="h-full bg-accent" style={{ width: `${zone.completionPercent ?? 0}%` }} />
                     </div>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {zone.eligible} eligible · {zone.completed} complete · {zone.adminSubmitted} admin submitted · {zone.eventsSubmitted} events submitted · {zone.stillOpen} still open
-                    </p>
+                    <dl className="mt-2.5 grid grid-cols-3 gap-x-2 gap-y-1.5 text-[11px] sm:grid-cols-5">
+                      <div>
+                        <dt className="text-zinc-400">Eligible</dt>
+                        <dd className="font-medium tabular-nums text-zinc-800">{zone.eligible}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-zinc-400">Complete</dt>
+                        <dd className="font-medium tabular-nums text-zinc-800">{zone.completed}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-zinc-400">Admin</dt>
+                        <dd className="font-medium tabular-nums text-zinc-800">{zone.adminSubmitted}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-zinc-400">Events</dt>
+                        <dd className="font-medium tabular-nums text-zinc-800">{zone.eventsSubmitted}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-zinc-400">Open</dt>
+                        <dd className="font-medium tabular-nums text-zinc-800">{zone.stillOpen}</dd>
+                      </div>
+                    </dl>
                   </Link>
                 </li>
               ))}
             </ul>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Zone</TableHead>
-                    <TableHead>Eligible</TableHead>
-                    <TableHead>Complete</TableHead>
-                    <TableHead>Admin submitted</TableHead>
-                    <TableHead>Events submitted</TableHead>
-                    <TableHead>Still open</TableHead>
-                    <TableHead>Completion</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+              <table className="w-full min-w-[40rem] text-left text-xs">
+                <caption className="sr-only">Zone reporting summary for {data.period.label}</caption>
+                <thead>
+                  <tr className="border-b border-zinc-200 text-[11px] uppercase tracking-wide text-zinc-500">
+                    <th className="px-3 py-2 font-medium">Zone</th>
+                    <th className="px-3 py-2 text-right font-medium">Eligible</th>
+                    <th className="px-3 py-2 text-right font-medium">Complete</th>
+                    <th className="px-3 py-2 text-right font-medium">Admin submitted</th>
+                    <th className="px-3 py-2 text-right font-medium">Events submitted</th>
+                    <th className="px-3 py-2 text-right font-medium">Still open</th>
+                    <th className="px-3 py-2 text-right font-medium">Completion</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {(data.zones ?? []).map((zone) => (
-                    <TableRow key={zone.zone}>
-                      <TableCell>{zone.zone}</TableCell>
-                      <TableCell>{zone.eligible}</TableCell>
-                      <TableCell>{zone.completed}</TableCell>
-                      <TableCell>{zone.adminSubmitted}</TableCell>
-                      <TableCell>{zone.eventsSubmitted}</TableCell>
-                      <TableCell>{zone.stillOpen}</TableCell>
-                      <TableCell>{zone.completionPercent == null ? "—" : `${zone.completionPercent}%`}</TableCell>
-                    </TableRow>
+                    <tr key={zone.zone} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50">
+                      <td className="px-3 py-1.5 font-medium text-zinc-900">
+                        <Link href={`${reportingHref}&zone=${encodeURIComponent(zone.zone)}`} className="hover:underline">
+                          {zone.zone}
+                        </Link>
+                      </td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{zone.eligible}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{zone.completed}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{zone.adminSubmitted}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{zone.eventsSubmitted}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{zone.stillOpen}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">
+                        {zone.completionPercent == null ? "—" : `${zone.completionPercent}%`}
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           </div>
         )}
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="depth-card space-y-3 rounded-xl p-4" aria-labelledby="ri-dues-heading">
-          <h2 id="ri-dues-heading" className="text-base font-semibold">RI dues</h2>
-          <p className="text-sm text-muted-foreground">
-            Assessed, collected, and outstanding amounts are unavailable. The district does not store an RI dues ledger or a USD balance. Club progress for “100% payment of RI dues” is tracked only as a citation.
+      <div className="grid items-stretch gap-3 lg:grid-cols-2">
+        <section className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white px-3.5 py-3" aria-labelledby="ri-dues-heading">
+          <div className="flex items-start justify-between gap-3">
+            <h2 id="ri-dues-heading" className="text-sm font-semibold tracking-tight text-zinc-950">
+              RI dues
+            </h2>
+            <TextLink href="/dashboard/citations/review">Open citation review</TextLink>
+          </div>
+          <p className="mt-2 text-sm leading-snug text-zinc-600">
+            Monetary amounts are unavailable. This application does not keep an RI dues ledger or a USD balance, so assessed, collected, outstanding, and collection figures are not shown.
           </p>
-          <dl className="grid grid-cols-2 gap-3 text-sm">
-            <div>
-              <dt className="text-xs text-muted-foreground">Assessed</dt>
-              <dd>—</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Collected</dt>
-              <dd>—</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Outstanding</dt>
-              <dd>—</dd>
-            </div>
-            <div>
-              <dt className="text-xs text-muted-foreground">Collection</dt>
-              <dd>—</dd>
-            </div>
-          </dl>
-          <Link href="/dashboard/citations/review" className="text-sm font-medium text-accent underline-offset-4 hover:underline">
-            Open citation review
-          </Link>
+          <p className="mt-2 text-xs leading-snug text-zinc-500">
+            Club progress for “100% payment of RI dues” is tracked only as a citation, not as a payment.
+          </p>
         </section>
 
-        <section className="depth-card space-y-3 rounded-xl p-4" aria-labelledby="district-dues-heading">
+        <section className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white px-3.5 py-3" aria-labelledby="district-dues-heading">
           <div className="flex items-start justify-between gap-3">
-            <h2 id="district-dues-heading" className="text-base font-semibold">District dues</h2>
-            <Link href={duesHref} className="text-sm font-medium text-accent underline-offset-4 hover:underline">
-              Open district dues
-            </Link>
+            <h2 id="district-dues-heading" className="text-sm font-semibold tracking-tight text-zinc-950">
+              District dues
+            </h2>
+            <TextLink href={duesHref}>Open district dues</TextLink>
           </div>
           {data.errors.reporting || !data.districtDues ? (
-            <SectionError message="District dues could not be loaded." />
+            <div className="mt-3">
+              <SectionError message="District dues could not be loaded." />
+            </div>
           ) : (
             <>
-              <p className="text-sm text-muted-foreground">
-                Counts come from the admin report flag for {data.period.label}. There is no assessed amount, so collection percentage and outstanding balance are not calculated. Partial payments are not recorded.
-              </p>
-              <dl className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <dt className="text-xs text-muted-foreground">Marked paid</dt>
-                  <dd className="text-lg font-semibold">{data.districtDues.clubsFullyMarkedPaid}</dd>
+              <p className="mt-1 text-[11px] text-zinc-500">{data.period.label} admin report flags</p>
+              <dl className="mt-3 grid grid-cols-2 gap-2">
+                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-2">
+                  <dt className="text-[11px] text-zinc-500">Marked paid</dt>
+                  <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-950">{data.districtDues.clubsFullyMarkedPaid}</dd>
                 </div>
-                <div>
-                  <dt className="text-xs text-muted-foreground">Marked unpaid</dt>
-                  <dd className="text-lg font-semibold">{data.districtDues.clubsMarkedUnpaid}</dd>
+                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-2">
+                  <dt className="text-[11px] text-zinc-500">Marked unpaid</dt>
+                  <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-950">{data.districtDues.clubsMarkedUnpaid}</dd>
                 </div>
-                <div>
-                  <dt className="text-xs text-muted-foreground">Not marked</dt>
-                  <dd className="text-lg font-semibold">{data.districtDues.clubsNotMarked}</dd>
+                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-2">
+                  <dt className="text-[11px] text-zinc-500">Not marked</dt>
+                  <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-950">{data.districtDues.clubsNotMarked}</dd>
                 </div>
-                <div>
-                  <dt className="text-xs text-muted-foreground">Declared amount (INR)</dt>
-                  <dd className="text-lg font-semibold">
+                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-2">
+                  <dt className="text-[11px] text-zinc-500">Declared amount</dt>
+                  <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-950">
                     {data.districtDues.declaredAmountAvailable && data.districtDues.declaredAmountInr != null
                       ? inr.format(data.districtDues.declaredAmountInr)
                       : "—"}
                   </dd>
                 </div>
               </dl>
+              <p className="mt-2 text-xs leading-snug text-zinc-500">
+                The declared amount is what clubs entered when they marked dues paid. There is no assessed total, so collection percentage and outstanding balance are not calculated. Partial payments are not recorded.
+              </p>
             </>
           )}
         </section>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="space-y-3" aria-labelledby="events-heading">
-          <div className="flex items-end justify-between gap-2">
-            <h2 id="events-heading" className="text-base font-semibold">Upcoming events</h2>
-            <Link href="/dashboard/events" className="text-sm font-medium text-accent underline-offset-4 hover:underline">
-              Open events
-            </Link>
-          </div>
+      <div className="grid items-start gap-3 lg:grid-cols-2">
+        <section className="space-y-2" aria-labelledby="events-heading">
+          <SectionTitle
+            id="events-heading"
+            title="Upcoming events"
+            action={<TextLink href="/dashboard/events">Open events</TextLink>}
+          />
           {data.errors.events ? (
             <SectionError message="Upcoming events could not be loaded." />
           ) : data.upcomingEvents && data.upcomingEvents.length === 0 ? (
-            <p className="rounded-xl border border-dashed px-4 py-6 text-sm text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-zinc-200 bg-white px-3 py-5 text-sm text-zinc-500">
               No upcoming district events.
             </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="divide-y divide-zinc-100 overflow-hidden rounded-lg border border-zinc-200 bg-white">
               {(data.upcomingEvents ?? []).map((event) => (
                 <li key={event.id}>
-                  <Link href={`/events/${event.id}`} className="depth-card flex gap-3 rounded-xl p-3 hover:bg-accent/5">
+                  <Link href={`/events/${event.id}`} className="flex gap-3 px-3 py-2.5 hover:bg-zinc-50">
                     {event.bannerUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={event.bannerUrl} alt="" className="h-14 w-20 rounded-md object-cover" />
+                      <img src={event.bannerUrl} alt="" className="h-12 w-16 shrink-0 rounded object-cover" />
                     ) : null}
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">{event.title}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="truncate text-sm font-medium text-zinc-950">{event.title}</p>
+                      <p className="text-xs text-zinc-500">
                         {event.startLabel} · {event.timeLabel} IST
                         {event.venue ? ` · ${event.venue}` : ""}
                       </p>
@@ -354,19 +413,19 @@ export function CommandCenterView({
           )}
         </section>
 
-        <section className="space-y-3" aria-labelledby="alerts-heading">
-          <h2 id="alerts-heading" className="text-base font-semibold">Operational alerts</h2>
+        <section className="space-y-2" aria-labelledby="alerts-heading">
+          <SectionTitle id="alerts-heading" title="Operational alerts" />
           {data.alerts == null ? (
             <SectionError message="Alerts could not be loaded." />
           ) : data.alerts.length === 0 ? (
-            <p className="rounded-xl border border-dashed px-4 py-6 text-sm text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-zinc-200 bg-white px-3 py-5 text-sm text-zinc-500">
               No outstanding alerts for this period.
             </p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="divide-y divide-zinc-100 overflow-hidden rounded-lg border border-zinc-200 bg-white">
               {data.alerts.map((alert) => (
                 <li key={alert.id}>
-                  <Link href={alert.href} className="depth-card block rounded-xl p-3 hover:bg-accent/5">
+                  <Link href={alert.href} className="block px-3 py-2.5 hover:bg-zinc-50">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge
                         variant={
@@ -379,10 +438,10 @@ export function CommandCenterView({
                       >
                         {alert.severity === "due_soon" ? "Due soon" : alert.severity === "overdue" ? "Overdue" : "Pending"}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">{alert.category}</span>
+                      <span className="text-[11px] text-zinc-500">{alert.category}</span>
                     </div>
-                    <p className="mt-1 text-sm font-medium">{alert.title}</p>
-                    <p className="text-xs text-muted-foreground">{alert.description}</p>
+                    <p className="mt-1 text-sm font-medium text-zinc-950">{alert.title}</p>
+                    <p className="text-xs text-zinc-500">{alert.description}</p>
                   </Link>
                 </li>
               ))}
@@ -392,22 +451,16 @@ export function CommandCenterView({
       </div>
 
       <section className="space-y-3" aria-labelledby="citations-heading">
-        <div>
-          <h2 id="citations-heading" className="text-base font-semibold">Club citation standings</h2>
-          <p className="text-xs text-muted-foreground">
-            {data.citations?.periodLabel ?? "RIY 2026–27"}. Approved points are the points already awarded. Pending means submitted and not yet reviewed. Rejected is the review outcome; there is no separate returned status. Equal approved points share a rank.
-          </p>
-        </div>
+        <SectionTitle
+          id="citations-heading"
+          title="Club citation standings"
+          detail={`${data.citations?.periodLabel ?? "RIY 2026–27"}. Approved points are already awarded. Pending means submitted and not yet reviewed. Rejected is the review outcome. Equal approved points share a rank.`}
+        />
         <form method="get" className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
           <input type="hidden" name="period" value={periodValue} />
-          <label className="space-y-1 text-sm">
-            <span className="text-xs font-medium text-muted-foreground">Zone</span>
-            <select
-              name="zone"
-              defaultValue={filters.zone}
-              aria-label="Filter by zone"
-              className="flex h-9 w-full min-w-[9rem] rounded-md border border-input bg-background px-3 text-sm"
-            >
+          <label className="min-w-[8.5rem] space-y-1">
+            <span className="text-[11px] font-medium text-zinc-500">Zone</span>
+            <select name="zone" defaultValue={filters.zone} aria-label="Filter by zone" className={fieldClass}>
               <option value="">All zones</option>
               {DISTRICT_ZONE_META.map((zone) => (
                 <option key={zone.zone} value={zone.zone}>
@@ -416,24 +469,19 @@ export function CommandCenterView({
               ))}
             </select>
           </label>
-          <label className="space-y-1 text-sm">
-            <span className="text-xs font-medium text-muted-foreground">Club</span>
+          <label className="min-w-[12rem] flex-1 space-y-1">
+            <span className="text-[11px] font-medium text-zinc-500">Club</span>
             <input
               name="q"
               defaultValue={filters.query}
               aria-label="Search by club name"
               placeholder="Search club name"
-              className="flex h-9 w-full min-w-[12rem] rounded-md border border-input bg-background px-3 text-sm"
+              className={fieldClass}
             />
           </label>
-          <label className="space-y-1 text-sm">
-            <span className="text-xs font-medium text-muted-foreground">Sort</span>
-            <select
-              name="sort"
-              defaultValue={filters.sort}
-              aria-label="Sort citation standings"
-              className="flex h-9 w-full min-w-[10rem] rounded-md border border-input bg-background px-3 text-sm"
-            >
+          <label className="min-w-[10rem] space-y-1">
+            <span className="text-[11px] font-medium text-zinc-500">Sort</span>
+            <select name="sort" defaultValue={filters.sort} aria-label="Sort citation standings" className={fieldClass}>
               <option value="rank">Rank</option>
               <option value="points">Approved points</option>
               <option value="completion">Completion</option>
@@ -447,51 +495,54 @@ export function CommandCenterView({
         {data.errors.citations || !data.citations ? (
           <SectionError message="Citation standings could not be loaded." />
         ) : data.citations.total === 0 ? (
-          <p className="rounded-xl border border-dashed px-4 py-6 text-sm text-muted-foreground">
+          <p className="rounded-lg border border-dashed border-zinc-200 bg-white px-3 py-5 text-sm text-zinc-500">
             No clubs match these filters.
           </p>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Rank</TableHead>
-                    <TableHead>Club</TableHead>
-                    <TableHead>Zone</TableHead>
-                    <TableHead>Eligible points</TableHead>
-                    <TableHead>Approved points</TableHead>
-                    <TableHead>Pending</TableHead>
-                    <TableHead>Rejected</TableHead>
-                    <TableHead>Approved criteria</TableHead>
-                    <TableHead>Applicable</TableHead>
-                    <TableHead>Completion</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
+              <table className="w-full min-w-[52rem] text-left text-xs">
+                <caption className="sr-only">Club citation standings</caption>
+                <thead>
+                  <tr className="border-b border-zinc-200 text-[11px] uppercase tracking-wide text-zinc-500">
+                    <th className="px-3 py-2 font-medium">Rank</th>
+                    <th className="px-3 py-2 font-medium">Club</th>
+                    <th className="px-3 py-2 font-medium">Zone</th>
+                    <th className="px-3 py-2 text-right font-medium">Eligible points</th>
+                    <th className="px-3 py-2 text-right font-medium">Approved points</th>
+                    <th className="px-3 py-2 text-right font-medium">Pending</th>
+                    <th className="px-3 py-2 text-right font-medium">Rejected</th>
+                    <th className="px-3 py-2 text-right font-medium">Approved criteria</th>
+                    <th className="px-3 py-2 text-right font-medium">Applicable</th>
+                    <th className="px-3 py-2 text-right font-medium">Completion</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {data.citations.rows.map((row) => (
-                    <TableRow key={row.clubId}>
-                      <TableCell>{row.rank}</TableCell>
-                      <TableCell>
-                        <Link href={`/dashboard/citations/review?club=${row.clubId}`} className="font-medium hover:underline">
+                    <tr key={row.clubId} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50">
+                      <td className="px-3 py-1.5 tabular-nums">{row.rank}</td>
+                      <td className="px-3 py-1.5">
+                        <Link href={`/dashboard/citations/review?club=${row.clubId}`} className="font-medium text-zinc-950 hover:underline">
                           {row.clubName}
                         </Link>
-                      </TableCell>
-                      <TableCell>{row.zone ?? "—"}</TableCell>
-                      <TableCell>{row.eligiblePoints}</TableCell>
-                      <TableCell>{row.approvedPoints}</TableCell>
-                      <TableCell>{row.pendingCount}</TableCell>
-                      <TableCell>{row.rejectedCount}</TableCell>
-                      <TableCell>{row.approvedCount}</TableCell>
-                      <TableCell>{row.applicableCount}</TableCell>
-                      <TableCell>{row.completionPercent == null ? "—" : `${row.completionPercent}%`}</TableCell>
-                    </TableRow>
+                      </td>
+                      <td className="px-3 py-1.5 text-zinc-600">{row.zone ?? "—"}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{row.eligiblePoints}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{row.approvedPoints}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{row.pendingCount}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{row.rejectedCount}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{row.approvedCount}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">{row.applicableCount}</td>
+                      <td className="px-3 py-1.5 text-right tabular-nums">
+                        {row.completionPercent == null ? "—" : `${row.completionPercent}%`}
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <p className="text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+              <p className="text-zinc-500">
                 {data.citations.total} clubs · page {data.citations.page} of {pages}
               </p>
               <div className="flex gap-2">

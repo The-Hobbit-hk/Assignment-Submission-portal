@@ -55,8 +55,8 @@ function NavLink({
         "flex items-center gap-2.5 rounded-md py-1.5 text-[13px] transition-colors",
         nested ? "px-2.5 pl-8" : "px-2.5",
         active
-          ? "depth-nav-item-active text-foreground"
-          : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground hover:shadow-sm",
+          ? "bg-accent/[0.08] font-medium text-foreground"
+          : "text-muted-foreground hover:bg-zinc-100 hover:text-foreground",
         item.disabled && "pointer-events-none opacity-40"
       )}
     >
@@ -91,7 +91,7 @@ export function AppSidebar({ className, onNavigate }: AppSidebarProps) {
 
       <Separator className="bg-border/40" />
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-1.5 py-2">
+      <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-1.5 py-2">
         {mainNavigation.map((item) => {
           if (item.children?.length) {
             const groupActive = isItemActive(pathname, item);
