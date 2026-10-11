@@ -12,6 +12,7 @@ import {
   CalendarDays,
   ClipboardList,
   FileBarChart2,
+  Gauge,
   History,
   KeyRound,
   LayoutDashboard,
@@ -135,6 +136,13 @@ export function canGenerateMonthlyReportingDeck(
  */
 export function canViewDistrictDues(role: UserRole, email?: string | null) {
   return isReportingSecretary(role) || isDistrictTreasurer(email);
+}
+
+/** Seeded website admin only, while the Command Center is in testing. */
+const WEBSITE_ADMIN_EMAIL = "admin@rotaract3131.org";
+
+export function canViewDistrictCommandCenter(_role: UserRole, email?: string | null) {
+  return email?.trim().toLowerCase() === WEBSITE_ADMIN_EMAIL;
 }
 
 /** DRR / system admin only — create definitions, assign, and approve citations. */
@@ -336,6 +344,14 @@ export function getNavigationForRole(
   }
 
   const nav: NavItem[] = [{ title: "Dashboard", href: "/dashboard", icon: LayoutDashboard }];
+
+  if (canViewDistrictCommandCenter(role, email)) {
+    nav.push({
+      title: "District Command Center",
+      href: "/dashboard/command-center",
+      icon: Gauge,
+    });
+  }
 
   if (DISTRICT_ROLES.includes(role) || role === "REPORTING_SECRETARY") {
     nav.push(

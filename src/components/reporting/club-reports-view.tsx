@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { PageHeading } from "@/components/layout/page-heading";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ function SummaryCard({
 }
 
 export function ClubReportsView() {
+  const searchParams = useSearchParams();
   const active = getActiveReportPeriod();
   const optionOpts = { long: true, withYear: true } as const;
   // Active period can be June of the prior calendar year while the Rotary-year
@@ -48,9 +50,14 @@ export function ClubReportsView() {
     active.year,
     optionOpts
   );
-  const [period, setPeriod] = useState(() => `${active.month}-${active.year}`);
+  const [period, setPeriod] = useState(() => {
+    const month = Number(searchParams.get("month"));
+    const year = Number(searchParams.get("year"));
+    if (month >= 1 && month <= 12 && year >= 2020 && year <= 2100) return `${month}-${year}`;
+    return `${active.month}-${active.year}`;
+  });
   const [month, year] = period.split("-").map(Number);
-  const [zone, setZone] = useState("");
+  const [zone, setZone] = useState(() => searchParams.get("zone") ?? "");
   const [completion, setCompletion] = useState<"" | "complete" | "incomplete">("");
 
   const { data: session } = useSession();

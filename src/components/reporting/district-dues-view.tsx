@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { PageHeading } from "@/components/layout/page-heading";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,6 +59,7 @@ function DuesStatus({ paid }: { paid: string | null }) {
 }
 
 function ClubReportsPanel() {
+  const searchParams = useSearchParams();
   const active = getActiveReportPeriod();
   const optionOpts = { long: true, withYear: true } as const;
   const monthOptions = withMonthOption(
@@ -66,7 +68,12 @@ function ClubReportsPanel() {
     active.year,
     optionOpts
   );
-  const [period, setPeriod] = useState(() => `${active.month}-${active.year}`);
+  const [period, setPeriod] = useState(() => {
+    const month = Number(searchParams.get("month"));
+    const year = Number(searchParams.get("year"));
+    if (month >= 1 && month <= 12 && year >= 2020 && year <= 2100) return `${month}-${year}`;
+    return `${active.month}-${active.year}`;
+  });
   const [month, year] = period.split("-").map(Number);
 
   const { data, isLoading, isError } = useDistrictDues(month, year);
