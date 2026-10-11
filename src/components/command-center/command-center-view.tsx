@@ -20,7 +20,7 @@ const inr = new Intl.NumberFormat("en-IN", {
 });
 
 const fieldClass =
-  "h-8 w-full rounded-md border border-zinc-200 bg-white px-2.5 text-sm text-zinc-900 shadow-none";
+  "h-9 w-full rounded-md border border-zinc-200 bg-white px-3 text-sm text-zinc-900";
 
 function dash(value: number | string | null | undefined) {
   if (value == null || value === "") return "—";
@@ -41,17 +41,17 @@ function Kpi({
   icon: typeof Building2;
 }) {
   return (
-    <section className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white px-3.5 py-3" aria-label={label}>
-      <div className="flex items-center gap-2">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
-          <Icon className="h-3.5 w-3.5" aria-hidden />
+    <section className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white p-5" aria-label={label}>
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-accent/10 text-accent">
+          <Icon className="h-4 w-4" aria-hidden />
         </span>
-        <h2 className="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{label}</h2>
+        <h2 className="text-sm font-medium text-zinc-600">{label}</h2>
       </div>
-      <p className="mt-2.5 text-[1.65rem] font-semibold leading-none tracking-tight text-zinc-950">
+      <p className="mt-4 text-2xl font-semibold leading-none text-zinc-950">
         {unavailable ? "—" : value}
       </p>
-      <p className="mt-2 text-xs leading-snug text-zinc-500">{detail}</p>
+      <p className="mt-3 text-sm leading-relaxed text-zinc-600">{detail}</p>
     </section>
   );
 }
@@ -78,10 +78,10 @@ function SectionTitle({
   return (
     <div className="flex flex-wrap items-end justify-between gap-2">
       <div className="min-w-0">
-        <h2 id={id} className="text-sm font-semibold tracking-tight text-zinc-950">
+        <h2 id={id} className="text-lg font-semibold text-zinc-950">
           {title}
         </h2>
-        {detail ? <p className="mt-0.5 max-w-3xl text-xs leading-snug text-zinc-500">{detail}</p> : null}
+        {detail ? <p className="mt-1 max-w-3xl text-sm leading-relaxed text-zinc-600">{detail}</p> : null}
       </div>
       {action}
     </div>
@@ -90,7 +90,7 @@ function SectionTitle({
 
 function TextLink({ href, children }: { href: string; children: ReactNode }) {
   return (
-    <Link href={href} className="shrink-0 text-xs font-medium text-accent underline-offset-4 hover:underline">
+    <Link href={href} className="shrink-0 text-sm font-medium text-accent underline-offset-4 hover:underline">
       {children}
     </Link>
   );
@@ -122,16 +122,16 @@ export function CommandCenterView({
   }
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 text-zinc-900">
-      <header className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+    <div className="mx-auto w-full max-w-[1600px] space-y-8 text-zinc-900 lg:px-2">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold tracking-tight text-zinc-950">District Command Center</h1>
-          <p className="mt-0.5 text-xs text-zinc-500">Rotaract District 3131 | RIY 2026–27</p>
+          <h1 className="text-2xl font-semibold text-zinc-950">District Command Center</h1>
+          <p className="mt-1 text-sm text-zinc-600">Rotaract District 3131 | RIY 2026–27</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
           <form method="get" className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="min-w-[11rem] space-y-1">
-              <span className="text-[11px] font-medium text-zinc-500">Reporting period</span>
+              <span className="text-sm font-medium text-zinc-600">Reporting period</span>
               <select name="period" defaultValue={periodValue} aria-label="Reporting period" className={fieldClass}>
                 {monthOptions.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -140,19 +140,19 @@ export function CommandCenterView({
                 ))}
               </select>
             </label>
-            <p className="max-w-xs text-[11px] leading-snug text-zinc-500 sm:max-w-[16rem] sm:pb-1">
+            <p className="max-w-sm text-sm leading-relaxed text-zinc-600 sm:max-w-xs sm:pb-1">
               {data.period.label}. Window {data.period.windowLabel} IST.
             </p>
             {filters.zone ? <input type="hidden" name="zone" value={filters.zone} /> : null}
             {filters.query ? <input type="hidden" name="q" value={filters.query} /> : null}
             <input type="hidden" name="sort" value={filters.sort} />
-            <Button type="submit" size="sm">
+            <Button type="submit">
               Apply period
             </Button>
           </form>
           <div className="flex items-center gap-2 sm:pb-0.5">
-            <p className="text-[11px] text-zinc-500">Updated {data.generatedAtLabel} IST</p>
-            <Button variant="outline" size="sm" asChild>
+            <p className="text-sm text-zinc-600">Updated {data.generatedAtLabel} IST</p>
+            <Button variant="outline" asChild>
               <Link href={pageHref(data.citations?.page ?? 1)}>
                 <RefreshCw className="h-3.5 w-3.5" aria-hidden />
                 Refresh
@@ -162,7 +162,7 @@ export function CommandCenterView({
         </div>
       </header>
 
-      <div className="grid items-stretch gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Kpi
           icon={Building2}
           label="Active clubs"
@@ -216,7 +216,7 @@ export function CommandCenterView({
         </Link>
       </div>
 
-      <section className="space-y-3" aria-labelledby="zone-reporting-heading">
+      <section className="space-y-4" aria-labelledby="zone-reporting-heading">
         <SectionTitle
           id="zone-reporting-heading"
           title="Zone reporting"
@@ -226,22 +226,22 @@ export function CommandCenterView({
         {data.errors.reporting ? (
           <SectionError message="Zone reporting could not be loaded. The rest of this page is unchanged." />
         ) : (
-          <div className="space-y-3">
-            <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="space-y-4">
+            <ul className="grid gap-4 md:grid-cols-2">
               {(data.zones ?? []).map((zone) => (
                 <li key={zone.zone} className="min-w-0">
                   <Link
                     href={`${reportingHref}&zone=${encodeURIComponent(zone.zone)}`}
-                    className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white px-3 py-2.5 hover:border-zinc-300"
+                    className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white p-5 hover:border-zinc-300"
                   >
-                    <div className="flex items-baseline justify-between gap-3">
-                      <span className="text-sm font-semibold text-zinc-950">{zone.zone}</span>
-                      <span className="text-sm font-semibold tabular-nums text-zinc-950">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <span className="text-base font-semibold text-zinc-950">{zone.zone}</span>
+                      <span className="text-xl font-semibold tabular-nums text-zinc-950">
                         {zone.completionPercent == null ? "No eligible clubs" : `${zone.completionPercent}%`}
                       </span>
                     </div>
                     <div
-                      className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100"
+                      className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-100"
                       role="img"
                       aria-label={
                         zone.completionPercent == null
@@ -251,7 +251,7 @@ export function CommandCenterView({
                     >
                       <div className="h-full bg-accent" style={{ width: `${zone.completionPercent ?? 0}%` }} />
                     </div>
-                    <dl className="mt-2.5 grid grid-cols-3 gap-x-2 gap-y-1.5 text-[11px] sm:grid-cols-5">
+                    <dl className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5">
                       <div>
                         <dt className="text-zinc-400">Eligible</dt>
                         <dd className="font-medium tabular-nums text-zinc-800">{zone.eligible}</dd>
@@ -278,33 +278,33 @@ export function CommandCenterView({
               ))}
             </ul>
             <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
-              <table className="w-full min-w-[40rem] text-left text-xs">
+              <table className="w-full min-w-[40rem] text-left text-sm">
                 <caption className="sr-only">Zone reporting summary for {data.period.label}</caption>
                 <thead>
-                  <tr className="border-b border-zinc-200 text-[11px] uppercase tracking-wide text-zinc-500">
-                    <th className="px-3 py-2 font-medium">Zone</th>
-                    <th className="px-3 py-2 text-right font-medium">Eligible</th>
-                    <th className="px-3 py-2 text-right font-medium">Complete</th>
-                    <th className="px-3 py-2 text-right font-medium">Admin submitted</th>
-                    <th className="px-3 py-2 text-right font-medium">Events submitted</th>
-                    <th className="px-3 py-2 text-right font-medium">Still open</th>
-                    <th className="px-3 py-2 text-right font-medium">Completion</th>
+                  <tr className="border-b border-zinc-200 text-sm text-zinc-600">
+                    <th className="px-4 py-3 font-medium">Zone</th>
+                    <th className="px-4 py-3 text-right font-medium">Eligible</th>
+                    <th className="px-4 py-3 text-right font-medium">Complete</th>
+                    <th className="px-4 py-3 text-right font-medium">Admin submitted</th>
+                    <th className="px-4 py-3 text-right font-medium">Events submitted</th>
+                    <th className="px-4 py-3 text-right font-medium">Still open</th>
+                    <th className="px-4 py-3 text-right font-medium">Completion</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(data.zones ?? []).map((zone) => (
                     <tr key={zone.zone} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50">
-                      <td className="px-3 py-1.5 font-medium text-zinc-900">
+                      <td className="px-4 py-3 font-medium text-zinc-900">
                         <Link href={`${reportingHref}&zone=${encodeURIComponent(zone.zone)}`} className="hover:underline">
                           {zone.zone}
                         </Link>
                       </td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{zone.eligible}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{zone.completed}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{zone.adminSubmitted}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{zone.eventsSubmitted}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{zone.stillOpen}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">
+                      <td className="px-4 py-3 text-right tabular-nums">{zone.eligible}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{zone.completed}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{zone.adminSubmitted}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{zone.eventsSubmitted}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{zone.stillOpen}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">
                         {zone.completionPercent == null ? "—" : `${zone.completionPercent}%`}
                       </td>
                     </tr>
@@ -316,25 +316,25 @@ export function CommandCenterView({
         )}
       </section>
 
-      <div className="grid items-stretch gap-3 lg:grid-cols-2">
-        <section className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white px-3.5 py-3" aria-labelledby="ri-dues-heading">
+      <div className="grid items-stretch gap-4 lg:grid-cols-2">
+        <section className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white p-5" aria-labelledby="ri-dues-heading">
           <div className="flex items-start justify-between gap-3">
-            <h2 id="ri-dues-heading" className="text-sm font-semibold tracking-tight text-zinc-950">
+            <h2 id="ri-dues-heading" className="text-lg font-semibold text-zinc-950">
               RI dues
             </h2>
             <TextLink href="/dashboard/citations/review">Open citation review</TextLink>
           </div>
-          <p className="mt-2 text-sm leading-snug text-zinc-600">
+          <p className="mt-3 text-sm leading-relaxed text-zinc-700">
             Monetary amounts are unavailable. This application does not keep an RI dues ledger or a USD balance, so assessed, collected, outstanding, and collection figures are not shown.
           </p>
-          <p className="mt-2 text-xs leading-snug text-zinc-500">
+          <p className="mt-3 text-sm leading-relaxed text-zinc-600">
             Club progress for “100% payment of RI dues” is tracked only as a citation, not as a payment.
           </p>
         </section>
 
-        <section className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white px-3.5 py-3" aria-labelledby="district-dues-heading">
+        <section className="flex h-full flex-col rounded-lg border border-zinc-200 bg-white p-5" aria-labelledby="district-dues-heading">
           <div className="flex items-start justify-between gap-3">
-            <h2 id="district-dues-heading" className="text-sm font-semibold tracking-tight text-zinc-950">
+            <h2 id="district-dues-heading" className="text-lg font-semibold text-zinc-950">
               District dues
             </h2>
             <TextLink href={duesHref}>Open district dues</TextLink>
@@ -345,30 +345,30 @@ export function CommandCenterView({
             </div>
           ) : (
             <>
-              <p className="mt-1 text-[11px] text-zinc-500">{data.period.label} admin report flags</p>
-              <dl className="mt-3 grid grid-cols-2 gap-2">
-                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-2">
-                  <dt className="text-[11px] text-zinc-500">Marked paid</dt>
-                  <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-950">{data.districtDues.clubsFullyMarkedPaid}</dd>
+              <p className="mt-1 text-sm text-zinc-600">{data.period.label} admin report flags</p>
+              <dl className="mt-4 grid grid-cols-2 gap-3">
+                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-4 py-3">
+                  <dt className="text-sm text-zinc-600">Marked paid</dt>
+                  <dd className="mt-1 text-2xl font-semibold tabular-nums text-zinc-950">{data.districtDues.clubsFullyMarkedPaid}</dd>
                 </div>
-                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-2">
-                  <dt className="text-[11px] text-zinc-500">Marked unpaid</dt>
-                  <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-950">{data.districtDues.clubsMarkedUnpaid}</dd>
+                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-4 py-3">
+                  <dt className="text-sm text-zinc-600">Marked unpaid</dt>
+                  <dd className="mt-1 text-2xl font-semibold tabular-nums text-zinc-950">{data.districtDues.clubsMarkedUnpaid}</dd>
                 </div>
-                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-2">
-                  <dt className="text-[11px] text-zinc-500">Not marked</dt>
-                  <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-950">{data.districtDues.clubsNotMarked}</dd>
+                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-4 py-3">
+                  <dt className="text-sm text-zinc-600">Not marked</dt>
+                  <dd className="mt-1 text-2xl font-semibold tabular-nums text-zinc-950">{data.districtDues.clubsNotMarked}</dd>
                 </div>
-                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-2.5 py-2">
-                  <dt className="text-[11px] text-zinc-500">Declared amount</dt>
-                  <dd className="mt-0.5 text-lg font-semibold tabular-nums text-zinc-950">
+                <div className="rounded-md border border-zinc-100 bg-zinc-50 px-4 py-3">
+                  <dt className="text-sm text-zinc-600">Declared amount</dt>
+                  <dd className="mt-1 text-2xl font-semibold tabular-nums text-zinc-950">
                     {data.districtDues.declaredAmountAvailable && data.districtDues.declaredAmountInr != null
                       ? inr.format(data.districtDues.declaredAmountInr)
                       : "—"}
                   </dd>
                 </div>
               </dl>
-              <p className="mt-2 text-xs leading-snug text-zinc-500">
+              <p className="mt-4 text-sm leading-relaxed text-zinc-600">
                 The declared amount is what clubs entered when they marked dues paid. There is no assessed total, so collection percentage and outstanding balance are not calculated. Partial payments are not recorded.
               </p>
             </>
@@ -376,8 +376,8 @@ export function CommandCenterView({
         </section>
       </div>
 
-      <div className="grid items-start gap-3 lg:grid-cols-2">
-        <section className="space-y-2" aria-labelledby="events-heading">
+      <div className="grid items-start gap-4 lg:grid-cols-2">
+        <section className="space-y-4" aria-labelledby="events-heading">
           <SectionTitle
             id="events-heading"
             title="Upcoming events"
@@ -393,14 +393,14 @@ export function CommandCenterView({
             <ul className="divide-y divide-zinc-100 overflow-hidden rounded-lg border border-zinc-200 bg-white">
               {(data.upcomingEvents ?? []).map((event) => (
                 <li key={event.id}>
-                  <Link href={`/events/${event.id}`} className="flex gap-3 px-3 py-2.5 hover:bg-zinc-50">
+                  <Link href={`/events/${event.id}`} className="flex gap-4 px-4 py-4 hover:bg-zinc-50">
                     {event.bannerUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img src={event.bannerUrl} alt="" className="h-12 w-16 shrink-0 rounded object-cover" />
                     ) : null}
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-zinc-950">{event.title}</p>
-                      <p className="text-xs text-zinc-500">
+                      <p className="truncate text-base font-medium text-zinc-950">{event.title}</p>
+                      <p className="text-sm text-zinc-600">
                         {event.startLabel} · {event.timeLabel} IST
                         {event.venue ? ` · ${event.venue}` : ""}
                       </p>
@@ -413,7 +413,7 @@ export function CommandCenterView({
           )}
         </section>
 
-        <section className="space-y-2" aria-labelledby="alerts-heading">
+        <section className="space-y-4" aria-labelledby="alerts-heading">
           <SectionTitle id="alerts-heading" title="Operational alerts" />
           {data.alerts == null ? (
             <SectionError message="Alerts could not be loaded." />
@@ -425,7 +425,7 @@ export function CommandCenterView({
             <ul className="divide-y divide-zinc-100 overflow-hidden rounded-lg border border-zinc-200 bg-white">
               {data.alerts.map((alert) => (
                 <li key={alert.id}>
-                  <Link href={alert.href} className="block px-3 py-2.5 hover:bg-zinc-50">
+                  <Link href={alert.href} className="block px-4 py-4 hover:bg-zinc-50">
                     <div className="flex flex-wrap items-center gap-2">
                       <Badge
                         variant={
@@ -438,10 +438,10 @@ export function CommandCenterView({
                       >
                         {alert.severity === "due_soon" ? "Due soon" : alert.severity === "overdue" ? "Overdue" : "Pending"}
                       </Badge>
-                      <span className="text-[11px] text-zinc-500">{alert.category}</span>
+                      <span className="text-sm text-zinc-600">{alert.category}</span>
                     </div>
-                    <p className="mt-1 text-sm font-medium text-zinc-950">{alert.title}</p>
-                    <p className="text-xs text-zinc-500">{alert.description}</p>
+                    <p className="mt-1 text-base font-medium text-zinc-950">{alert.title}</p>
+                    <p className="text-sm text-zinc-600">{alert.description}</p>
                   </Link>
                 </li>
               ))}
@@ -450,7 +450,7 @@ export function CommandCenterView({
         </section>
       </div>
 
-      <section className="space-y-3" aria-labelledby="citations-heading">
+      <section className="space-y-4" aria-labelledby="citations-heading">
         <SectionTitle
           id="citations-heading"
           title="Club citation standings"
@@ -459,7 +459,7 @@ export function CommandCenterView({
         <form method="get" className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end">
           <input type="hidden" name="period" value={periodValue} />
           <label className="min-w-[8.5rem] space-y-1">
-            <span className="text-[11px] font-medium text-zinc-500">Zone</span>
+            <span className="text-sm font-medium text-zinc-600">Zone</span>
             <select name="zone" defaultValue={filters.zone} aria-label="Filter by zone" className={fieldClass}>
               <option value="">All zones</option>
               {DISTRICT_ZONE_META.map((zone) => (
@@ -470,7 +470,7 @@ export function CommandCenterView({
             </select>
           </label>
           <label className="min-w-[12rem] flex-1 space-y-1">
-            <span className="text-[11px] font-medium text-zinc-500">Club</span>
+            <span className="text-sm font-medium text-zinc-600">Club</span>
             <input
               name="q"
               defaultValue={filters.query}
@@ -480,7 +480,7 @@ export function CommandCenterView({
             />
           </label>
           <label className="min-w-[10rem] space-y-1">
-            <span className="text-[11px] font-medium text-zinc-500">Sort</span>
+            <span className="text-sm font-medium text-zinc-600">Sort</span>
             <select name="sort" defaultValue={filters.sort} aria-label="Sort citation standings" className={fieldClass}>
               <option value="rank">Rank</option>
               <option value="points">Approved points</option>
@@ -488,7 +488,7 @@ export function CommandCenterView({
               <option value="pending">Pending criteria</option>
             </select>
           </label>
-          <Button type="submit" size="sm" variant="secondary">
+          <Button type="submit" variant="secondary">
             Apply
           </Button>
         </form>
@@ -501,39 +501,39 @@ export function CommandCenterView({
         ) : (
           <>
             <div className="overflow-x-auto rounded-lg border border-zinc-200 bg-white">
-              <table className="w-full min-w-[52rem] text-left text-xs">
+              <table className="w-full min-w-[52rem] text-left text-sm">
                 <caption className="sr-only">Club citation standings</caption>
                 <thead>
-                  <tr className="border-b border-zinc-200 text-[11px] uppercase tracking-wide text-zinc-500">
-                    <th className="px-3 py-2 font-medium">Rank</th>
-                    <th className="px-3 py-2 font-medium">Club</th>
-                    <th className="px-3 py-2 font-medium">Zone</th>
-                    <th className="px-3 py-2 text-right font-medium">Eligible points</th>
-                    <th className="px-3 py-2 text-right font-medium">Approved points</th>
-                    <th className="px-3 py-2 text-right font-medium">Pending</th>
-                    <th className="px-3 py-2 text-right font-medium">Rejected</th>
-                    <th className="px-3 py-2 text-right font-medium">Approved criteria</th>
-                    <th className="px-3 py-2 text-right font-medium">Applicable</th>
-                    <th className="px-3 py-2 text-right font-medium">Completion</th>
+                  <tr className="border-b border-zinc-200 text-sm text-zinc-600">
+                    <th className="px-4 py-3 font-medium">Rank</th>
+                    <th className="px-4 py-3 font-medium">Club</th>
+                    <th className="px-4 py-3 font-medium">Zone</th>
+                    <th className="px-4 py-3 text-right font-medium">Eligible points</th>
+                    <th className="px-4 py-3 text-right font-medium">Approved points</th>
+                    <th className="px-4 py-3 text-right font-medium">Pending</th>
+                    <th className="px-4 py-3 text-right font-medium">Rejected</th>
+                    <th className="px-4 py-3 text-right font-medium">Approved criteria</th>
+                    <th className="px-4 py-3 text-right font-medium">Applicable</th>
+                    <th className="px-4 py-3 text-right font-medium">Completion</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.citations.rows.map((row) => (
                     <tr key={row.clubId} className="border-b border-zinc-100 last:border-0 hover:bg-zinc-50">
-                      <td className="px-3 py-1.5 tabular-nums">{row.rank}</td>
-                      <td className="px-3 py-1.5">
+                      <td className="px-4 py-3 tabular-nums">{row.rank}</td>
+                      <td className="px-4 py-3">
                         <Link href={`/dashboard/citations/review?club=${row.clubId}`} className="font-medium text-zinc-950 hover:underline">
                           {row.clubName}
                         </Link>
                       </td>
-                      <td className="px-3 py-1.5 text-zinc-600">{row.zone ?? "—"}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{row.eligiblePoints}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{row.approvedPoints}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{row.pendingCount}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{row.rejectedCount}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{row.approvedCount}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">{row.applicableCount}</td>
-                      <td className="px-3 py-1.5 text-right tabular-nums">
+                      <td className="px-4 py-3 text-zinc-600">{row.zone ?? "—"}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{row.eligiblePoints}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{row.approvedPoints}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{row.pendingCount}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{row.rejectedCount}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{row.approvedCount}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">{row.applicableCount}</td>
+                      <td className="px-4 py-3 text-right tabular-nums">
                         {row.completionPercent == null ? "—" : `${row.completionPercent}%`}
                       </td>
                     </tr>
@@ -541,18 +541,18 @@ export function CommandCenterView({
                 </tbody>
               </table>
             </div>
-            <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
               <p className="text-zinc-500">
                 {data.citations.total} clubs · page {data.citations.page} of {pages}
               </p>
               <div className="flex gap-2">
                 {data.citations.page > 1 ? (
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" asChild>
                     <Link href={pageHref(data.citations.page - 1)}>Previous</Link>
                   </Button>
                 ) : null}
                 {data.citations.page < pages ? (
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" asChild>
                     <Link href={pageHref(data.citations.page + 1)}>Next</Link>
                   </Button>
                 ) : null}

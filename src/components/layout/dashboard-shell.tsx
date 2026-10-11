@@ -15,9 +15,9 @@ export function DashboardShell({ children }: DashboardShellProps) {
         <AppSidebar className="fixed left-0 top-0 z-30 h-screen" />
       </div>
 
-      <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:pl-[var(--sidebar-width)]">
+      <div className="flex min-h-screen flex-1 flex-col lg:pl-[var(--sidebar-width)]">
         <AppNavbar />
-        <main className="min-w-0 flex-1 bg-background p-3 sm:p-4 lg:p-5">{children}</main>
+        <main className="flex-1 bg-background p-3 sm:p-4 lg:p-5">{children}</main>
       </div>
 
       <ForcePasswordReset />
