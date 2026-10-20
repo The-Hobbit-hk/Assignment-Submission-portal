@@ -5,10 +5,9 @@ import { handleRouteError, apiError } from "@/lib/api-errors";
 import {
   assertCitationProofUploadable,
   attachCitationProofUrl,
-  getSupabaseAdmin,
   isOwnedCitationProofPath,
-  SUPABASE_UPLOAD_BUCKET,
 } from "@/lib/citation-proof-upload";
+import { publicFileUrl } from "@/lib/storage/public-url";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -32,16 +31,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     const gate = await assertCitationProofUploadable(session!, id);
     if (!gate.ok) return gate.response;
 
-    const supabase = getSupabaseAdmin();
-    if (!supabase) {
-      return apiError("Supabase Storage is not configured.", 500);
-    }
-
-    const { data: publicData } = supabase.storage
-      .from(SUPABASE_UPLOAD_BUCKET)
-      .getPublicUrl(body.path);
-
-    const updated = await attachCitationProofUrl(id, publicData.publicUrl);
+    const updated = await attachCitationProofUrl(id, publicFileUrl(body.path));
     return NextResponse.json(updated);
   } catch (err) {
     return handleRouteError(err, "Could not attach uploaded file.");

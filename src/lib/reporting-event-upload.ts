@@ -6,6 +6,7 @@ import {
   isSupabaseStorageEnabled,
   SUPABASE_UPLOAD_BUCKET,
 } from "@/lib/supabase-server";
+import { publicFileUrl } from "@/lib/storage/public-url";
 import { assertClubEventCreateAccess, resolveReportingClubId } from "@/lib/reporting-access";
 import { isClubUser } from "@/lib/roles";
 import { apiError } from "@/lib/api-errors";
@@ -98,10 +99,11 @@ export async function assertReportingEventUploadable(
 }
 
 export function publicUrlForPath(objectPath: string) {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return null;
-  const { data } = supabase.storage.from(SUPABASE_UPLOAD_BUCKET).getPublicUrl(objectPath);
-  return data.publicUrl;
+  try {
+    return publicFileUrl(objectPath);
+  } catch {
+    return null;
+  }
 }
 
 export {

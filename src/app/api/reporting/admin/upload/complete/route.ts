@@ -5,11 +5,10 @@ import { handleRouteError, apiError } from "@/lib/api-errors";
 import {
   ADMIN_REPORT_FIELDS,
   attachAdminReportFileUrl,
-  getSupabaseAdmin,
   isOwnedAdminReportObjectPath,
   resolveAdminReportUploadContext,
-  SUPABASE_UPLOAD_BUCKET,
 } from "@/lib/admin-report-upload";
+import { publicFileUrl } from "@/lib/storage/public-url";
 
 const bodySchema = z.object({
   path: z.string().min(1),
@@ -37,22 +36,13 @@ export async function POST(request: Request) {
     );
     if (!ctx.ok) return ctx.response;
 
-    const supabase = getSupabaseAdmin();
-    if (!supabase) {
-      return apiError("Supabase Storage is not configured.", 500);
-    }
-
-    const { data: publicData } = supabase.storage
-      .from(SUPABASE_UPLOAD_BUCKET)
-      .getPublicUrl(body.path);
-
     const report = await attachAdminReportFileUrl(
       session!,
       body.month,
       body.year,
       ctx.clubId,
       body.field,
-      publicData.publicUrl
+      publicFileUrl(body.path)
     );
 
     return NextResponse.json(report);

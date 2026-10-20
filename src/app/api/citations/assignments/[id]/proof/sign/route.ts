@@ -5,13 +5,11 @@ import { handleRouteError, apiError } from "@/lib/api-errors";
 import {
   assertCitationProofUploadable,
   buildCitationProofObjectPath,
-  getSupabaseAdmin,
   isAllowedCitationProofFile,
-  isSupabaseStorageEnabled,
   MAX_CITATION_PROOF_BYTES,
   MAX_CITATION_PROOF_LABEL,
-  SUPABASE_UPLOAD_BUCKET,
 } from "@/lib/citation-proof-upload";
+import { isR2Ready, signPublicUpload } from "@/lib/storage/r2-ops";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -29,9 +27,9 @@ export async function POST(request: Request, { params }: RouteParams) {
   const { id } = await params;
 
   try {
-    if (!isSupabaseStorageEnabled()) {
+    if (!isR2Ready()) {
       return apiError(
-        "Direct uploads require Supabase Storage. Contact an administrator.",
+        "Direct uploads require file storage. Contact an administrator.",
         503,
         { code: "STORAGE_NOT_CONFIGURED" }
       );
@@ -50,37 +48,15 @@ export async function POST(request: Request, { params }: RouteParams) {
     const gate = await assertCitationProofUploadable(session!, id);
     if (!gate.ok) return gate.response;
 
-    const supabase = getSupabaseAdmin();
-    if (!supabase) {
-      return apiError("Supabase Storage is not configured.", 503, {
-        code: "STORAGE_NOT_CONFIGURED",
-      });
-    }
-
     const objectPath = buildCitationProofObjectPath(
       session!.user.id,
       id,
       body.fileName,
       contentType
     );
-    const { data, error: signError } = await supabase.storage
-      .from(SUPABASE_UPLOAD_BUCKET)
-      .createSignedUploadUrl(objectPath);
+    const signed = await signPublicUpload(objectPath, contentType);
 
-    if (signError || !data) {
-      return apiError(signError?.message ?? "Could not create upload URL.", 500);
-    }
-
-    const { data: publicData } = supabase.storage
-      .from(SUPABASE_UPLOAD_BUCKET)
-      .getPublicUrl(objectPath);
-
-    return NextResponse.json({
-      path: data.path,
-      token: data.token,
-      signedUrl: data.signedUrl,
-      publicUrl: publicData.publicUrl,
-    });
+    return NextResponse.json(signed);
   } catch (err) {
     return handleRouteError(err, "Could not prepare upload.");
   }

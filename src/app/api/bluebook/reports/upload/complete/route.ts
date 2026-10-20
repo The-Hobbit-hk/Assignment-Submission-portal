@@ -3,13 +3,12 @@ import {
   apiError,
   assertBluebookReportUploadable,
   attachBluebookProofUrl,
-  getSupabaseAdmin,
   handleRouteError,
   isOwnedBluebookObjectPath,
   requireBluebookUploader,
   serializeReport,
-  SUPABASE_UPLOAD_BUCKET,
 } from "@/lib/bluebook-report-upload";
+import { publicFileUrl } from "@/lib/storage/public-url";
 
 export async function POST(request: Request) {
   const { session, error } = await requireBluebookUploader();
@@ -32,19 +31,10 @@ export async function POST(request: Request) {
     const gate = await assertBluebookReportUploadable(session!, month, year);
     if (!gate.ok) return gate.response;
 
-    const supabase = getSupabaseAdmin();
-    if (!supabase) {
-      return apiError("Supabase Storage is not configured.", 500);
-    }
-
-    const { data: publicData } = supabase.storage
-      .from(SUPABASE_UPLOAD_BUCKET)
-      .getPublicUrl(objectPath);
-
     const report = await attachBluebookProofUrl(
       gate.cycleId,
       session!.user.id,
-      publicData.publicUrl,
+      publicFileUrl(objectPath),
       gate.existingProofUrls
     );
 

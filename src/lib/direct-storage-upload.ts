@@ -26,7 +26,7 @@ export function sleep(ms: number) {
 export function isStorageNotConfiguredError(err: unknown): boolean {
   if (!(err instanceof ApiError)) return false;
   if (err.status !== 500 && err.status !== 503) return false;
-  return /Supabase Storage|storage is not configured|Direct uploads require/i.test(
+  return /Supabase Storage|file storage|storage is not configured|Direct uploads require/i.test(
     err.message
   );
 }

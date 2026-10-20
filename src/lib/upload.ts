@@ -8,6 +8,9 @@ import {
   SUPABASE_PRIVATE_BUCKET,
   SUPABASE_UPLOAD_BUCKET,
 } from "@/lib/supabase-server";
+import { isR2StorageEnabled } from "@/lib/storage/r2-config";
+import { publicFileUrl } from "@/lib/storage/public-url";
+import { putPrivateObject, putPublicObject, readPrivateObject } from "@/lib/storage/r2-ops";
 
 const UPLOAD_ROOT = path.join(process.cwd(), "public", "uploads");
 const PRIVATE_UPLOAD_ROOT = path.join(process.cwd(), "private-uploads");
@@ -39,6 +42,10 @@ export async function savePrivateUpload(
     throw new Error("Only JPG, PNG, WebP, or PDF files are allowed.");
   }
 
+  if (isR2StorageEnabled()) {
+    return savePrivateUploadToR2(file, subfolder);
+  }
+
   if (isSupabaseStorageEnabled()) {
     return savePrivateUploadToSupabase(file, subfolder);
   }
@@ -55,6 +62,10 @@ export async function savePrivateUpload(
 export async function readPrivateUpload(
   storagePath: string
 ): Promise<{ buffer: Buffer; contentType: string }> {
+  if (isR2StorageEnabled()) {
+    return readPrivateObject(storagePath);
+  }
+
   if (isSupabaseStorageEnabled()) {
     return readPrivateUploadFromSupabase(storagePath);
   }
@@ -151,6 +162,10 @@ export async function saveUpload(
     throw new Error(`File exceeds maximum size of ${mb}MB.`);
   }
 
+  if (isR2StorageEnabled()) {
+    return saveUploadToR2(file, subfolder);
+  }
+
   if (isSupabaseStorageEnabled()) {
     return saveUploadToSupabase(file, subfolder);
   }
@@ -162,6 +177,30 @@ export async function saveUpload(
   }
 
   return saveUploadToDisk(file, subfolder);
+}
+
+async function savePrivateUploadToR2(file: File, subfolder: string): Promise<string> {
+  const ext = path.extname(file.name) || getExtFromMime(file.type);
+  const objectPath = `${subfolder}/${randomUUID()}${ext}`;
+  const compressed = await compressForStorage(
+    Buffer.from(await file.arrayBuffer()),
+    file.type,
+    ext
+  );
+  await putPrivateObject(objectPath, compressed.buffer, compressed.contentType);
+  return objectPath;
+}
+
+async function saveUploadToR2(file: File, subfolder: string): Promise<string> {
+  const ext = path.extname(file.name) || getExtFromMime(file.type);
+  const objectPath = `${subfolder}/${randomUUID()}${ext}`;
+  const compressed = await compressForStorage(
+    Buffer.from(await file.arrayBuffer()),
+    file.type,
+    ext
+  );
+  await putPublicObject(objectPath, compressed.buffer, compressed.contentType);
+  return publicFileUrl(objectPath);
 }
 
 async function saveUploadToSupabase(file: File, subfolder: string): Promise<string> {

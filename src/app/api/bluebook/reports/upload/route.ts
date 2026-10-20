@@ -11,6 +11,7 @@ import {
   requireBluebookUploader,
   serializeReport,
 } from "@/lib/bluebook-report-upload";
+import { isR2StorageEnabled } from "@/lib/storage/r2-config";
 
 /**
  * Legacy multipart upload (local / small files).
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
     return NextResponse.json(serializeReport(report));
   } catch (e) {
     // If multipart hits the platform body limit, steer clients to signed uploads.
-    if (isSupabaseStorageEnabled()) {
+    if (isR2StorageEnabled() || isSupabaseStorageEnabled()) {
       return apiError(
         "File is too large for direct server upload. Please retry — the app will use a secure large-file upload.",
         413

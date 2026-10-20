@@ -5,6 +5,7 @@ import {
   isSupabaseStorageEnabled,
   SUPABASE_UPLOAD_BUCKET,
 } from "@/lib/supabase-server";
+import { publicFileUrl } from "@/lib/storage/public-url";
 
 export const EVENT_FILE_KINDS = ["banner", "minutes", "gallery"] as const;
 export type EventFileKind = (typeof EVENT_FILE_KINDS)[number];
@@ -71,10 +72,11 @@ export function isOwnedEventFilePath(
 }
 
 export function publicUrlForEventPath(objectPath: string) {
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return null;
-  const { data } = supabase.storage.from(SUPABASE_UPLOAD_BUCKET).getPublicUrl(objectPath);
-  return data.publicUrl;
+  try {
+    return publicFileUrl(objectPath);
+  } catch {
+    return null;
+  }
 }
 
 export {
