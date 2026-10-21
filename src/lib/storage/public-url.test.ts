@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { publicFileUrl, resolveStoredFileUrl, rewriteFileUrls, uploadsKeyFromStoredUrl } from "./public-url";
+import {
+  isAnonymousFileKey,
+  isBlockedFileKey,
+  publicFileUrl,
+  resolveStoredFileUrl,
+  rewriteFileUrls,
+  uploadsKeyFromStoredUrl,
+} from "./public-url";
 
 const oldUrl =
   "https://xtojaphqdxdrrodskqar.supabase.co/storage/v1/object/public/uploads/events/minutes/club/file.pdf";
@@ -11,11 +18,21 @@ test("a stored Supabase uploads URL becomes the same R2 object key", () => {
   assert.equal(uploadsKeyFromStoredUrl(`${oldUrl.split("/uploads/")[0]}/uploads/../secret.pdf`), null);
 });
 
-test("existing file links are served from this site until a public R2 domain is set", () => {
-  delete process.env.R2_PUBLIC_BASE_URL;
+test("existing file links stay on this site and are not turned into a public R2 address", () => {
+  process.env.R2_PUBLIC_BASE_URL = "https://files.example.com";
   assert.equal(resolveStoredFileUrl(oldUrl), "/api/storage/public/events/minutes/club/file.pdf");
   assert.equal(resolveStoredFileUrl("https://forms.gle/keep"), "https://forms.gle/keep");
   assert.equal(publicFileUrl("events/banners/a.jpg"), "/api/storage/public/events/banners/a.jpg");
+  delete process.env.R2_PUBLIC_BASE_URL;
+});
+
+test("only public-page images are anonymous, and private registration files are blocked", () => {
+  assert.equal(isAnonymousFileKey("events/banners/a.jpg"), true);
+  assert.equal(isAnonymousFileKey("club-logos/logo.png"), true);
+  assert.equal(isAnonymousFileKey("events/minutes/club/file.pdf"), false);
+  assert.equal(isAnonymousFileKey("admin-reporting/dues.pdf"), false);
+  assert.equal(isAnonymousFileKey("member-dues/proof.pdf"), false);
+  assert.equal(isBlockedFileKey("event-registrations/event/id.pdf"), true);
 });
 
 test("nested records and external links are rewritten only for archive URLs", () => {

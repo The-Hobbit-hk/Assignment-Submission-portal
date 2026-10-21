@@ -22,14 +22,29 @@ export function uploadsKeyFromStoredUrl(value: string): string | null {
   return isSafeObjectKey(key) ? key : null;
 }
 
-/** Browser URL for a public archive object. Uses a custom domain when one is configured. */
+/** Folders shown on the public site. Every other archive file requires a signed-in user. */
+const ANONYMOUS_FILE_PREFIXES = [
+  "events/banners/",
+  "events/gallery/",
+  "event-banners/",
+  "club-logos/",
+];
+
+export function isAnonymousFileKey(objectKey: string): boolean {
+  return ANONYMOUS_FILE_PREFIXES.some((prefix) => objectKey.startsWith(prefix));
+}
+
+/** Registration identity and payment files are never served from the public route. */
+export function isBlockedFileKey(objectKey: string): boolean {
+  return objectKey.startsWith("event-registrations/") || objectKey.startsWith("private-uploads/");
+}
+
+/** Same-origin file address. Direct R2 links are never given to the browser. */
 export function publicFileUrl(objectKey: string): string {
   if (!isSafeObjectKey(objectKey)) {
     throw new Error("Unsafe object key.");
   }
   const encoded = objectKey.split("/").map((part) => encodeURIComponent(part)).join("/");
-  const base = process.env.R2_PUBLIC_BASE_URL?.trim().replace(/\/$/, "");
-  if (base) return `${base}/${encoded}`;
   return `/api/storage/public/${encoded}`;
 }
 

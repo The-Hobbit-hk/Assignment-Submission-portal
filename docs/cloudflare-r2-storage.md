@@ -10,7 +10,7 @@ Private registration files are object paths, not public URLs. `GET /api/events/[
 
 External links (93 at the last database scan) are left alone. A URL is never treated as an R2 object key.
 
-New uploads go to R2 when the five server variables below are set. Existing public file links are rewritten on read to `/api/storage/public/<object key>`. That route reads the object from R2. The database values stay unchanged.
+New uploads go to R2 when the five server variables below are set. Existing public file links are rewritten on read to `/api/storage/public/<object key>`. That route reads the object from the private R2 bucket. Event banners, galleries, and club logos can load on the public site. Minutes, reports, proofs, dues files, and avatars require a signed-in user. Registration identity and payment files are not served by this route. Direct R2 addresses are not given to the browser. The database values stay unchanged.
 
 ## R2 setup
 
@@ -34,7 +34,7 @@ The S3 endpoint is `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com`. The accou
 ```json
 [
   {
-    "AllowedOrigins": ["https://rotaractweb.vercel.app", "http://localhost:3000"],
+    "AllowedOrigins": ["https://www.rotaractdistrict3131.org", "https://rotaractdistrict3131.org", "https://rotaractweb.vercel.app", "http://localhost:3000"],
     "AllowedMethods": ["GET", "PUT", "HEAD"],
     "AllowedHeaders": ["*"],
     "ExposeHeaders": ["ETag"],

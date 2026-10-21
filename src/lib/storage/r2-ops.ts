@@ -116,7 +116,12 @@ export async function allowBrowserUploads(): Promise<void> {
       CORSConfiguration: {
         CORSRules: [
           {
-            AllowedOrigins: ["https://rotaractweb.vercel.app", "http://localhost:3000"],
+            AllowedOrigins: [
+              "https://www.rotaractdistrict3131.org",
+              "https://rotaractdistrict3131.org",
+              "https://rotaractweb.vercel.app",
+              "http://localhost:3000",
+            ],
             AllowedMethods: ["GET", "PUT", "HEAD"],
             AllowedHeaders: ["*"],
             ExposeHeaders: ["ETag"],
