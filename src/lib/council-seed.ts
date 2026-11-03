@@ -79,6 +79,7 @@ export async function upsertCouncilMember(
     homeClub: councilUser.club,
     role: "MEMBER" as const,
     status: "ACTIVE" as const,
+    ...(councilUser.phone ? { phone: councilUser.phone } : {}),
     ...(councilUser.photo ? { avatar: councilUser.photo } : {}),
   };
 
