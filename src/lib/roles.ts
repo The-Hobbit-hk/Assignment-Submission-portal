@@ -16,6 +16,7 @@ import {
   History,
   KeyRound,
   LayoutDashboard,
+  ListChecks,
   Shield,
   Trophy,
   UserCheck,
@@ -75,8 +76,13 @@ export function canSubmitClubReporting(role: UserRole) {
   return isClubUser(role) || isReportingSecretary(role);
 }
 
+/** District-wide club reporting matrix / year status. Reporting Sec, DGS, district admins. */
 export function canViewAllClubReports(role: UserRole) {
-  return isReportingSecretary(role);
+  return (
+    role === "REPORTING_SECRETARY" ||
+    role === "DISTRICT_SECRETARY" ||
+    DISTRICT_ROLES.includes(role)
+  );
 }
 
 export function canViewZoneClubReports(email?: string | null) {
@@ -247,6 +253,11 @@ export function getNavigationForRole(
             icon: Building2,
           },
           {
+            title: "Year Reporting Status",
+            href: "/dashboard/reporting/year-status",
+            icon: ListChecks,
+          },
+          {
             title: "Reporting Dashboard",
             href: "/dashboard/reporting/monthly-overview",
             icon: FileBarChart2,
@@ -298,17 +309,31 @@ export function getNavigationForRole(
   }
 
   if (canViewAllClubReports(role)) {
-    reportingChildren.push({
-      title: "Club Reports",
-      href: "/dashboard/reporting/club-reports",
-      icon: Building2,
-    });
+    reportingChildren.push(
+      {
+        title: "Club Reports",
+        href: "/dashboard/reporting/club-reports",
+        icon: Building2,
+      },
+      {
+        title: "Year Reporting Status",
+        href: "/dashboard/reporting/year-status",
+        icon: ListChecks,
+      }
+    );
   } else if (canViewZoneClubReports(email)) {
-    reportingChildren.push({
-      title: "Zone Reporting",
-      href: "/dashboard/reporting/club-reports",
-      icon: Building2,
-    });
+    reportingChildren.push(
+      {
+        title: "Zone Reporting",
+        href: "/dashboard/reporting/club-reports",
+        icon: Building2,
+      },
+      {
+        title: "Year Reporting Status",
+        href: "/dashboard/reporting/year-status",
+        icon: ListChecks,
+      }
+    );
   }
 
   if (canExportDistrictReports(role)) {

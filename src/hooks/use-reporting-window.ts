@@ -169,3 +169,47 @@ export function useAdminSubmissions(month: number, year: number, zone?: string) 
     },
   });
 }
+
+export type ReportingYearStatusResponse = {
+  startYear: number;
+  label: string;
+  scope: "district" | "zone";
+  zones: string[] | null;
+  zoneFilter: string | null;
+  months: Array<{ month: number; year: number; key: string; shortLabel: string }>;
+  summary: {
+    totalClubs: number;
+    perfectClubs: number;
+    clubsWithMisses: number;
+    clubsNotStarted: number;
+    avgCitationPct: number | null;
+  };
+  clubs: Array<{
+    club: {
+      id: string;
+      name: string;
+      zone: string | null;
+      status: string;
+      charterNumber: string | null;
+    };
+    firstAccessAt: string | null;
+    firstReportMonth: { month: number; year: number } | null;
+    months: Array<{ month: number; year: number; status: "COMPLETE" | "MISSED" | "PENDING" | "NA" }>;
+    expected: number;
+    completed: number;
+    missed: number;
+    pending: number;
+    citationPct: number | null;
+  }>;
+};
+
+export function useReportingYearStatus(startYear: number, zone?: string) {
+  return useQuery({
+    queryKey: ["reporting", "year-status", startYear, zone ?? "all"],
+    queryFn: () => {
+      const params = new URLSearchParams({ startYear: String(startYear) });
+      if (zone) params.set("zone", zone);
+      return apiJson<ReportingYearStatusResponse>(`/api/reporting/year-status?${params}`);
+    },
+  });
+}
