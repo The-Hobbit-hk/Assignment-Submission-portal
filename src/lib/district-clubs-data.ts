@@ -22,20 +22,16 @@ export type DistrictZoneMeta = {
   totalClubs: number;
 };
 
+/** Active-club counts per zone (INACTIVE clubs excluded from public totals). */
 export const DISTRICT_ZONE_META: DistrictZoneMeta[] = [
-  { zone: "Zone 1", reps: ["Rtr. Aniket Sardar"], totalClubs: 12 },
-  { zone: "Zone 2", reps: ["Rtr. Rajas Uchagaonkar","Rtr. Sumedh Gite"], totalClubs: 13 },
-  { zone: "Zone 3", reps: ["Rtr. Pratham Pokharkar","Rtr. Sarthak Ambhore"], totalClubs: 18 },
-  { zone: "Zone 4", reps: ["Rtr. Vedant Chirmade","Rtr. Aditya Verma"], totalClubs: 14 },
-  { zone: "Zone 5", reps: ["Rtr. Vedant Chaudhari","Rtr. Prerna Bhilare"], totalClubs: 17 },
-  { zone: "Zone 6", reps: ["Rtr. Tisha Sancheti","Rtr. Rohit Kumbhar"], totalClubs: 18 },
-  { zone: "Zone 7", reps: ["Rtr. Prem Bansode","Rtr. Shrushti Shirore"], totalClubs: 14 },
+  { zone: "Zone 1", reps: ["Rtr. Aniket Sardar"], totalClubs: 8 },
+  { zone: "Zone 2", reps: ["Rtr. Rajas Uchagaonkar","Rtr. Sumedh Gite"], totalClubs: 9 },
+  { zone: "Zone 3", reps: ["Rtr. Pratham Pokharkar","Rtr. Sarthak Ambhore"], totalClubs: 12 },
+  { zone: "Zone 4", reps: ["Rtr. Vedant Chirmade","Rtr. Aditya Verma"], totalClubs: 10 },
+  { zone: "Zone 5", reps: ["Rtr. Vedant Chaudhari","Rtr. Prerna Bhilare"], totalClubs: 11 },
+  { zone: "Zone 6", reps: ["Rtr. Tisha Sancheti","Rtr. Rohit Kumbhar"], totalClubs: 13 },
+  { zone: "Zone 7", reps: ["Rtr. Prem Bansode","Rtr. Shrushti Shirore"], totalClubs: 13 },
 ];
-
-export const DISTRICT_OFFICIAL_CLUB_COUNT = DISTRICT_ZONE_META.reduce(
-  (sum, zone) => sum + zone.totalClubs,
-  0
-);
 
 const Z1: Omit<DistrictClubRecord, "zone">[] = [
   { name: "Rotaract Club of Konkan Gyanpeeth Rahul Dharkar College Of Pharmacy Karjat", riClubId: "8825261", sponsoringClub: "Karjat (Rotary Club)", charterDate: "5 November 2022", city: "Karjat" },
@@ -177,6 +173,13 @@ export const DISTRICT_CLUBS: DistrictClubRecord[] = [
   ...withZone("Zone 6", Z6),
   ...withZone("Zone 7", Z7),
 ];
+
+export function isDistrictClubActive(club: Pick<DistrictClubRecord, "status">) {
+  return (club.status ?? "ACTIVE") !== "INACTIVE";
+}
+
+/** Public / homepage club count — ACTIVE official clubs only. */
+export const DISTRICT_OFFICIAL_CLUB_COUNT = DISTRICT_CLUBS.filter(isDistrictClubActive).length;
 
 /** Official RI / district charter IDs — sole source of truth for club roster. */
 export const OFFICIAL_CLUB_CHARTER_IDS = DISTRICT_CLUBS.map((club) => club.riClubId);
