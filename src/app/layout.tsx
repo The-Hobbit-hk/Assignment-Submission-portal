@@ -1,20 +1,28 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AppProviders } from "@/components/providers/app-providers";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
 
-const inter = Inter({
+/**
+ * Self-hosted fonts so production builds never fetch Google Fonts.
+ * next/font/google + turbopack can fail on Vercel with:
+ * Module not found: @vercel/turbopack-next/internal/font/google/font
+ */
+const inter = localFont({
+  src: "./fonts/inter-latin-wght-normal.woff2",
   variable: "--font-inter",
-  subsets: ["latin"],
+  weight: "100 900",
+  display: "swap",
 });
 
-const playfair = Playfair_Display({
+const playfair = localFont({
+  src: "./fonts/playfair-display-latin-wght-normal.woff2",
   variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: "400 900",
+  display: "swap",
 });
 
 export const viewport: Viewport = {
